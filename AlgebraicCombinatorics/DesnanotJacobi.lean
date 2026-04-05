@@ -20,13 +20,13 @@ condensation" sections of the determinants chapter.
 ## Main results
 
 ### Vandermonde determinant (Theorem thm.det.vander)
-* `vandermonde_det_a`: det(aᵢⁿ⁻ʲ) = ∏_{i<j} (aᵢ - aⱼ)
-* `vandermonde_det_b`: det(aⱼⁿ⁻ⁱ) = ∏_{i<j} (aᵢ - aⱼ)
-* `vandermonde_det_c`: det(aᵢʲ⁻¹) = ∏_{j<i} (aᵢ - aⱼ)
-* `vandermonde_det_d`: det(aⱼⁱ⁻¹) = ∏_{j<i} (aᵢ - aⱼ)
+* `vandermonde_det_a`: det(aᵢⁿ⁻ʲ) = ∏_{i< j} (aᵢ - aⱼ)
+* `vandermonde_det_b`: det(aⱼⁿ⁻ⁱ) = ∏_{i< j} (aᵢ - aⱼ)
+* `vandermonde_det_c`: det(aᵢʲ⁻¹) = ∏_{j< i} (aᵢ - aⱼ)
+* `vandermonde_det_d`: det(aⱼⁱ⁻¹) = ∏_{j< i} (aᵢ - aⱼ)
 
 ### Proposition prop.det.(xi+yj)n-1
-* `det_sum_pow`: det((xᵢ + yⱼ)ⁿ⁻¹) = (∏ₖ C(n-1,k)) · (∏_{i<j}(xᵢ-xⱼ)) · (∏_{i<j}(yⱼ-yᵢ))
+* `det_sum_pow`: det((xᵢ + yⱼ)ⁿ⁻¹) = (∏ₖ C(n-1,k)) · (∏_{i< j}(xᵢ-xⱼ)) · (∏_{i< j}(yⱼ-yᵢ))
 
 ### Laplace expansion (Theorem thm.det.laplace)
 * `det_laplace_row`: det A = ∑_q (-1)^(p+q) A_{p,q} det(A_{~p,~q})
@@ -46,7 +46,7 @@ condensation" sections of the determinants chapter.
 * `desnanot_jacobi_general`: Generalization with arbitrary rows p,q and columns u,v
 
 ### Cauchy determinant (Theorem thm.det.cauchy)
-* `cauchy_det`: det(1/(xᵢ+yⱼ)) = ∏_{i<j}((xᵢ-xⱼ)(yᵢ-yⱼ)) / ∏_{i,j}(xᵢ+yⱼ)
+* `cauchy_det`: det(1/(xᵢ+yⱼ)) = ∏_{i< j}((xᵢ-xⱼ)(yᵢ-yⱼ)) / ∏_{i,j}(xᵢ+yⱼ)
 
 ### Jacobi's complementary minor theorem (Theorem thm.det.jacobi-complement)
 * `jacobi_complementary_minor`: det(sub_P^Q(adj A)) = (-1)^(sum P + sum Q) · (det A)^(|Q|-1) · det(sub_{~Q}^{~P} A)
@@ -266,7 +266,7 @@ theorem vandermondeMat_eq_projVandermonde (a : Fin n → R) :
   congr 1
   simp [Fin.rev]; omega
 
-/-- Vandermonde determinant, part (a): det(aᵢⁿ⁻ʲ) = ∏_{i<j} (aᵢ - aⱼ)
+/-- Vandermonde determinant, part (a): det(aᵢⁿ⁻ʲ) = ∏_{i< j} (aᵢ - aⱼ)
     Label: thm.det.vander (a)
 
     Note: Mathlib's `Matrix.det_vandermonde` uses a slightly different indexing convention.
@@ -280,7 +280,7 @@ theorem vandermonde_det_a (a : Fin n → R) :
   ext j
   simp
 
-/-- Vandermonde determinant, part (b): det(aⱼⁿ⁻ⁱ) = ∏_{i<j} (aᵢ - aⱼ)
+/-- Vandermonde determinant, part (b): det(aⱼⁿ⁻ⁱ) = ∏_{i< j} (aᵢ - aⱼ)
     This is the transpose of part (a).
     Label: thm.det.vander (b) -/
 theorem vandermonde_det_b (a : Fin n → R) :
@@ -310,7 +310,7 @@ private lemma prod_Ioi_eq_prod_Iio (a : Fin n → R) :
   · intro ⟨i, j⟩ _
     rfl
 
-/-- Vandermonde determinant, part (c): det(aᵢʲ⁻¹) = ∏_{j<i} (aᵢ - aⱼ)
+/-- Vandermonde determinant, part (c): det(aᵢʲ⁻¹) = ∏_{j< i} (aᵢ - aⱼ)
     Label: thm.det.vander (c) -/
 theorem vandermonde_det_c (a : Fin n → R) :
     (vandermondeMat' a).det = ∏ i : Fin n, ∏ j ∈ Iio i, (a i - a j) := by
@@ -320,7 +320,7 @@ theorem vandermonde_det_c (a : Fin n → R) :
     simp [vandermondeMat', Matrix.vandermonde]
   rw [h, Matrix.det_vandermonde, prod_Ioi_eq_prod_Iio]
 
-/-- Vandermonde determinant, part (d): det(aⱼⁱ⁻¹) = ∏_{j<i} (aᵢ - aⱼ)
+/-- Vandermonde determinant, part (d): det(aⱼⁱ⁻¹) = ∏_{j< i} (aᵢ - aⱼ)
     This is the transpose of part (c).
     Label: thm.det.vander (d) -/
 theorem vandermonde_det_d (a : Fin n → R) :
@@ -440,7 +440,7 @@ lemma det_submatrix_col_perm' {m : ℕ} {S : Type*} [CommRing S]
 noncomputable def vandermondePolyMat (m : ℕ) : Matrix (Fin m) (Fin m) (MvPolynomial (Fin m) ℤ) :=
   Matrix.of fun i j => (MvPolynomial.X i) ^ (m - 1 - j.val)
 
-/-- The product of differences ∏_{1≤i<j≤n} (xᵢ - xⱼ) in the polynomial ring.
+/-- The product of differences ∏_{1≤i< j≤n} (xᵢ - xⱼ) in the polynomial ring.
     Label: lem.det.vander.a.pol -/
 noncomputable def vandermondePolyProd (m : ℕ) : MvPolynomial (Fin m) ℤ :=
   ∏ i : Fin m, ∏ j ∈ Ioi i, (MvPolynomial.X i - MvPolynomial.X j)
@@ -518,7 +518,7 @@ lemma prod_Ioi_neg_sub' {m : ℕ} {S : Type*} [CommRing S] (v : Fin m → S) :
 /-- **Lemma lem.det.vander.a.pol**: The Vandermonde determinant in the polynomial ring.
 
     In ℤ[x₁,...,xₙ], we have:
-    det(xᵢⁿ⁻ʲ) = ∏_{1≤i<j≤n} (xᵢ - xⱼ)
+    det(xᵢⁿ⁻ʲ) = ∏_{1≤i< j≤n} (xᵢ - xⱼ)
 
     This is the "universal" form of the Vandermonde determinant. The general theorem
     (Theorem thm.det.vander) follows by substituting specific ring elements for the
@@ -638,7 +638,7 @@ private lemma sign_revPerm_cast : (Equiv.Perm.sign (Fin.revPerm (n := n)) : R) =
   norm_cast
 
 /-- Proposition prop.det.(xi+yj)n-1:
-    det((xᵢ + yⱼ)ⁿ⁻¹) = (∏ₖ C(n-1,k)) · (∏_{i<j}(xᵢ-xⱼ)) · (∏_{i<j}(yⱼ-yᵢ))
+    det((xᵢ + yⱼ)ⁿ⁻¹) = (∏ₖ C(n-1,k)) · (∏_{i< j}(xᵢ-xⱼ)) · (∏_{i< j}(yⱼ-yᵢ))
 
     The proof can be done either by factor hunting (first proof in the source)
     or by factoring the matrix as P · Q where P and Q are related to Vandermonde
@@ -973,7 +973,7 @@ noncomputable def submatrixDet {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
   else 0
 
 /-- `Determinants.submatrixDet` equals `PermFinset.submatrixDet`.
-    
+
     Both are "total" definitions (return 0 when |P| ≠ |Q|). They differ only in
     implementation: this one uses `finsetToFin`/`submatrixOfFinsets'`, while
     `PermFinset.submatrixDet` uses `orderEmbOfFin` directly. These are definitionally equal. -/
@@ -1108,7 +1108,7 @@ The key identity is:
 
 /-- The equivalence Fin m ≃ Fin |P| ⊕ Fin |Pᶜ| that sends elements of P to the left
     and elements of Pᶜ to the right, preserving order within each part. -/
-private noncomputable def finEquivSumOfFinset {m : ℕ} (P : Finset (Fin m)) : 
+private noncomputable def finEquivSumOfFinset {m : ℕ} (P : Finset (Fin m)) :
     Fin m ≃ Fin P.card ⊕ Fin Pᶜ.card := by
   have h1 : Pᶜ.card = Fintype.card (Fin m) - P.card := Finset.card_compl P
   have h2 : Fintype.card (Fin m) = m := Fintype.card_fin m
@@ -1119,7 +1119,7 @@ private noncomputable def finEquivSumOfFinset {m : ℕ} (P : Finset (Fin m)) :
 
 /-- The "sorting permutation" that reorders Fin m so that elements of P come first
     (in their natural order), followed by elements of Pᶜ (in their natural order).
-    
+
     This is the composition of finEquivSumOfFinset with finSumFinEquiv. -/
 private noncomputable def sortingPermOfFinset {m : ℕ} (P : Finset (Fin m)) : Equiv.Perm (Fin m) :=
   let e := finEquivSumOfFinset P
@@ -1129,10 +1129,10 @@ private noncomputable def sortingPermOfFinset {m : ℕ} (P : Finset (Fin m)) : E
   e.trans f
 
 /-- The sign of the sorting permutation can be computed from the sum of elements in P.
-    
+
     The key insight is that the number of inversions created when moving elements of P
     to the front equals ∑_{i ∈ P} |{j ∈ Pᶜ : j < i}|.
-    
+
     This equals (∑ P) - |P|(|P|-1)/2, where the second term accounts for the
     inversions within P that are preserved. -/
 -- Helper lemma: |{i ∈ Pᶜ : i < j}| = j.val - |{k ∈ P : k < j}|
@@ -1162,7 +1162,7 @@ private lemma card_filter_lt_le {m : ℕ} (P : Finset (Fin m)) (j : Fin m) :
 -- The number of pairs (i, j) in P×P with i < j equals |P|(|P|-1)/2
 private lemma card_filter_lt_product {m : ℕ} (P : Finset (Fin m)) :
     ((P ×ˢ P).filter (fun p => p.1 < p.2)).card = P.card * (P.card - 1) / 2 := by
-  have h1 : ((P ×ˢ P).filter (fun p => p.1 < p.2)).card + 
+  have h1 : ((P ×ˢ P).filter (fun p => p.1 < p.2)).card +
             ((P ×ˢ P).filter (fun p => p.2 < p.1)).card = P.offDiag.card := by
     have hdisj : Disjoint ((P ×ˢ P).filter (fun p => p.1 < p.2)) ((P ×ˢ P).filter (fun p => p.2 < p.1)) := by
       simp only [Finset.disjoint_filter]; intro p _ h1 h2; exact (lt_asymm h1 h2).elim
@@ -1196,7 +1196,7 @@ private lemma sum_card_filter_lt_self {m : ℕ} (P : Finset (Fin m)) :
 -- The number of inversions equals (∑ P) - |P|(|P|-1)/2
 private lemma sum_inversions_count {m : ℕ} (P : Finset (Fin m)) :
     P.sum (fun j => (Pᶜ.filter (· < j)).card) = P.sum Fin.val - P.card * (P.card - 1) / 2 := by
-  have h1 : P.sum (fun j => (Pᶜ.filter (· < j)).card) = 
+  have h1 : P.sum (fun j => (Pᶜ.filter (· < j)).card) =
             P.sum (fun j => j.val - (P.filter (· < j)).card) := by
     apply Finset.sum_congr rfl; intro j _; exact card_compl_filter_lt P j
   rw [h1]
@@ -1223,9 +1223,9 @@ private lemma sortingPermOfFinset_lt_card_iff {m : ℕ} (P : Finset (Fin m)) (x 
     have hxc : x ∈ Pᶜ := by simp [hx]
     have hcardEq : Pᶜ.card = m - P.card := by simp [Finset.card_compl]
     let k' : Fin (m - P.card) := (Pᶜ.orderIsoOfFin hcardEq).symm ⟨x, hxc⟩
-    have hk : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl 
+    have hk : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl
                 (by simp [Finset.card_compl])).symm x = Sum.inr k' := by
-      have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card) 
+      have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card)
                 (Sum.inr k') = x := by
         rw [finSumEquivOfFinset_inr]
         unfold Finset.orderEmbOfFin k'
@@ -1233,14 +1233,14 @@ private lemma sortingPermOfFinset_lt_card_iff {m : ℕ} (P : Finset (Fin m)) (x 
                    OrderIso.coe_toOrderEmbedding, OrderIso.apply_symm_apply, Subtype.coe_mk]
       exact (finSumEquivOfFinset rfl _).injective.eq_iff.mp (by rw [h1, Equiv.apply_symm_apply])
     rw [hk] at h
-    simp only [Sum.map_inr, finCongr_apply, Fin.val_cast, finSumFinEquiv_apply_right, 
+    simp only [Sum.map_inr, finCongr_apply, Fin.val_cast, finSumFinEquiv_apply_right,
                Fin.val_natAdd] at h
     omega
   · intro hx
-    have hk : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl 
-                (by simp [Finset.card_compl])).symm x = 
+    have hk : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl
+                (by simp [Finset.card_compl])).symm x =
               Sum.inl ((P.orderIsoOfFin rfl).symm ⟨x, hx⟩) := by
-      have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card) 
+      have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card)
                 (Sum.inl ((P.orderIsoOfFin rfl).symm ⟨x, hx⟩)) = x := by
         rw [finSumEquivOfFinset_inl]
         unfold Finset.orderEmbOfFin
@@ -1248,39 +1248,39 @@ private lemma sortingPermOfFinset_lt_card_iff {m : ℕ} (P : Finset (Fin m)) (x 
                    OrderIso.coe_toOrderEmbedding, OrderIso.apply_symm_apply, Subtype.coe_mk]
       exact (finSumEquivOfFinset rfl _).injective.eq_iff.mp (by rw [h1, Equiv.apply_symm_apply])
     rw [hk]
-    simp only [Sum.map_inl, Equiv.refl_apply, finSumFinEquiv_apply_left, Fin.val_castAdd, 
+    simp only [Sum.map_inl, Equiv.refl_apply, finSumFinEquiv_apply_left, Fin.val_castAdd,
                finCongr_apply, Fin.val_cast]
     exact ((P.orderIsoOfFin rfl).symm ⟨x, hx⟩).isLt
 
 /-- Order is preserved within P under sortingPermOfFinset -/
-private lemma sortingPermOfFinset_mono_on_P {m : ℕ} (P : Finset (Fin m)) (i j : Fin m) 
+private lemma sortingPermOfFinset_mono_on_P {m : ℕ} (P : Finset (Fin m)) (i j : Fin m)
     (hi : i ∈ P) (hj : j ∈ P) (hij : i < j) :
     sortingPermOfFinset P i < sortingPermOfFinset P j := by
   unfold sortingPermOfFinset finEquivSumOfFinset
   simp only [Equiv.trans_apply, Equiv.sumCongr_apply, Fin.lt_def]
-  have hki : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl 
+  have hki : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl
               (by simp [Finset.card_compl])).symm i = Sum.inl ((P.orderIsoOfFin rfl).symm ⟨i, hi⟩) := by
-    have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card) 
+    have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card)
               (Sum.inl ((P.orderIsoOfFin rfl).symm ⟨i, hi⟩)) = i := by
       rw [finSumEquivOfFinset_inl]; unfold Finset.orderEmbOfFin
       simp only [RelEmbedding.coe_trans, Function.comp_apply, OrderEmbedding.coe_subtype,
                  OrderIso.coe_toOrderEmbedding, OrderIso.apply_symm_apply, Subtype.coe_mk]
     exact (finSumEquivOfFinset rfl _).injective.eq_iff.mp (by rw [h1, Equiv.apply_symm_apply])
-  have hkj : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl 
+  have hkj : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl
               (by simp [Finset.card_compl])).symm j = Sum.inl ((P.orderIsoOfFin rfl).symm ⟨j, hj⟩) := by
-    have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card) 
+    have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card)
               (Sum.inl ((P.orderIsoOfFin rfl).symm ⟨j, hj⟩)) = j := by
       rw [finSumEquivOfFinset_inl]; unfold Finset.orderEmbOfFin
       simp only [RelEmbedding.coe_trans, Function.comp_apply, OrderEmbedding.coe_subtype,
                  OrderIso.coe_toOrderEmbedding, OrderIso.apply_symm_apply, Subtype.coe_mk]
     exact (finSumEquivOfFinset rfl _).injective.eq_iff.mp (by rw [h1, Equiv.apply_symm_apply])
   rw [hki, hkj]
-  simp only [Sum.map_inl, Equiv.refl_apply, finSumFinEquiv_apply_left, Fin.val_castAdd, 
+  simp only [Sum.map_inl, Equiv.refl_apply, finSumFinEquiv_apply_left, Fin.val_castAdd,
              finCongr_apply, Fin.val_cast]
   exact (P.orderIsoOfFin rfl).symm.strictMono (by simp only [Subtype.mk_lt_mk]; exact hij)
 
 /-- Order is preserved within Pᶜ under sortingPermOfFinset -/
-private lemma sortingPermOfFinset_mono_on_Pc {m : ℕ} (P : Finset (Fin m)) (i j : Fin m) 
+private lemma sortingPermOfFinset_mono_on_Pc {m : ℕ} (P : Finset (Fin m)) (i j : Fin m)
     (hi : i ∉ P) (hj : j ∉ P) (hij : i < j) :
     sortingPermOfFinset P i < sortingPermOfFinset P j := by
   have hic : i ∈ Pᶜ := by simp [hi]
@@ -1290,17 +1290,17 @@ private lemma sortingPermOfFinset_mono_on_Pc {m : ℕ} (P : Finset (Fin m)) (i j
   simp only [Equiv.trans_apply, Equiv.sumCongr_apply, Fin.lt_def]
   let ki : Fin (m - P.card) := (Pᶜ.orderIsoOfFin hcardEq).symm ⟨i, hic⟩
   let kj : Fin (m - P.card) := (Pᶜ.orderIsoOfFin hcardEq).symm ⟨j, hjc⟩
-  have hki : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl 
+  have hki : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl
               (by simp [Finset.card_compl])).symm i = Sum.inr ki := by
-    have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card) 
+    have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card)
               (Sum.inr ki) = i := by
       rw [finSumEquivOfFinset_inr]; unfold Finset.orderEmbOfFin ki
       simp only [RelEmbedding.coe_trans, Function.comp_apply, OrderEmbedding.coe_subtype,
                  OrderIso.coe_toOrderEmbedding, OrderIso.apply_symm_apply, Subtype.coe_mk]
     exact (finSumEquivOfFinset rfl _).injective.eq_iff.mp (by rw [h1, Equiv.apply_symm_apply])
-  have hkj : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl 
+  have hkj : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl
               (by simp [Finset.card_compl])).symm j = Sum.inr kj := by
-    have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card) 
+    have h1 : finSumEquivOfFinset rfl (by simp [Finset.card_compl] : Pᶜ.card = m - P.card)
               (Sum.inr kj) = j := by
       rw [finSumEquivOfFinset_inr]; unfold Finset.orderEmbOfFin kj
       simp only [RelEmbedding.coe_trans, Function.comp_apply, OrderEmbedding.coe_subtype,
@@ -1312,7 +1312,7 @@ private lemma sortingPermOfFinset_mono_on_Pc {m : ℕ} (P : Finset (Fin m)) (i j
   omega
 
 /-- Characterize inversions: (i, j) with i < j is an inversion iff i ∈ Pᶜ and j ∈ P -/
-private lemma sortingPermOfFinset_inversion_iff {m : ℕ} (P : Finset (Fin m)) (i j : Fin m) 
+private lemma sortingPermOfFinset_inversion_iff {m : ℕ} (P : Finset (Fin m)) (i j : Fin m)
     (hij : i < j) :
     sortingPermOfFinset P i > sortingPermOfFinset P j ↔ (i ∉ P ∧ j ∈ P) := by
   constructor
@@ -1323,7 +1323,7 @@ private lemma sortingPermOfFinset_inversion_iff {m : ℕ} (P : Finset (Fin m)) (
         exact absurd this (not_lt_of_gt h)
       · have hi' := (sortingPermOfFinset_lt_card_iff P i).mpr hi
         have hj' := not_iff_not.mpr (sortingPermOfFinset_lt_card_iff P j) |>.mpr hj
-        have : sortingPermOfFinset P i < sortingPermOfFinset P j := 
+        have : sortingPermOfFinset P i < sortingPermOfFinset P j :=
           Nat.lt_of_lt_of_le hi' (Nat.not_lt.mp hj')
         exact absurd this (not_lt_of_gt h)
     · by_cases hj : j ∈ P
@@ -1342,21 +1342,21 @@ private lemma neg_one_pow_sub_mul_aux {a b c d : ℕ} (hb : b ≤ a) (hd : d ≤
     ((-1 : ℤˣ) ^ (a - b) : ℤ) * ((-1 : ℤˣ) ^ (c - d) : ℤ) = (-1 : ℤ) ^ (a + c) := by
   simp only [Units.val_neg, Units.val_one]
   have eq1 : (-1 : ℤ) ^ (a - b) = (-1 : ℤ) ^ a * (-1 : ℤ) ^ b := by
-    calc (-1 : ℤ) ^ (a - b) 
+    calc (-1 : ℤ) ^ (a - b)
         = (-1) ^ (a - b) * 1 := by ring
       _ = (-1) ^ (a - b) * ((-1) ^ b * (-1) ^ b) := by simp [← pow_add, Even.neg_one_pow ⟨b, rfl⟩]
       _ = (-1) ^ (a - b) * (-1) ^ b * (-1) ^ b := by ring
       _ = (-1) ^ ((a - b) + b) * (-1) ^ b := by rw [pow_add]
       _ = (-1) ^ a * (-1) ^ b := by rw [Nat.sub_add_cancel hb]
   have eq2 : (-1 : ℤ) ^ (c - d) = (-1 : ℤ) ^ c * (-1 : ℤ) ^ d := by
-    calc (-1 : ℤ) ^ (c - d) 
+    calc (-1 : ℤ) ^ (c - d)
         = (-1) ^ (c - d) * 1 := by ring
       _ = (-1) ^ (c - d) * ((-1) ^ d * (-1) ^ d) := by simp [← pow_add, Even.neg_one_pow ⟨d, rfl⟩]
       _ = (-1) ^ (c - d) * (-1) ^ d * (-1) ^ d := by ring
       _ = (-1) ^ ((c - d) + d) * (-1) ^ d := by rw [pow_add]
       _ = (-1) ^ c * (-1) ^ d := by rw [Nat.sub_add_cancel hd]
   rw [eq1, eq2]
-  calc (-1 : ℤ) ^ a * (-1) ^ b * ((-1) ^ c * (-1) ^ d) 
+  calc (-1 : ℤ) ^ a * (-1) ^ b * ((-1) ^ c * (-1) ^ d)
       = (-1) ^ a * (-1) ^ c * ((-1) ^ b * (-1) ^ d) := by ring
     _ = (-1) ^ (a + c) * ((-1) ^ b * (-1) ^ d) := by rw [← pow_add]
     _ = (-1) ^ (a + c) * (-1) ^ (b + d) := by rw [← pow_add]
@@ -1388,7 +1388,7 @@ private lemma sum_positions_eq {m : ℕ} (P : Finset (Fin m)) :
   exact sum_range_id P.card
 
 /-- The k-th smallest element of P has value at least k. -/
-private lemma orderEmbOfFin_val_ge {m : ℕ} (P : Finset (Fin m)) (k : Fin P.card) : 
+private lemma orderEmbOfFin_val_ge {m : ℕ} (P : Finset (Fin m)) (k : Fin P.card) :
     k.val ≤ (P.orderEmbOfFin rfl k).val := by
   induction' hk : k.val with n ih generalizing k
   · exact Nat.zero_le _
@@ -1404,9 +1404,9 @@ private lemma orderEmbOfFin_val_ge {m : ℕ} (P : Finset (Fin m)) (k : Fin P.car
 /-- The minimum sum of a k-element subset of Fin m is 0+1+...+(k-1) = k(k-1)/2 -/
 private lemma sum_fin_val_ge_card_choose_two {m : ℕ} (P : Finset (Fin m)) :
     P.card * (P.card - 1) / 2 ≤ P.sum Fin.val := by
-  have h3 : ∑ i : Fin P.card, (i : ℕ) ≤ ∑ i : Fin P.card, ((P.orderEmbOfFin rfl) i : Fin m).val := 
+  have h3 : ∑ i : Fin P.card, (i : ℕ) ≤ ∑ i : Fin P.card, ((P.orderEmbOfFin rfl) i : Fin m).val :=
     sum_le_sum (fun i _ => orderEmbOfFin_val_ge P i)
-  calc P.card * (P.card - 1) / 2 
+  calc P.card * (P.card - 1) / 2
       = ∑ i ∈ range P.card, i := (sum_range_id P.card).symm
     _ = ∑ i : Fin P.card, (i : ℕ) := by rw [Fin.sum_univ_eq_sum_range (fun i => i) P.card]
     _ ≤ ∑ i : Fin P.card, ((P.orderEmbOfFin rfl) i : Fin m).val := h3
@@ -1415,15 +1415,15 @@ private lemma sum_fin_val_ge_card_choose_two {m : ℕ} (P : Finset (Fin m)) :
 /-- The number of inversions when sorting P to the front equals (∑ P) - |P|(|P|-1)/2.
     This counts pairs (i, j) where i ∈ Pᶜ, j ∈ P, and i < j. -/
 private lemma inversion_count_formula {m : ℕ} (P : Finset (Fin m)) :
-    P.sum Fin.val - P.card * (P.card - 1) / 2 = 
+    P.sum Fin.val - P.card * (P.card - 1) / 2 =
     ∑ k : Fin P.card, ((P.orderEmbOfFin rfl k).val - k.val) := by
-  have h : ((P.sum Fin.val : ℕ) : ℤ) - ((P.card * (P.card - 1) / 2 : ℕ) : ℤ) = 
+  have h : ((P.sum Fin.val : ℕ) : ℤ) - ((P.card * (P.card - 1) / 2 : ℕ) : ℤ) =
            ∑ k : Fin P.card, (((P.orderEmbOfFin rfl k).val : ℤ) - (k.val : ℤ)) := by
     rw [← sum_orderEmbOfFin_eq P, ← sum_positions_eq P]
     push_cast
     rw [← Finset.sum_sub_distrib]
   have hge := sum_fin_val_ge_card_choose_two P
-  have hcast : ∑ k : Fin P.card, (((P.orderEmbOfFin rfl k).val : ℤ) - (k.val : ℤ)) = 
+  have hcast : ∑ k : Fin P.card, (((P.orderEmbOfFin rfl k).val : ℤ) - (k.val : ℤ)) =
                ((∑ k : Fin P.card, ((P.orderEmbOfFin rfl k).val - k.val)) : ℕ) := by
     simp only [Nat.cast_sum]
     apply Finset.sum_congr rfl
@@ -1431,14 +1431,14 @@ private lemma inversion_count_formula {m : ℕ} (P : Finset (Fin m)) :
     have hterm := orderEmbOfFin_val_ge P k
     omega
   rw [hcast] at h
-  have hnat : ((P.sum Fin.val : ℕ) : ℤ) - ((P.card * (P.card - 1) / 2 : ℕ) : ℤ) = 
+  have hnat : ((P.sum Fin.val : ℕ) : ℤ) - ((P.card * (P.card - 1) / 2 : ℕ) : ℤ) =
               (((P.sum Fin.val - P.card * (P.card - 1) / 2 : ℕ)) : ℤ) := by
     rw [Nat.cast_sub hge]
   rw [hnat] at h
   exact Nat.cast_injective h
 
 /-- Helper for subtracting sums of natural numbers. -/
-private lemma sum_sub_of_le' {α : Type*} [DecidableEq α] {s : Finset α} {f g : α → ℕ} 
+private lemma sum_sub_of_le' {α : Type*} [DecidableEq α] {s : Finset α} {f g : α → ℕ}
     (h : ∀ a ∈ s, g a ≤ f a) :
     ∑ a ∈ s, (f a - g a) = ∑ a ∈ s, f a - ∑ a ∈ s, g a := by
   induction s using Finset.induction_on with
@@ -1453,7 +1453,7 @@ private lemma sum_sub_of_le' {α : Type*} [DecidableEq α] {s : Finset α} {f g 
 /-- For each j, |{i ∈ Pᶜ : i < j}| = j.val - |{k ∈ P : k < j}|. -/
 private lemma filter_compl_lt_card {m : ℕ} (P : Finset (Fin m)) (j : Fin m) :
     (Finset.filter (fun i => i < j) Pᶜ).card = j.val - (Finset.filter (fun k => k < j) P).card := by
-  have hpartition : (Finset.filter (fun i => i < j) Finset.univ) = 
+  have hpartition : (Finset.filter (fun i => i < j) Finset.univ) =
                     (Finset.filter (fun i => i < j) P) ∪ (Finset.filter (fun i => i < j) Pᶜ) := by
     ext i
     simp only [mem_filter, mem_univ, true_and, mem_union, mem_compl]
@@ -1474,7 +1474,7 @@ private lemma filter_compl_lt_card {m : ℕ} (P : Finset (Fin m)) (j : Fin m) :
 /-- The number of pairs (k, j) with k, j ∈ P and k < j is C(|P|, 2) = |P|(|P|-1)/2. -/
 private lemma card_pairs_lt {m : ℕ} (P : Finset (Fin m)) :
     ((P ×ˢ P).filter (fun ⟨k, j⟩ => k < j)).card = P.card.choose 2 := by
-  have h : ((P ×ˢ P).filter (fun ⟨k, j⟩ => k < j)).card = 
+  have h : ((P ×ˢ P).filter (fun ⟨k, j⟩ => k < j)).card =
            (P.powersetCard 2).card := by
     refine Finset.card_bij (fun ⟨k, j⟩ _ => {k, j}) ?_ ?_ ?_
     · intro ⟨k, j⟩ hkj
@@ -1522,11 +1522,11 @@ private lemma card_pairs_lt {m : ℕ} (P : Finset (Fin m)) :
 /-- The sum ∑_{j ∈ P} |{k ∈ P : k < j}| = |P|(|P|-1)/2. -/
 private lemma sum_filter_lt_card' {m : ℕ} (P : Finset (Fin m)) :
     ∑ j ∈ P, (Finset.filter (fun k => k < j) P).card = P.card * (P.card - 1) / 2 := by
-  have h1 : ∑ j ∈ P, (Finset.filter (fun k => k < j) P).card = 
+  have h1 : ∑ j ∈ P, (Finset.filter (fun k => k < j) P).card =
             (P.sigma (fun j => Finset.filter (fun k => k < j) P)).card := by
     rw [Finset.card_sigma]
   rw [h1]
-  have h2 : (P.sigma (fun j => Finset.filter (fun k => k < j) P)).card = 
+  have h2 : (P.sigma (fun j => Finset.filter (fun k => k < j) P)).card =
             ((P ×ˢ P).filter (fun ⟨k, j⟩ => k < j)).card := by
     refine Finset.card_bij (fun ⟨j, k⟩ _ => ⟨k, j⟩) ?_ ?_ ?_
     · intro ⟨j, k⟩ hjk
@@ -1543,7 +1543,7 @@ private lemma sum_filter_lt_card' {m : ℕ} (P : Finset (Fin m)) :
 /-- The inversion count identity: ∑_{j ∈ P} |{i ∈ Pᶜ : i < j}| = (∑ P) - |P|(|P|-1)/2.
     This counts pairs (i, j) where i ∈ Pᶜ, j ∈ P, and i < j. -/
 private lemma inversionCount_eq' {m : ℕ} (P : Finset (Fin m)) :
-    ∑ j ∈ P, (Finset.filter (fun i => i < j) Pᶜ).card = 
+    ∑ j ∈ P, (Finset.filter (fun i => i < j) Pᶜ).card =
     P.sum Fin.val - P.card * (P.card - 1) / 2 := by
   -- Transform using filter_compl_lt_card
   have h1 : ∑ j ∈ P, (Finset.filter (fun i => i < j) Pᶜ).card =
@@ -1555,8 +1555,8 @@ private lemma inversionCount_eq' {m : ℕ} (P : Finset (Fin m)) :
   -- Now split the sum
   have hle : ∀ j ∈ P, (Finset.filter (fun k => k < j) P).card ≤ j.val := by
     intro j _
-    calc (Finset.filter (fun k => k < j) P).card 
-        ≤ (Finset.filter (fun k => k < j) Finset.univ).card := 
+    calc (Finset.filter (fun k => k < j) P).card
+        ≤ (Finset.filter (fun k => k < j) Finset.univ).card :=
             card_le_card (filter_subset_filter _ (subset_univ _))
       _ = j.val := by
           have : (Finset.filter (fun i : Fin m => i < j) Finset.univ) = Finset.Iio j := by
@@ -1565,7 +1565,7 @@ private lemma inversionCount_eq' {m : ℕ} (P : Finset (Fin m)) :
   rw [sum_sub_of_le' hle, sum_filter_lt_card']
 
 /-- Helper lemma: Convert a product of (if P then 1 else -1) to (-1)^count. -/
-private lemma prod_ite_eq_neg_one_pow {α : Type*} [DecidableEq α] (s : Finset α) 
+private lemma prod_ite_eq_neg_one_pow {α : Type*} [DecidableEq α] (s : Finset α)
     (P : α → Prop) [DecidablePred P] :
     ∏ x ∈ s, (if P x then (1 : ℤˣ) else -1) = (-1) ^ (s.filter (fun x => ¬P x)).card := by
   induction s using Finset.induction_on with
@@ -1579,13 +1579,13 @@ private lemma prod_ite_eq_neg_one_pow {α : Type*} [DecidableEq α] (s : Finset 
 
 /-- The inversion pairs (i,j) with i ∈ Pᶜ, j ∈ P, i < j have cardinality ∑_{j ∈ P} |{i ∈ Pᶜ : i < j}|. -/
 private lemma card_inversion_pairs {m : ℕ} (P : Finset (Fin m)) :
-    (filter (fun p : (Fin m) × (Fin m) => p.1 ∉ P ∧ p.2 ∈ P ∧ p.1 < p.2) 
+    (filter (fun p : (Fin m) × (Fin m) => p.1 ∉ P ∧ p.2 ∈ P ∧ p.1 < p.2)
       (univ ×ˢ univ)).card =
     ∑ j ∈ P, (filter (fun i => i < j) Pᶜ).card := by
-  have h : (filter (fun p : (Fin m) × (Fin m) => p.1 ∉ P ∧ p.2 ∈ P ∧ p.1 < p.2) 
-      (univ ×ˢ univ)) = 
-    (P.sigma (fun j => filter (fun i => i < j) Pᶜ)).map 
-      ⟨fun ⟨j, i⟩ => ⟨i, j⟩, fun ⟨j1, i1⟩ ⟨j2, i2⟩ heq => by 
+  have h : (filter (fun p : (Fin m) × (Fin m) => p.1 ∉ P ∧ p.2 ∈ P ∧ p.1 < p.2)
+      (univ ×ˢ univ)) =
+    (P.sigma (fun j => filter (fun i => i < j) Pᶜ)).map
+      ⟨fun ⟨j, i⟩ => ⟨i, j⟩, fun ⟨j1, i1⟩ ⟨j2, i2⟩ heq => by
         simp only [Prod.mk.injEq] at heq
         exact Sigma.ext heq.2 (heq_of_eq heq.1)⟩ := by
     ext ⟨i, j⟩
@@ -1603,13 +1603,13 @@ private lemma card_inversion_pairs {m : ℕ} (P : Finset (Fin m)) :
 /-- Connect inversion count to the sum formula using the inversion characterization. -/
 private lemma inversion_count_eq_sum {m : ℕ} (σ : Equiv.Perm (Fin m)) (P : Finset (Fin m))
     (hσ : ∀ i j, i < j → (σ i > σ j ↔ (i ∉ P ∧ j ∈ P))) :
-    (((univ (α := Fin m)).sigma (fun i => Ioi i)).filter 
+    (((univ (α := Fin m)).sigma (fun i => Ioi i)).filter
       (fun p : (_ : Fin m) × Fin m => σ p.1 > σ p.2)).card =
     ∑ j ∈ P, (filter (fun i => i < j) Pᶜ).card := by
-  have h1 : (((univ (α := Fin m)).sigma (fun i => Ioi i)).filter 
+  have h1 : (((univ (α := Fin m)).sigma (fun i => Ioi i)).filter
       (fun p : (_ : Fin m) × Fin m => σ p.1 > σ p.2)).card =
     ((univ ×ˢ univ).filter (fun p : (Fin m) × (Fin m) => p.1 < p.2 ∧ σ p.1 > σ p.2)).card := by
-    apply card_bij (fun ⟨i, j⟩ _ => (i, j)) 
+    apply card_bij (fun ⟨i, j⟩ _ => (i, j))
     · intro ⟨i, j⟩ hij
       simp only [mem_filter, mem_sigma, mem_univ, mem_Ioi, true_and, mem_product] at hij ⊢
       exact ⟨hij.1, hij.2⟩
@@ -1636,15 +1636,15 @@ private lemma inversion_count_eq_sum {m : ℕ} (σ : Equiv.Perm (Fin m)) (P : Fi
 
 /-- Express the sign of a permutation as (-1)^(inversion count). -/
 private lemma sign_eq_neg_one_pow_inversion_count {m : ℕ} (σ : Equiv.Perm (Fin m)) :
-    σ.sign = (-1 : ℤˣ) ^ (((univ (α := Fin m)).sigma (fun i => Ioi i)).filter 
+    σ.sign = (-1 : ℤˣ) ^ (((univ (α := Fin m)).sigma (fun i => Ioi i)).filter
       (fun p : (_ : Fin m) × Fin m => σ p.1 > σ p.2)).card := by
   rw [Equiv.Perm.sign_eq_prod_prod_Ioi]
   rw [prod_sigma']
   rw [prod_ite_eq_neg_one_pow]
   congr 1
-  have heq : (((univ (α := Fin m)).sigma (fun i => Ioi i)).filter 
+  have heq : (((univ (α := Fin m)).sigma (fun i => Ioi i)).filter
       (fun p : (_ : Fin m) × Fin m => ¬ σ p.1 < σ p.2)) =
-    (((univ (α := Fin m)).sigma (fun i => Ioi i)).filter 
+    (((univ (α := Fin m)).sigma (fun i => Ioi i)).filter
       (fun p : (_ : Fin m) × Fin m => σ p.1 > σ p.2)) := by
     ext ⟨i, j⟩
     simp only [mem_filter, mem_sigma, mem_univ, mem_Ioi, true_and, not_lt]
@@ -1657,40 +1657,40 @@ private lemma sign_eq_neg_one_pow_inversion_count {m : ℕ} (σ : Equiv.Perm (Fi
   rw [heq]
 
 /-- The sign of the sorting permutation for a finset P.
-    
+
     Proof outline:
-    
+
     The sorting permutation σ = sortingPermOfFinset P has the following structure:
     - For x ∈ P (the k-th smallest in P), σ(x) = k
     - For x ∈ Pᶜ (the k-th smallest in Pᶜ), σ(x) = |P| + k
-    
+
     Using the formula sign σ = ∏_{i < j} (if σ(i) < σ(j) then 1 else -1),
     we count inversions (pairs (i,j) with i < j but σ(i) > σ(j)):
-    
+
     By sortingPermOfFinset_inversion_iff, inversions are exactly pairs (i, j) with i ∈ Pᶜ, j ∈ P, i < j.
-    
+
     Number of inversions = |{(i,j) : i ∈ Pᶜ, j ∈ P, i < j}|
                          = ∑_{j ∈ P} |{i ∈ Pᶜ : i < j}|
                          = (∑ P) - |P|(|P|-1)/2  (by inversionCount_eq')
-    
+
     Therefore sign σ = (-1)^(∑ P - |P|(|P|-1)/2). -/
 private lemma sign_sortingPermOfFinset {m : ℕ} (P : Finset (Fin m)) :
-    Equiv.Perm.sign (sortingPermOfFinset P) = 
+    Equiv.Perm.sign (sortingPermOfFinset P) =
     (-1 : ℤˣ) ^ (P.sum Fin.val - P.card * (P.card - 1) / 2) := by
   rw [sign_eq_neg_one_pow_inversion_count]
   congr 1
-  rw [inversion_count_eq_sum (sortingPermOfFinset P) P 
+  rw [inversion_count_eq_sum (sortingPermOfFinset P) P
       (fun i j hij => sortingPermOfFinset_inversion_iff P i j hij)]
   rw [inversionCount_eq']
 
 /-- Key identity: When |P| = |Q|, the product of sorting permutation signs gives the
     sign factor (-1)^(∑ P + ∑ Q) that appears in the multi-row Laplace expansion.
-    
+
     The proof uses the fact that |P|(|P|-1)/2 + |Q|(|Q|-1)/2 = |P|(|P|-1) when |P| = |Q|,
     and |P|(|P|-1) is always even, so its contribution to the sign is 1. -/
 private lemma sign_sortingPermOfFinset_mul {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card) :
-    (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) * 
-    (Equiv.Perm.sign (sortingPermOfFinset Q) : ℤ) = 
+    (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) *
+    (Equiv.Perm.sign (sortingPermOfFinset Q) : ℤ) =
     (-1 : ℤ) ^ (P.sum Fin.val + Q.sum Fin.val) := by
   rw [sign_sortingPermOfFinset P, sign_sortingPermOfFinset Q]
   have hbd : Even (P.card * (P.card - 1) / 2 + Q.card * (Q.card - 1) / 2) := by
@@ -1709,14 +1709,14 @@ private lemma sign_sortingPermOfFinset_mul {m : ℕ} (P Q : Finset (Fin m)) (hPQ
 
 /-- General sign decomposition lemma: if σ = a⁻¹ * (sumCongr τ ρ) * b,
     then sign(σ) = sign(a) * sign(b) * sign(τ) * sign(ρ).
-    
+
     This is the key algebraic identity used in the sign computation for
     the multi-row Laplace expansion. -/
-private lemma sign_decomposition_general {α β : Type*} [DecidableEq α] [Fintype α] 
+private lemma sign_decomposition_general {α β : Type*} [DecidableEq α] [Fintype α]
     [DecidableEq β] [Fintype β]
     (a b : Equiv.Perm (α ⊕ β)) (τ : Equiv.Perm α) (ρ : Equiv.Perm β)
     (σ : Equiv.Perm (α ⊕ β)) (h : σ = a⁻¹ * (Equiv.sumCongr τ ρ) * b) :
-    (Equiv.Perm.sign σ : ℤ) = (Equiv.Perm.sign a : ℤ) * (Equiv.Perm.sign b : ℤ) * 
+    (Equiv.Perm.sign σ : ℤ) = (Equiv.Perm.sign a : ℤ) * (Equiv.Perm.sign b : ℤ) *
                               (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) := by
   rw [h]
   simp only [map_mul, map_inv, Int.units_inv_eq_self, Equiv.Perm.sign_sumCongr]
@@ -1725,7 +1725,7 @@ private lemma sign_decomposition_general {α β : Type*} [DecidableEq α] [Finty
 
 /-- Restriction to P: given σ with σ '' P = Q, extract τ : Perm (Fin P.card).
     The k-th smallest element of P maps to the τ(k)-th smallest element of Q. -/
-private noncomputable def restrictToPerm {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card) 
+private noncomputable def restrictToPerm {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (σ : Equiv.Perm (Fin m)) (hσ : PermFinset.imageFinset σ P = Q) : Equiv.Perm (Fin P.card) := by
   let eP := P.orderIsoOfFin rfl
   let eQ := Q.orderIsoOfFin rfl
@@ -1734,7 +1734,7 @@ private noncomputable def restrictToPerm {m : ℕ} (P Q : Finset (Fin m)) (hPQ :
     rw [← hσ]
     simp only [PermFinset.imageFinset, Finset.mem_map, Function.Embedding.coeFn_mk]
     exact ⟨x, hx, rfl⟩
-  let f : Fin P.card → Fin P.card := fun k => 
+  let f : Fin P.card → Fin P.card := fun k =>
     castQP (eQ.symm ⟨σ (eP k), hσ' (eP k) (Finset.coe_mem _)⟩)
   have hf_inj : Function.Injective f := by
     intro k1 k2 hk
@@ -1768,7 +1768,7 @@ private noncomputable def restrictToPerm {m : ℕ} (P Q : Finset (Fin m)) (hPQ :
   exact Equiv.ofBijective f ⟨hf_inj, hf_surj⟩
 
 /-- Key property of restrictToPerm: σ (eP k) = eQ (τ k) after appropriate casting. -/
-private lemma restrictToPerm_spec {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card) 
+private lemma restrictToPerm_spec {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (σ : Equiv.Perm (Fin m)) (hσ : PermFinset.imageFinset σ P = Q) (k : Fin P.card) :
     σ (P.orderIsoOfFin rfl k) = Q.orderIsoOfFin rfl (finCongr hPQ (restrictToPerm P Q hPQ σ hσ k)) := by
   unfold restrictToPerm
@@ -1777,7 +1777,7 @@ private lemma restrictToPerm_spec {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card
     rw [← hσ]
     simp only [PermFinset.imageFinset, Finset.mem_map, Function.Embedding.coeFn_mk]
     exact ⟨P.orderIsoOfFin rfl k, Finset.coe_mem _, rfl⟩
-  have h1 : (finCongr hPQ.symm) ((Q.orderIsoOfFin rfl).symm ⟨σ (P.orderIsoOfFin rfl k), hσk⟩) 
+  have h1 : (finCongr hPQ.symm) ((Q.orderIsoOfFin rfl).symm ⟨σ (P.orderIsoOfFin rfl k), hσk⟩)
           = Fin.cast hPQ.symm ((Q.orderIsoOfFin rfl).symm ⟨σ (P.orderIsoOfFin rfl k), hσk⟩) := rfl
   have h2 : finCongr hPQ (Fin.cast hPQ.symm ((Q.orderIsoOfFin rfl).symm ⟨σ (P.orderIsoOfFin rfl k), hσk⟩))
           = (Q.orderIsoOfFin rfl).symm ⟨σ (P.orderIsoOfFin rfl k), hσk⟩ := by
@@ -1786,7 +1786,7 @@ private lemma restrictToPerm_spec {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card
   simp only [OrderIso.apply_symm_apply, Subtype.coe_mk]
 
 /-- Restriction to Pᶜ: given σ with σ '' P = Q, extract ρ : Perm (Fin Pᶜ.card). -/
-private noncomputable def restrictToPermCompl {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card) 
+private noncomputable def restrictToPermCompl {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (σ : Equiv.Perm (Fin m)) (hσ : PermFinset.imageFinset σ P = Q) : Equiv.Perm (Fin Pᶜ.card) := by
   have hPcQc : Pᶜ.card = Qᶜ.card := by rw [Finset.card_compl, Finset.card_compl, hPQ]
   have hσc : PermFinset.imageFinset σ Pᶜ = Qᶜ := imageFinset_compl' hσ
@@ -1799,7 +1799,7 @@ private noncomputable def constructPermFromPair {m : ℕ} (P Q : Finset (Fin m))
   have hPcQc : Pᶜ.card = Qᶜ.card := by rw [Finset.card_compl, Finset.card_compl, hPQ]
   let ePsum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin m := finSumEquivOfFinset rfl rfl
   let eQsum : Fin Q.card ⊕ Fin Qᶜ.card ≃ Fin m := finSumEquivOfFinset rfl rfl
-  let castSum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin Q.card ⊕ Fin Qᶜ.card := 
+  let castSum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin Q.card ⊕ Fin Qᶜ.card :=
     Equiv.sumCongr (finCongr hPQ) (finCongr hPcQc)
   let inner : Equiv.Perm (Fin P.card ⊕ Fin Pᶜ.card) := Equiv.sumCongr τ ρ
   exact ePsum.symm.trans (inner.trans (castSum.trans eQsum))
@@ -1814,7 +1814,7 @@ private lemma constructPermFromPair_image {m : ℕ} (P Q : Finset (Fin m)) (hPQ 
   simp only [Finset.mem_map, Function.Embedding.coeFn_mk]
   constructor
   · intro ⟨y, hy, hxy⟩
-    have hy' : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm y = 
+    have hy' : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm y =
                Sum.inl ((P.orderIsoOfFin rfl).symm ⟨y, hy⟩) := by
       apply (finSumEquivOfFinset rfl rfl).injective
       simp only [Equiv.apply_symm_apply, finSumEquivOfFinset_inl]
@@ -1831,7 +1831,7 @@ private lemma constructPermFromPair_image {m : ℕ} (P Q : Finset (Fin m)) (hPQ 
     constructor
     · exact Finset.orderEmbOfFin_mem P rfl k
     · simp only [Equiv.trans_apply]
-      have hk' : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm 
+      have hk' : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm
                  (P.orderEmbOfFin rfl k) = Sum.inl k := by
         apply (finSumEquivOfFinset rfl rfl).injective
         simp only [Equiv.apply_symm_apply, finSumEquivOfFinset_inl]
@@ -1842,19 +1842,19 @@ private lemma constructPermFromPair_image {m : ℕ} (P Q : Finset (Fin m)) (hPQ 
                  Fin.cast_eq_self, OrderIso.apply_symm_apply, Subtype.coe_mk]
 
 /-- The bijection between permutations mapping P to Q and pairs of permutations.
-    
+
     Given σ with σ(P) = Q, we can extract:
     - τ : Perm (Fin |P|), the restriction of σ to P (viewed via orderIsoOfFin)
     - ρ : Perm (Fin |Pᶜ|), the restriction of σ to Pᶜ
-    
+
     This bijection is the key to decomposing the sum over PermFinset.permsMapping. -/
-private noncomputable def permsMappingEquiv {m : ℕ} (P Q : Finset (Fin m)) 
+private noncomputable def permsMappingEquiv {m : ℕ} (P Q : Finset (Fin m))
     (hPQ : P.card = Q.card) :
     PermFinset.permsMapping P Q ≃ Equiv.Perm (Fin P.card) × Equiv.Perm (Fin Pᶜ.card) where
-  toFun := fun ⟨σ, hσ⟩ => 
+  toFun := fun ⟨σ, hσ⟩ =>
     let hσ' : PermFinset.imageFinset σ P = Q := by simp only [PermFinset.permsMapping, Finset.mem_filter] at hσ; exact hσ.2
     (restrictToPerm P Q hPQ σ hσ', restrictToPermCompl P Q hPQ σ hσ')
-  invFun := fun ⟨τ, ρ⟩ => 
+  invFun := fun ⟨τ, ρ⟩ =>
     ⟨constructPermFromPair P Q hPQ τ ρ, by
       simp only [PermFinset.permsMapping, Finset.mem_filter, Finset.mem_univ, true_and]
       exact constructPermFromPair_image P Q hPQ τ ρ⟩
@@ -1875,7 +1875,7 @@ private noncomputable def permsMappingEquiv {m : ℕ} (P Q : Finset (Fin m))
         simp only [OrderIso.apply_symm_apply, Subtype.coe_mk]
       rw [hx']
       simp only [Equiv.sumCongr_apply, Sum.map_inl, finSumEquivOfFinset_inl]
-      have hk : (P.orderIsoOfFin rfl) ((P.orderIsoOfFin rfl).symm ⟨x, hxP⟩) = ⟨x, hxP⟩ := 
+      have hk : (P.orderIsoOfFin rfl) ((P.orderIsoOfFin rfl).symm ⟨x, hxP⟩) = ⟨x, hxP⟩ :=
         OrderIso.apply_symm_apply _ _
       have hspec := restrictToPerm_spec P Q hPQ σ hσ' ((P.orderIsoOfFin rfl).symm ⟨x, hxP⟩)
       simp only [hk, Subtype.coe_mk] at hspec
@@ -1892,7 +1892,7 @@ private noncomputable def permsMappingEquiv {m : ℕ} (P Q : Finset (Fin m))
       simp only [Equiv.sumCongr_apply, Sum.map_inr, finSumEquivOfFinset_inr]
       have hPcQc : Pᶜ.card = Qᶜ.card := by rw [Finset.card_compl, Finset.card_compl, hPQ]
       have hσc : PermFinset.imageFinset σ Pᶜ = Qᶜ := imageFinset_compl' hσ'
-      have hk : (Pᶜ.orderIsoOfFin rfl) ((Pᶜ.orderIsoOfFin rfl).symm ⟨x, hxPc⟩) = ⟨x, hxPc⟩ := 
+      have hk : (Pᶜ.orderIsoOfFin rfl) ((Pᶜ.orderIsoOfFin rfl).symm ⟨x, hxPc⟩) = ⟨x, hxPc⟩ :=
         OrderIso.apply_symm_apply _ _
       have hspec := restrictToPerm_spec Pᶜ Qᶜ hPcQc σ hσc ((Pᶜ.orderIsoOfFin rfl).symm ⟨x, hxPc⟩)
       simp only [hk, Subtype.coe_mk] at hspec
@@ -1908,13 +1908,13 @@ private noncomputable def permsMappingEquiv {m : ℕ} (P Q : Finset (Fin m))
     · -- Show restrictToPerm gives back τ
       ext i
       -- The key is that constructPermFromPair maps eP i to eQ (finCongr hPQ (τ i))
-      have hi : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm 
+      have hi : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm
                 (P.orderIsoOfFin rfl i) = Sum.inl i := by
         apply (finSumEquivOfFinset rfl rfl).injective
         simp only [Equiv.apply_symm_apply, finSumEquivOfFinset_inl]; rfl
-      have hσi : constructPermFromPair P Q hPQ τ ρ (P.orderIsoOfFin rfl i) = 
+      have hσi : constructPermFromPair P Q hPQ τ ρ (P.orderIsoOfFin rfl i) =
                  Q.orderIsoOfFin rfl (finCongr hPQ (τ i)) := by
-        simp only [constructPermFromPair, Equiv.trans_apply, hi, Equiv.sumCongr_apply, 
+        simp only [constructPermFromPair, Equiv.trans_apply, hi, Equiv.sumCongr_apply,
                    Sum.map_inl, finSumEquivOfFinset_inl]
         rfl
       -- Now unfold restrictToPerm and show it extracts τ i
@@ -1922,9 +1922,9 @@ private noncomputable def permsMappingEquiv {m : ℕ} (P Q : Finset (Fin m))
       simp only [Equiv.ofBijective_apply]
       have h_in_Q : constructPermFromPair P Q hPQ τ ρ (P.orderIsoOfFin rfl i) ∈ Q := by
         rw [hσi]; exact Finset.coe_mem _
-      have h1 : ((Q.orderIsoOfFin rfl).symm ⟨constructPermFromPair P Q hPQ τ ρ 
+      have h1 : ((Q.orderIsoOfFin rfl).symm ⟨constructPermFromPair P Q hPQ τ ρ
                  (P.orderIsoOfFin rfl i), h_in_Q⟩ : Fin Q.card) = finCongr hPQ (τ i) := by
-        have heq : (⟨_, h_in_Q⟩ : Q) = Q.orderIsoOfFin rfl (finCongr hPQ (τ i)) := 
+        have heq : (⟨_, h_in_Q⟩ : Q) = Q.orderIsoOfFin rfl (finCongr hPQ (τ i)) :=
           Subtype.ext hσi
         rw [heq]
         simp only [OrderIso.symm_apply_apply]
@@ -1933,22 +1933,22 @@ private noncomputable def permsMappingEquiv {m : ℕ} (P Q : Finset (Fin m))
       simp only [finCongr_apply, Fin.val_cast]
     · -- Show restrictToPermCompl gives back ρ (similar structure)
       ext j
-      have hj : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm 
+      have hj : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm
                 (Pᶜ.orderIsoOfFin rfl j) = Sum.inr j := by
         apply (finSumEquivOfFinset rfl rfl).injective
         simp only [Equiv.apply_symm_apply, finSumEquivOfFinset_inr]; rfl
-      have hσj : constructPermFromPair P Q hPQ τ ρ (Pᶜ.orderIsoOfFin rfl j) = 
+      have hσj : constructPermFromPair P Q hPQ τ ρ (Pᶜ.orderIsoOfFin rfl j) =
                  Qᶜ.orderIsoOfFin rfl (finCongr hPcQc (ρ j)) := by
-        simp only [constructPermFromPair, Equiv.trans_apply, hj, Equiv.sumCongr_apply, 
+        simp only [constructPermFromPair, Equiv.trans_apply, hj, Equiv.sumCongr_apply,
                    Sum.map_inr, finSumEquivOfFinset_inr]
         rfl
       unfold restrictToPermCompl restrictToPerm
       simp only [Equiv.ofBijective_apply]
       have h_in_Qc : constructPermFromPair P Q hPQ τ ρ (Pᶜ.orderIsoOfFin rfl j) ∈ Qᶜ := by
         rw [hσj]; exact Finset.coe_mem _
-      have h1 : ((Qᶜ.orderIsoOfFin rfl).symm ⟨constructPermFromPair P Q hPQ τ ρ 
+      have h1 : ((Qᶜ.orderIsoOfFin rfl).symm ⟨constructPermFromPair P Q hPQ τ ρ
                  (Pᶜ.orderIsoOfFin rfl j), h_in_Qc⟩ : Fin Qᶜ.card) = finCongr hPcQc (ρ j) := by
-        have heq : (⟨_, h_in_Qc⟩ : (Qᶜ : Finset (Fin m))) = Qᶜ.orderIsoOfFin rfl (finCongr hPcQc (ρ j)) := 
+        have heq : (⟨_, h_in_Qc⟩ : (Qᶜ : Finset (Fin m))) = Qᶜ.orderIsoOfFin rfl (finCongr hPcQc (ρ j)) :=
           Subtype.ext hσj
         rw [heq]
         simp only [OrderIso.symm_apply_apply]
@@ -1963,7 +1963,7 @@ private lemma finEquivSumOfFinset_orderEmbOfFin' {m : ℕ} (P : Finset (Fin m)) 
   unfold finEquivSumOfFinset
   simp only [Equiv.trans_apply, Equiv.sumCongr_apply]
   have hPc : Pᶜ.card = m - P.card := by simp [Finset.card_compl]
-  have h : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl hPc).symm 
+  have h : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl hPc).symm
            (P.orderEmbOfFin rfl k) = Sum.inl k := by
     apply (finSumEquivOfFinset rfl hPc).injective
     simp only [Equiv.apply_symm_apply, finSumEquivOfFinset_inl]
@@ -1977,7 +1977,7 @@ private lemma sortingPermOfFinset_orderEmbOfFin_val' {m : ℕ} (P : Finset (Fin 
   rw [finEquivSumOfFinset_orderEmbOfFin']
   simp only [finSumFinEquiv_apply_left, finCongr_apply, Fin.val_cast, Fin.val_castAdd]
 
-private lemma sortingPermOfFinset_symm_val' {m : ℕ} (P : Finset (Fin m)) (k : Fin P.card) 
+private lemma sortingPermOfFinset_symm_val' {m : ℕ} (P : Finset (Fin m)) (k : Fin P.card)
     (hk : k.val < m) :
     (sortingPermOfFinset P).symm ⟨k.val, hk⟩ = P.orderEmbOfFin rfl k := by
   have h := sortingPermOfFinset_orderEmbOfFin_val' P k
@@ -1986,10 +1986,10 @@ private lemma sortingPermOfFinset_symm_val' {m : ℕ} (P : Finset (Fin m)) (k : 
   ext
   exact h.symm
 
-private lemma relabel_eq_sortP_sortQ_inv' {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card) 
+private lemma relabel_eq_sortP_sortQ_inv' {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (k : Fin P.card) :
     let x := P.orderEmbOfFin rfl k
-    (sortingPermOfFinset Q).symm (sortingPermOfFinset P x) = 
+    (sortingPermOfFinset Q).symm (sortingPermOfFinset P x) =
     Q.orderEmbOfFin rfl (finCongr hPQ k) := by
   intro x
   have h1 := sortingPermOfFinset_orderEmbOfFin_val' P k
@@ -2014,7 +2014,7 @@ private lemma finEquivSumOfFinset_orderEmbOfFin_compl' {m : ℕ} (P : Finset (Fi
   have hPc : Pᶜ.card = m - P.card := by simp [Finset.card_compl]
   let k' : Fin (m - P.card) := finCongr hPc k
   have hk'_val : k'.val = k.val := by simp only [k', finCongr_apply, Fin.val_cast]
-  have h : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl hPc).symm 
+  have h : (finSumEquivOfFinset (m := P.card) (n := m - P.card) rfl hPc).symm
            (Pᶜ.orderEmbOfFin rfl k) = Sum.inr k' := by
     apply (finSumEquivOfFinset rfl hPc).injective
     simp only [Equiv.apply_symm_apply, finSumEquivOfFinset_inr]
@@ -2031,7 +2031,7 @@ private lemma sortingPermOfFinset_orderEmbOfFin_compl_val' {m : ℕ} (P : Finset
   rw [finEquivSumOfFinset_orderEmbOfFin_compl']
   simp only [finSumFinEquiv_apply_right, finCongr_apply, Fin.val_cast, Fin.val_natAdd]
 
-private lemma sortingPermOfFinset_symm_compl_val' {m : ℕ} (P : Finset (Fin m)) (k : Fin Pᶜ.card) 
+private lemma sortingPermOfFinset_symm_compl_val' {m : ℕ} (P : Finset (Fin m)) (k : Fin Pᶜ.card)
     (hk : P.card + k.val < m) :
     (sortingPermOfFinset P).symm ⟨P.card + k.val, hk⟩ = Pᶜ.orderEmbOfFin rfl k := by
   have h := sortingPermOfFinset_orderEmbOfFin_compl_val' P k
@@ -2040,10 +2040,10 @@ private lemma sortingPermOfFinset_symm_compl_val' {m : ℕ} (P : Finset (Fin m))
   ext
   exact h.symm
 
-private lemma relabel_eq_sortP_sortQ_inv_compl' {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card) 
+private lemma relabel_eq_sortP_sortQ_inv_compl' {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (hPcQc : Pᶜ.card = Qᶜ.card) (k : Fin Pᶜ.card) :
     let x := Pᶜ.orderEmbOfFin rfl k
-    (sortingPermOfFinset Q).symm (sortingPermOfFinset P x) = 
+    (sortingPermOfFinset Q).symm (sortingPermOfFinset P x) =
     Qᶜ.orderEmbOfFin rfl (finCongr hPcQc k) := by
   intro x
   have h1 := sortingPermOfFinset_orderEmbOfFin_compl_val' P k
@@ -2065,7 +2065,7 @@ private lemma relabel_eq_sortP_sortQ_inv_compl' {m : ℕ} (P Q : Finset (Fin m))
 
 /-- Helper lemma: The "relabel" permutation that maps k-th smallest of P to k-th smallest of Q
     (and similarly for complements) has sign equal to sign(sortP) * sign(sortQ).
-    
+
     Proof outline:
     - relabel = sortQ⁻¹ ∘ sortP (element-wise equality)
     - For x the k-th smallest of P: sortP(x) = k, sortQ⁻¹(k) = k-th smallest of Q = relabel(x)
@@ -2075,10 +2075,10 @@ private lemma sign_relabel_eq {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q
     let hPcQc : Pᶜ.card = Qᶜ.card := by rw [Finset.card_compl, Finset.card_compl, hPQ]
     let ePsum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin m := finSumEquivOfFinset rfl rfl
     let eQsum : Fin Q.card ⊕ Fin Qᶜ.card ≃ Fin m := finSumEquivOfFinset rfl rfl
-    let castSum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin Q.card ⊕ Fin Qᶜ.card := 
+    let castSum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin Q.card ⊕ Fin Qᶜ.card :=
       Equiv.sumCongr (finCongr hPQ) (finCongr hPcQc)
     let relabel : Equiv.Perm (Fin m) := ePsum.symm.trans (castSum.trans eQsum)
-    (Equiv.Perm.sign relabel : ℤ) = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) * 
+    (Equiv.Perm.sign relabel : ℤ) = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) *
                                     (Equiv.Perm.sign (sortingPermOfFinset Q) : ℤ) := by
   intro hPcQc ePsum eQsum castSum relabel
   -- Show relabel = sortP.trans sortQ⁻¹ by element-wise equality
@@ -2130,7 +2130,7 @@ private lemma sign_constructPermFromPair_eq {m : ℕ} (P Q : Finset (Fin m)) (hP
     let hPcQc : Pᶜ.card = Qᶜ.card := by rw [Finset.card_compl, Finset.card_compl, hPQ]
     let ePsum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin m := finSumEquivOfFinset rfl rfl
     let eQsum : Fin Q.card ⊕ Fin Qᶜ.card ≃ Fin m := finSumEquivOfFinset rfl rfl
-    let castSum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin Q.card ⊕ Fin Qᶜ.card := 
+    let castSum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin Q.card ⊕ Fin Qᶜ.card :=
       Equiv.sumCongr (finCongr hPQ) (finCongr hPcQc)
     let inner : Equiv.Perm (Fin P.card ⊕ Fin Pᶜ.card) := Equiv.sumCongr τ ρ
     let σ : Equiv.Perm (Fin m) := ePsum.symm.trans (inner.trans (castSum.trans eQsum))
@@ -2144,7 +2144,7 @@ private lemma sign_constructPermFromPair_eq {m : ℕ} (P Q : Finset (Fin m)) (hP
   rw [hσ_eq]
   rw [Equiv.Perm.sign_trans, Equiv.Perm.sign_permCongr, Equiv.Perm.sign_sumCongr]
   -- Commutativity in ℤˣ
-  have hcomm : Equiv.Perm.sign relabel * (Equiv.Perm.sign τ * Equiv.Perm.sign ρ) = 
+  have hcomm : Equiv.Perm.sign relabel * (Equiv.Perm.sign τ * Equiv.Perm.sign ρ) =
                Equiv.Perm.sign τ * Equiv.Perm.sign ρ * Equiv.Perm.sign relabel := by
     ext; simp only [Units.val_mul]; ring
   exact hcomm
@@ -2152,12 +2152,12 @@ private lemma sign_constructPermFromPair_eq {m : ℕ} (P Q : Finset (Fin m)) (hP
 private lemma permsMappingEquiv_sign_spec {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (σ : Equiv.Perm (Fin m)) (hσ : σ ∈ PermFinset.permsMapping P Q) :
     let ⟨τ, ρ⟩ := (permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩
-    (Equiv.Perm.sign σ : ℤ) = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) * 
+    (Equiv.Perm.sign σ : ℤ) = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) *
                               (Equiv.Perm.sign (sortingPermOfFinset Q) : ℤ) *
                               (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) := by
   /-
   Proof strategy (complete):
-  
+
   1. By left_inv of permsMappingEquiv, σ = constructPermFromPair τ ρ
   2. By sign_constructPermFromPair_eq, sign(σ) = sign(τ) * sign(ρ) * sign(relabel)
      where relabel = ePsum⁻¹ ∘ castSum ∘ eQsum
@@ -2192,55 +2192,55 @@ private lemma permsMappingEquiv_sign_spec {m : ℕ} (P Q : Finset (Fin m)) (hPQ 
   -- 2. sign(constructPermFromPair τ ρ) = sign(τ) * sign(ρ) * sign(relabel) by hsign
   -- 3. sign(relabel) = sign(sortP) * sign(sortQ) by hrelabel
   -- 4. Combine and rearrange using commutativity
-  
+
   -- The sign of constructPermFromPair is given by hsign
   -- hsign and hrelabel both involve the same "relabel" permutation (by definition)
-  
+
   -- First, simplify the RHS to use τ and ρ directly
   -- The goal uses (permsMappingEquiv P Q hPQ).1 ⟨σ, hσ⟩ which is the toFun applied to ⟨σ, hσ⟩
   have hgoal_simp : ((permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩) = (τ, ρ) := hpair.symm
-  
+
   -- Convert hsign to work with ℤ coercions
-  have hsign' : (Equiv.Perm.sign (constructPermFromPair P Q hPQ τ ρ) : ℤ) = 
-      (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) * 
-      (Equiv.Perm.sign ((finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm.trans 
-        ((Equiv.sumCongr (finCongr hPQ) (finCongr hPcQc)).trans 
+  have hsign' : (Equiv.Perm.sign (constructPermFromPair P Q hPQ τ ρ) : ℤ) =
+      (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) *
+      (Equiv.Perm.sign ((finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm.trans
+        ((Equiv.sumCongr (finCongr hPQ) (finCongr hPcQc)).trans
          (finSumEquivOfFinset (m := Q.card) (n := Qᶜ.card) rfl rfl))) : ℤ) := by
     simp only [← Units.val_mul]
     congr 1
-  
+
   -- The goal involves (permsMappingEquiv P Q hPQ).1 ⟨σ, hσ⟩ which equals (τ, ρ)
   -- So the RHS is sign(sortP) * sign(sortQ) * sign(τ) * sign(ρ)
   -- We need to show sign(σ) equals this
-  
+
   -- Use calc to chain equalities
-  calc (Equiv.Perm.sign σ : ℤ) 
+  calc (Equiv.Perm.sign σ : ℤ)
       = (Equiv.Perm.sign (constructPermFromPair P Q hPQ τ ρ) : ℤ) := by rw [hσ_eq]
-    _ = (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) * 
-        (Equiv.Perm.sign ((finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm.trans 
-          ((Equiv.sumCongr (finCongr hPQ) (finCongr hPcQc)).trans 
+    _ = (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) *
+        (Equiv.Perm.sign ((finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm.trans
+          ((Equiv.sumCongr (finCongr hPQ) (finCongr hPcQc)).trans
            (finSumEquivOfFinset (m := Q.card) (n := Qᶜ.card) rfl rfl))) : ℤ) := hsign'
-    _ = (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) * 
-        ((Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) * 
+    _ = (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) *
+        ((Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) *
          (Equiv.Perm.sign (sortingPermOfFinset Q) : ℤ)) := by rw [hrelabel]
-    _ = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) * 
+    _ = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) *
         (Equiv.Perm.sign (sortingPermOfFinset Q) : ℤ) *
         (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) := by ring
-    _ = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) * 
+    _ = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) *
         (Equiv.Perm.sign (sortingPermOfFinset Q) : ℤ) *
-        (Equiv.Perm.sign ((permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩).1 : ℤ) * 
+        (Equiv.Perm.sign ((permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩).1 : ℤ) *
         (Equiv.Perm.sign ((permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩).2 : ℤ) := by
       rw [hgoal_simp]
 
 /-- The sign decomposition: for σ ∈ PermFinset.permsMapping P Q with corresponding (τ, ρ),
     sign(σ) = (-1)^(∑ P + ∑ Q) · sign(τ) · sign(ρ)
-    
+
     Proof: By permsMappingEquiv_sign_spec, sign(σ) = sign(sortP) · sign(sortQ) · sign(τ) · sign(ρ).
     By sign_sortingPermOfFinset_mul, sign(sortP) · sign(sortQ) = (-1)^(∑P + ∑Q). -/
 lemma sign_decomposition {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (σ : Equiv.Perm (Fin m)) (hσ : σ ∈ PermFinset.permsMapping P Q) :
     let ⟨τ, ρ⟩ := (permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩
-    (Equiv.Perm.sign σ : ℤ) = (-1 : ℤ) ^ (P.sum Fin.val + Q.sum Fin.val) * 
+    (Equiv.Perm.sign σ : ℤ) = (-1 : ℤ) ^ (P.sum Fin.val + Q.sum Fin.val) *
                               (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) := by
   -- Use the specification lemma and sign_sortingPermOfFinset_mul
   have hspec := permsMappingEquiv_sign_spec P Q hPQ σ hσ
@@ -2252,8 +2252,8 @@ lemma sign_decomposition {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card
     Derived from sign_decomposition for easier use in proofs. -/
 private lemma sign_decomposition' {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (σ : Equiv.Perm (Fin m)) (hσ : σ ∈ PermFinset.permsMapping P Q) :
-    (Equiv.Perm.sign σ : ℤ) = (-1 : ℤ) ^ (P.sum Fin.val + Q.sum Fin.val) * 
-      (Equiv.Perm.sign ((permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩).1 : ℤ) * 
+    (Equiv.Perm.sign σ : ℤ) = (-1 : ℤ) ^ (P.sum Fin.val + Q.sum Fin.val) *
+      (Equiv.Perm.sign ((permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩).1 : ℤ) *
       (Equiv.Perm.sign ((permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩).2 : ℤ) := by
   have h := sign_decomposition P Q hPQ σ hσ
   simp only at h
@@ -2263,17 +2263,17 @@ private lemma sign_decomposition' {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card
     Specifically, for k : Fin P.card, we have:
     constructPermFromPair P Q hPQ τ ρ (eP k) = eQ (finCongr hPQ (τ k))
     where eP = P.orderIsoOfFin rfl and eQ = Q.orderIsoOfFin rfl.
-    
+
     This is the key fact extracted from the right_inv proof of permsMappingEquiv. -/
 private lemma constructPermFromPair_on_P {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (τ : Equiv.Perm (Fin P.card)) (ρ : Equiv.Perm (Fin Pᶜ.card)) (k : Fin P.card) :
-    constructPermFromPair P Q hPQ τ ρ (P.orderIsoOfFin rfl k) = 
+    constructPermFromPair P Q hPQ τ ρ (P.orderIsoOfFin rfl k) =
     Q.orderIsoOfFin rfl (finCongr hPQ (τ k)) := by
-  have hk : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm 
+  have hk : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm
             (P.orderIsoOfFin rfl k) = Sum.inl k := by
     apply (finSumEquivOfFinset rfl rfl).injective
     simp only [Equiv.apply_symm_apply, finSumEquivOfFinset_inl]; rfl
-  simp only [constructPermFromPair, Equiv.trans_apply, hk, Equiv.sumCongr_apply, 
+  simp only [constructPermFromPair, Equiv.trans_apply, hk, Equiv.sumCongr_apply,
              Sum.map_inl, finSumEquivOfFinset_inl]
   rfl
 
@@ -2281,43 +2281,43 @@ private lemma constructPermFromPair_on_P {m : ℕ} (P Q : Finset (Fin m)) (hPQ :
 private lemma constructPermFromPair_on_Pc {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (τ : Equiv.Perm (Fin P.card)) (ρ : Equiv.Perm (Fin Pᶜ.card)) (k : Fin Pᶜ.card) :
     let hPcQc : Pᶜ.card = Qᶜ.card := by rw [Finset.card_compl, Finset.card_compl, hPQ]
-    constructPermFromPair P Q hPQ τ ρ (Pᶜ.orderIsoOfFin rfl k) = 
+    constructPermFromPair P Q hPQ τ ρ (Pᶜ.orderIsoOfFin rfl k) =
     Qᶜ.orderIsoOfFin rfl (finCongr hPcQc (ρ k)) := by
   intro hPcQc
-  have hk : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm 
+  have hk : (finSumEquivOfFinset (m := P.card) (n := Pᶜ.card) rfl rfl).symm
             (Pᶜ.orderIsoOfFin rfl k) = Sum.inr k := by
     apply (finSumEquivOfFinset rfl rfl).injective
     simp only [Equiv.apply_symm_apply, finSumEquivOfFinset_inr]; rfl
-  simp only [constructPermFromPair, Equiv.trans_apply, hk, Equiv.sumCongr_apply, 
+  simp only [constructPermFromPair, Equiv.trans_apply, hk, Equiv.sumCongr_apply,
              Sum.map_inr, finSumEquivOfFinset_inr]
   rfl
 
 /-- Helper: orderIsoOfFin with different cardinality proofs gives the same underlying value.
     This is needed for reindexing products when P.card = Q.card. -/
-private lemma orderIsoOfFin_cast_eq {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card) 
+private lemma orderIsoOfFin_cast_eq {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (k : Fin P.card) :
     (P.orderIsoOfFin rfl k : Fin m) = P.orderIsoOfFin hPQ (Fin.cast hPQ k) := by
   simp only [Finset.coe_orderIsoOfFin_apply, Finset.orderEmbOfFin_apply]; rfl
 
 /-- Helper: reindex a product over Fin P.card to Fin Q.card when P.card = Q.card.
-    This is used to convert products indexed by τ : Perm (Fin P.card) to 
+    This is used to convert products indexed by τ : Perm (Fin P.card) to
     products indexed by τ' : Perm (Fin Q.card) via permCongr. -/
 private lemma prod_reindex_finCongr {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (A : Matrix (Fin m) (Fin m) R) (τ : Equiv.Perm (Fin P.card)) :
     ∏ k : Fin P.card, A (Q.orderIsoOfFin rfl (Fin.cast hPQ (τ k))) (P.orderIsoOfFin rfl k) =
-    ∏ k : Fin Q.card, A (Q.orderIsoOfFin rfl ((Equiv.permCongr (finCongr hPQ) τ) k)) 
+    ∏ k : Fin Q.card, A (Q.orderIsoOfFin rfl ((Equiv.permCongr (finCongr hPQ) τ) k))
                        (P.orderIsoOfFin hPQ k) := by
   refine Fintype.prod_equiv (finCongr hPQ) _ _ (fun k => ?_)
   simp only [Equiv.permCongr_apply, finCongr_apply, finCongr_symm, Fin.cast_cast, Fin.cast_eq_self]
   rw [← orderIsoOfFin_cast_eq P Q hPQ k]
 
 /-- Helper: reindex a sum over Perm (Fin k) to Perm (Fin l) when k = l, preserving sign.
-    This is used to convert sums over τ : Perm (Fin P.card) to sums over 
+    This is used to convert sums over τ : Perm (Fin P.card) to sums over
     τ' : Perm (Fin Q.card) when P.card = Q.card. -/
 private lemma sum_sign_reindex_permCongr {k l : ℕ} (hkl : k = l) (f : Equiv.Perm (Fin l) → R) :
-    ∑ τ : Equiv.Perm (Fin k), (Equiv.Perm.sign τ : R) * f (Equiv.permCongr (finCongr hkl) τ) = 
+    ∑ τ : Equiv.Perm (Fin k), (Equiv.Perm.sign τ : R) * f (Equiv.permCongr (finCongr hkl) τ) =
     ∑ τ' : Equiv.Perm (Fin l), (Equiv.Perm.sign τ' : R) * f τ' := by
-  have h : ∀ τ : Equiv.Perm (Fin k), 
+  have h : ∀ τ : Equiv.Perm (Fin k),
       (Equiv.Perm.sign τ : R) = (Equiv.Perm.sign (Equiv.permCongr (finCongr hkl) τ) : R) := by
     intro τ; simp only [Equiv.Perm.sign_permCongr]
   simp_rw [h]
@@ -2326,7 +2326,7 @@ private lemma sum_sign_reindex_permCongr {k l : ℕ} (hkl : k = l) (f : Equiv.Pe
 /-- Helper lemma: reindex product over finset P to product over Fin P.card -/
 private lemma prod_finset_eq_prod_fin {m : ℕ} (P : Finset (Fin m)) (f : Fin m → R) :
     ∏ i ∈ P, f i = ∏ k : Fin P.card, f (P.orderIsoOfFin rfl k) := by
-  have hinj : Set.InjOn (P.orderEmbOfFin rfl) ↑(Finset.univ : Finset (Fin P.card)) := 
+  have hinj : Set.InjOn (P.orderEmbOfFin rfl) ↑(Finset.univ : Finset (Fin P.card)) :=
     fun _ _ _ _ h => (P.orderEmbOfFin rfl).injective h
   have himg : (Finset.univ : Finset (Fin P.card)).image (P.orderEmbOfFin rfl) = P := by
     ext x
@@ -2338,7 +2338,7 @@ private lemma prod_finset_eq_prod_fin {m : ℕ} (P : Finset (Fin m)) (f : Fin m 
     · intro hx
       use (P.orderIsoOfFin rfl).symm ⟨x, hx⟩
       rw [Finset.orderEmbOfFin_apply]
-      have h1 : (P.orderIsoOfFin rfl) ((P.orderIsoOfFin rfl).symm ⟨x, hx⟩) = ⟨x, hx⟩ := 
+      have h1 : (P.orderIsoOfFin rfl) ((P.orderIsoOfFin rfl).symm ⟨x, hx⟩) = ⟨x, hx⟩ :=
         OrderIso.apply_symm_apply _ _
       rw [← Subtype.coe_inj, Finset.coe_orderIsoOfFin_apply] at h1
       exact h1
@@ -2354,7 +2354,7 @@ private lemma prod_P_eq_prod_restrict {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (σ : Equiv.Perm (Fin m)) (hσ : PermFinset.imageFinset σ P = Q) :
     ∏ k : Fin P.card, A (σ (P.orderIsoOfFin rfl k)) (P.orderIsoOfFin rfl k) =
-    ∏ k : Fin P.card, A (Q.orderIsoOfFin rfl (finCongr hPQ (restrictToPerm P Q hPQ σ hσ k))) 
+    ∏ k : Fin P.card, A (Q.orderIsoOfFin rfl (finCongr hPQ (restrictToPerm P Q hPQ σ hσ k)))
                        (P.orderIsoOfFin rfl k) := by
   apply Finset.prod_congr rfl
   intro k _
@@ -2366,7 +2366,7 @@ private lemma prod_Pc_eq_prod_restrict {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     (σ : Equiv.Perm (Fin m)) (hσ : PermFinset.imageFinset σ P = Q) :
     let hPcQc : Pᶜ.card = Qᶜ.card := by rw [Finset.card_compl, Finset.card_compl, hPQ]
     ∏ k : Fin Pᶜ.card, A (σ (Pᶜ.orderIsoOfFin rfl k)) (Pᶜ.orderIsoOfFin rfl k) =
-    ∏ k : Fin Pᶜ.card, A (Qᶜ.orderIsoOfFin rfl (finCongr hPcQc (restrictToPermCompl P Q hPQ σ hσ k))) 
+    ∏ k : Fin Pᶜ.card, A (Qᶜ.orderIsoOfFin rfl (finCongr hPcQc (restrictToPermCompl P Q hPQ σ hσ k)))
                         (Pᶜ.orderIsoOfFin rfl k) := by
   intro hPcQc
   apply Finset.prod_congr rfl
@@ -2407,23 +2407,23 @@ private lemma prod_orderIso_eq_submatrix {m k : ℕ} (A : Matrix (Fin m) (Fin m)
     ∏ i : Fin k, (A.submatrix (finsetToFin Q hQ) (finsetToFin P hP)) (τ i) i := by
   apply Finset.prod_congr rfl
   intro i _
-  simp only [submatrix_apply, finsetToFin_eq_orderEmbOfFin, Finset.orderEmbOfFin_apply, 
+  simp only [submatrix_apply, finsetToFin_eq_orderEmbOfFin, Finset.orderEmbOfFin_apply,
              Finset.coe_orderIsoOfFin_apply]
 
 /-- The sum over permutations equals the determinant (Leibniz formula). -/
 private lemma sum_perm_prod_eq_det' {m k : ℕ} (A : Matrix (Fin m) (Fin m) R)
     (P Q : Finset (Fin m)) (hP : P.card = k) (hQ : Q.card = k) :
-    ∑ τ : Equiv.Perm (Fin k), (Equiv.Perm.sign τ : R) * 
+    ∑ τ : Equiv.Perm (Fin k), (Equiv.Perm.sign τ : R) *
       ∏ i : Fin k, A (Q.orderIsoOfFin hQ (τ i)) (P.orderIsoOfFin hP i) =
     (A.submatrix (finsetToFin Q hQ) (finsetToFin P hP)).det := by
-  conv_lhs => 
+  conv_lhs =>
     arg 2; ext τ; rw [prod_orderIso_eq_submatrix A P Q hP hQ τ]
   simp only [det_apply', submatrix_apply]
 
 /-- The sum over permutations equals submatrixDet. -/
 private lemma sum_perm_prod_eq_submatrixDet {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     (P Q : Finset (Fin m)) (hPQ : P.card = Q.card) :
-    ∑ τ : Equiv.Perm (Fin Q.card), (Equiv.Perm.sign τ : R) * 
+    ∑ τ : Equiv.Perm (Fin Q.card), (Equiv.Perm.sign τ : R) *
       ∏ i : Fin Q.card, A (Q.orderIsoOfFin rfl (τ i)) (P.orderIsoOfFin hPQ i) =
     submatrixDet A Q P := by
   unfold submatrixDet submatrixOfFinsets'
@@ -2431,21 +2431,21 @@ private lemma sum_perm_prod_eq_submatrixDet {m : ℕ} (A : Matrix (Fin m) (Fin m
   rw [sum_perm_prod_eq_det' A P Q hPQ rfl]
 
 /-- Key identity: ∑_{(τ,ρ)} sign(τ) * sign(ρ) * f(τ) * g(ρ) = (∑_τ sign(τ) * f(τ)) * (∑_ρ sign(ρ) * g(ρ)) -/
-private lemma sum_sign_prod_factor {k l : ℕ} 
+private lemma sum_sign_prod_factor {k l : ℕ}
     (f : Equiv.Perm (Fin k) → R) (g : Equiv.Perm (Fin l) → R) :
-    ∑ p : Equiv.Perm (Fin k) × Equiv.Perm (Fin l), 
-      (Equiv.Perm.sign p.1 : R) * (Equiv.Perm.sign p.2 : R) * f p.1 * g p.2 = 
-    (∑ τ : Equiv.Perm (Fin k), (Equiv.Perm.sign τ : R) * f τ) * 
+    ∑ p : Equiv.Perm (Fin k) × Equiv.Perm (Fin l),
+      (Equiv.Perm.sign p.1 : R) * (Equiv.Perm.sign p.2 : R) * f p.1 * g p.2 =
+    (∑ τ : Equiv.Perm (Fin k), (Equiv.Perm.sign τ : R) * f τ) *
     (∑ ρ : Equiv.Perm (Fin l), (Equiv.Perm.sign ρ : R) * g ρ) := by
   have h : ∀ p : Equiv.Perm (Fin k) × Equiv.Perm (Fin l),
-      (Equiv.Perm.sign p.1 : R) * (Equiv.Perm.sign p.2 : R) * f p.1 * g p.2 = 
+      (Equiv.Perm.sign p.1 : R) * (Equiv.Perm.sign p.2 : R) * f p.1 * g p.2 =
       ((Equiv.Perm.sign p.1 : R) * f p.1) * ((Equiv.Perm.sign p.2 : R) * g p.2) := by
     intro p; ring
   simp_rw [h]
-  trans (∑ τ : Equiv.Perm (Fin k), ∑ ρ : Equiv.Perm (Fin l), 
+  trans (∑ τ : Equiv.Perm (Fin k), ∑ ρ : Equiv.Perm (Fin l),
          ((Equiv.Perm.sign τ : R) * f τ) * ((Equiv.Perm.sign ρ : R) * g ρ))
   · exact Fintype.sum_prod_type' (fun τ ρ => ((Equiv.Perm.sign τ : R) * f τ) * ((Equiv.Perm.sign ρ : R) * g ρ))
-  · exact (Fintype.sum_mul_sum (fun τ => (Equiv.Perm.sign τ : R) * f τ) 
+  · exact (Fintype.sum_mul_sum (fun τ => (Equiv.Perm.sign τ : R) * f τ)
                                (fun ρ => (Equiv.Perm.sign ρ : R) * g ρ)).symm
 
 /-- Key lemma: The sum over permutations mapping P to Q equals the product of submatrix determinants
@@ -2460,7 +2460,7 @@ private lemma sum_sign_prod_factor {k l : ℕ}
     Note: The product uses submatrixDet A Q P (rows Q, cols P) rather than submatrixDet A P Q,
     because when σ maps P to Q, the product ∏_{i∈P} A(σ i, i) has row indices σ(i) ∈ Q
     and column indices i ∈ P.
-    
+
     PROOF STRATEGY (partially implemented):
     1. Reindex sum using permsMappingEquiv to get sum over (τ, ρ)
     2. Apply sign_decomposition: sign(σ) = (-1)^(∑P + ∑Q) * sign(τ) * sign(ρ)
@@ -2490,7 +2490,7 @@ private lemma sum_perms_eq_det_prod {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
   let eQc := Qᶜ.orderIsoOfFin rfl
   -- The equivalence between PermFinset.permsMapping and pairs of permutations
   let e := permsMappingEquiv P Q hPQ
-  
+
   -- Step 1: Convert sum over PermFinset.permsMapping to sum over pairs (τ, ρ)
   rw [← Finset.sum_coe_sort (PermFinset.permsMapping P Q)]
   conv_lhs =>
@@ -2498,13 +2498,13 @@ private lemma sum_perms_eq_det_prod {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     ext σ
     rw [show (σ : Equiv.Perm (Fin m)) = (e.symm (e σ)).val by simp]
   rw [e.sum_comp (fun p => (Equiv.Perm.sign (e.symm p).val : R) * ∏ i, A ((e.symm p).val i) i)]
-  
+
   -- Step 2: For each (τ, ρ), the permutation is constructPermFromPair τ ρ
   -- We use that (e.symm (τ, ρ)).val = constructPermFromPair P Q hPQ τ ρ
   have hconstr : ∀ (p : Equiv.Perm (Fin P.card) × Equiv.Perm (Fin Pᶜ.card)),
       (e.symm p).val = constructPermFromPair P Q hPQ p.1 p.2 := fun p => rfl
   simp_rw [hconstr]
-  
+
   -- Step 3: Apply sign decomposition: sign(σ) = (-1)^(∑P + ∑Q) * sign(τ) * sign(ρ)
   -- First, we need that constructPermFromPair τ ρ ∈ PermFinset.permsMapping P Q
   have hmem : ∀ (τ : Equiv.Perm (Fin P.card)) (ρ : Equiv.Perm (Fin Pᶜ.card)),
@@ -2512,10 +2512,10 @@ private lemma sum_perms_eq_det_prod {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     intro τ ρ
     simp only [PermFinset.permsMapping, Finset.mem_filter, Finset.mem_univ, true_and]
     exact constructPermFromPair_image P Q hPQ τ ρ
-  
+
   -- Apply sign decomposition for each term
   have hsign : ∀ (τ : Equiv.Perm (Fin P.card)) (ρ : Equiv.Perm (Fin Pᶜ.card)),
-      (Equiv.Perm.sign (constructPermFromPair P Q hPQ τ ρ) : R) = 
+      (Equiv.Perm.sign (constructPermFromPair P Q hPQ τ ρ) : R) =
       (-1 : R) ^ (P.sum Fin.val + Q.sum Fin.val) * (Equiv.Perm.sign τ : R) * (Equiv.Perm.sign ρ : R) := by
     intro τ ρ
     have h := sign_decomposition' P Q hPQ (constructPermFromPair P Q hPQ τ ρ) (hmem τ ρ)
@@ -2524,57 +2524,57 @@ private lemma sum_perms_eq_det_prod {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     have he : (e ⟨constructPermFromPair P Q hPQ τ ρ, hmem τ ρ⟩) = (τ, ρ) := by
       exact e.right_inv (τ, ρ)
     -- Rewrite h using he
-    have h2 : (Equiv.Perm.sign ((e ⟨constructPermFromPair P Q hPQ τ ρ, hmem τ ρ⟩).1) : ℤ) = 
+    have h2 : (Equiv.Perm.sign ((e ⟨constructPermFromPair P Q hPQ τ ρ, hmem τ ρ⟩).1) : ℤ) =
               (Equiv.Perm.sign τ : ℤ) := by rw [he]
-    have h3 : (Equiv.Perm.sign ((e ⟨constructPermFromPair P Q hPQ τ ρ, hmem τ ρ⟩).2) : ℤ) = 
+    have h3 : (Equiv.Perm.sign ((e ⟨constructPermFromPair P Q hPQ τ ρ, hmem τ ρ⟩).2) : ℤ) =
               (Equiv.Perm.sign ρ : ℤ) := by rw [he]
     rw [h2, h3] at h
     -- Cast the ℤ equation to R
     have h' := congrArg (Int.cast (R := R)) h
     simp only [Int.cast_mul, Int.cast_pow, Int.cast_neg, Int.cast_one] at h'
     exact h'
-  
+
   -- Step 4: Factor the product: ∏ i, A(σ i, i) = (∏ i ∈ P, ...) * (∏ i ∈ Pᶜ, ...)
   have hprod_factor : ∀ (σ : Equiv.Perm (Fin m)),
       ∏ i : Fin m, A (σ i) i = (∏ i ∈ P, A (σ i) i) * (∏ i ∈ Pᶜ, A (σ i) i) := by
     intro σ
     exact prod_fin_eq_prod_P_mul_Pc P (fun i => A (σ i) i)
-  
+
   -- Rewrite each term using sign decomposition and product factorization
   conv_lhs =>
     arg 2
     ext p
     rw [hsign p.1 p.2, hprod_factor (constructPermFromPair P Q hPQ p.1 p.2)]
-  
+
   -- Step 5: Reindex products over P and Pᶜ to products over Fin P.card and Fin Pᶜ.card
   have hprod_P : ∀ (τ : Equiv.Perm (Fin P.card)) (ρ : Equiv.Perm (Fin Pᶜ.card)),
-      ∏ i ∈ P, A (constructPermFromPair P Q hPQ τ ρ i) i = 
+      ∏ i ∈ P, A (constructPermFromPair P Q hPQ τ ρ i) i =
       ∏ k : Fin P.card, A (constructPermFromPair P Q hPQ τ ρ (eP k)) (eP k) := by
     intro τ ρ
     exact prod_finset_eq_prod_fin P (fun i => A (constructPermFromPair P Q hPQ τ ρ i) i)
-  
+
   have hprod_Pc : ∀ (τ : Equiv.Perm (Fin P.card)) (ρ : Equiv.Perm (Fin Pᶜ.card)),
-      ∏ i ∈ Pᶜ, A (constructPermFromPair P Q hPQ τ ρ i) i = 
+      ∏ i ∈ Pᶜ, A (constructPermFromPair P Q hPQ τ ρ i) i =
       ∏ k : Fin Pᶜ.card, A (constructPermFromPair P Q hPQ τ ρ (ePc k)) (ePc k) := by
     intro τ ρ
     exact prod_finset_eq_prod_fin Pᶜ (fun i => A (constructPermFromPair P Q hPQ τ ρ i) i)
-  
+
   conv_lhs =>
     arg 2
     ext p
     rw [hprod_P p.1 p.2, hprod_Pc p.1 p.2]
-  
+
   -- Step 6: Apply constructPermFromPair_on_P and constructPermFromPair_on_Pc
   have hconstr_P : ∀ (τ : Equiv.Perm (Fin P.card)) (ρ : Equiv.Perm (Fin Pᶜ.card)) (k : Fin P.card),
       constructPermFromPair P Q hPQ τ ρ (eP k) = eQ (finCongr hPQ (τ k)) := by
     intro τ ρ k
     exact constructPermFromPair_on_P P Q hPQ τ ρ k
-  
+
   have hconstr_Pc : ∀ (τ : Equiv.Perm (Fin P.card)) (ρ : Equiv.Perm (Fin Pᶜ.card)) (k : Fin Pᶜ.card),
       constructPermFromPair P Q hPQ τ ρ (ePc k) = eQc (finCongr hPcQc (ρ k)) := by
     intro τ ρ k
     exact constructPermFromPair_on_Pc P Q hPQ τ ρ k
-  
+
   conv_lhs =>
     arg 2
     ext p
@@ -2591,63 +2591,63 @@ private lemma sum_perms_eq_det_prod {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     arg 2
     ext k
     rw [hconstr_Pc p.1 p.2 k]
-  
+
   -- Step 7: Combine terms and prepare for factorization
   -- Current form: ∑ p, (-1)^(...) * sign(p.1) * sign(p.2) * prodP * prodPc
   -- We want to factor this as (-1)^(...) * (∑ τ, sign(τ) * prodP(τ)) * (∑ ρ, sign(ρ) * prodPc(ρ))
-  
+
   -- First, rearrange each term to have the right form for factorization
   have hterm_eq : ∀ p : Equiv.Perm (Fin P.card) × Equiv.Perm (Fin Pᶜ.card),
       (-1 : R) ^ (P.sum Fin.val + Q.sum Fin.val) * (Equiv.Perm.sign p.1 : R) * (Equiv.Perm.sign p.2 : R) *
-      ((∏ k : Fin P.card, A (eQ (finCongr hPQ (p.1 k))) (eP k)) * 
+      ((∏ k : Fin P.card, A (eQ (finCongr hPQ (p.1 k))) (eP k)) *
        (∏ k : Fin Pᶜ.card, A (eQc (finCongr hPcQc (p.2 k))) (ePc k))) =
-      (-1 : R) ^ (P.sum Fin.val + Q.sum Fin.val) * 
+      (-1 : R) ^ (P.sum Fin.val + Q.sum Fin.val) *
       (((Equiv.Perm.sign p.1 : R) * ∏ k : Fin P.card, A (eQ (finCongr hPQ (p.1 k))) (eP k)) *
        ((Equiv.Perm.sign p.2 : R) * ∏ k : Fin Pᶜ.card, A (eQc (finCongr hPcQc (p.2 k))) (ePc k))) := by
     intro p; ring
-  
+
   conv_lhs => arg 2; ext p; rw [hterm_eq p]
-  
+
   -- Factor out (-1)^(...) from the sum
   rw [← Finset.mul_sum]
-  
+
   -- Step 8: Factor the sum using sum_prod_factor
-  have hfactor : 
+  have hfactor :
       ∑ p : Equiv.Perm (Fin P.card) × Equiv.Perm (Fin Pᶜ.card),
         ((Equiv.Perm.sign p.1 : R) * ∏ k : Fin P.card, A (eQ (finCongr hPQ (p.1 k))) (eP k)) *
         ((Equiv.Perm.sign p.2 : R) * ∏ k : Fin Pᶜ.card, A (eQc (finCongr hPcQc (p.2 k))) (ePc k)) =
-      (∑ τ : Equiv.Perm (Fin P.card), (Equiv.Perm.sign τ : R) * 
+      (∑ τ : Equiv.Perm (Fin P.card), (Equiv.Perm.sign τ : R) *
         ∏ k : Fin P.card, A (eQ (finCongr hPQ (τ k))) (eP k)) *
-      (∑ ρ : Equiv.Perm (Fin Pᶜ.card), (Equiv.Perm.sign ρ : R) * 
+      (∑ ρ : Equiv.Perm (Fin Pᶜ.card), (Equiv.Perm.sign ρ : R) *
         ∏ k : Fin Pᶜ.card, A (eQc (finCongr hPcQc (ρ k))) (ePc k)) := by
-    exact sum_prod_factor 
+    exact sum_prod_factor
       (fun τ => (Equiv.Perm.sign τ : R) * ∏ k : Fin P.card, A (eQ (finCongr hPQ (τ k))) (eP k))
       (fun ρ => (Equiv.Perm.sign ρ : R) * ∏ k : Fin Pᶜ.card, A (eQc (finCongr hPcQc (ρ k))) (ePc k))
   rw [hfactor]
-  
+
   -- Step 9: Match each sum with a determinant
   -- The sums are Leibniz expansions that equal submatrix determinants.
   -- The proof reindexes from Perm (Fin P.card) to Perm (Fin Q.card) using permCongr,
   -- then applies sum_perm_prod_eq_submatrixDet.
-  
-  have hdet_P : 
-      ∑ τ : Equiv.Perm (Fin P.card), (Equiv.Perm.sign τ : R) * 
+
+  have hdet_P :
+      ∑ τ : Equiv.Perm (Fin P.card), (Equiv.Perm.sign τ : R) *
         ∏ k : Fin P.card, A (eQ (finCongr hPQ (τ k))) (eP k) =
       submatrixDet A Q P := by
     -- Step 1: Reindex the sum from Perm (Fin P.card) to Perm (Fin Q.card)
     let eperm := Equiv.permCongr (finCongr hPQ)
-    have hsum_reindex : ∑ τ : Equiv.Perm (Fin P.card), (Equiv.Perm.sign τ : R) * 
+    have hsum_reindex : ∑ τ : Equiv.Perm (Fin P.card), (Equiv.Perm.sign τ : R) *
              ∏ k : Fin P.card, A (eQ (finCongr hPQ (τ k))) (eP k) =
-           ∑ τ' : Equiv.Perm (Fin Q.card), (Equiv.Perm.sign (eperm.symm τ') : R) * 
+           ∑ τ' : Equiv.Perm (Fin Q.card), (Equiv.Perm.sign (eperm.symm τ') : R) *
              ∏ k : Fin P.card, A (eQ (finCongr hPQ (eperm.symm τ' k))) (eP k) := by
-      exact (eperm.symm.sum_comp (fun τ => (Equiv.Perm.sign τ : R) * 
+      exact (eperm.symm.sum_comp (fun τ => (Equiv.Perm.sign τ : R) *
              ∏ k : Fin P.card, A (eQ (finCongr hPQ (τ k))) (eP k))).symm
     rw [hsum_reindex]
     -- Step 2: Simplify sign and reindex products
     have hterm_eq : ∀ τ' : Equiv.Perm (Fin Q.card),
-        (Equiv.Perm.sign (eperm.symm τ') : R) * 
+        (Equiv.Perm.sign (eperm.symm τ') : R) *
           ∏ k : Fin P.card, A (eQ (finCongr hPQ (eperm.symm τ' k))) (eP k) =
-        (Equiv.Perm.sign τ' : R) * 
+        (Equiv.Perm.sign τ' : R) *
           ∏ i : Fin Q.card, A (Q.orderIsoOfFin rfl (τ' i)) (P.orderIsoOfFin hPQ i) := by
       intro τ'
       -- Sign is preserved
@@ -2657,7 +2657,7 @@ private lemma sum_perms_eq_det_prod {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
       congr 1
       -- Reindex product from Fin P.card to Fin Q.card
       refine Fintype.prod_equiv (finCongr hPQ) _ _ (fun k => ?_)
-      simp only [eperm, Equiv.permCongr_symm, Equiv.permCongr_apply, finCongr_symm, 
+      simp only [eperm, Equiv.permCongr_symm, Equiv.permCongr_apply, finCongr_symm,
                  finCongr_apply, Fin.cast_cast, Fin.cast_eq_self]
       -- Show matrix entries are equal
       have h1 : (eQ (τ' (Fin.cast hPQ k)) : Fin m) = Q.orderIsoOfFin rfl (τ' (Fin.cast hPQ k)) := rfl
@@ -2668,25 +2668,25 @@ private lemma sum_perms_eq_det_prod {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     simp_rw [hterm_eq]
     -- Step 3: Apply sum_perm_prod_eq_submatrixDet
     exact sum_perm_prod_eq_submatrixDet A P Q hPQ
-  
-  have hdet_Pc : 
-      ∑ ρ : Equiv.Perm (Fin Pᶜ.card), (Equiv.Perm.sign ρ : R) * 
+
+  have hdet_Pc :
+      ∑ ρ : Equiv.Perm (Fin Pᶜ.card), (Equiv.Perm.sign ρ : R) *
         ∏ k : Fin Pᶜ.card, A (eQc (finCongr hPcQc (ρ k))) (ePc k) =
       submatrixDet A Qᶜ Pᶜ := by
     -- Step 1: Reindex the sum from Perm (Fin Pᶜ.card) to Perm (Fin Qᶜ.card)
     let eperm := Equiv.permCongr (finCongr hPcQc)
-    have hsum_reindex : ∑ ρ : Equiv.Perm (Fin Pᶜ.card), (Equiv.Perm.sign ρ : R) * 
+    have hsum_reindex : ∑ ρ : Equiv.Perm (Fin Pᶜ.card), (Equiv.Perm.sign ρ : R) *
              ∏ k : Fin Pᶜ.card, A (eQc (finCongr hPcQc (ρ k))) (ePc k) =
-           ∑ ρ' : Equiv.Perm (Fin Qᶜ.card), (Equiv.Perm.sign (eperm.symm ρ') : R) * 
+           ∑ ρ' : Equiv.Perm (Fin Qᶜ.card), (Equiv.Perm.sign (eperm.symm ρ') : R) *
              ∏ k : Fin Pᶜ.card, A (eQc (finCongr hPcQc (eperm.symm ρ' k))) (ePc k) := by
-      exact (eperm.symm.sum_comp (fun ρ => (Equiv.Perm.sign ρ : R) * 
+      exact (eperm.symm.sum_comp (fun ρ => (Equiv.Perm.sign ρ : R) *
              ∏ k : Fin Pᶜ.card, A (eQc (finCongr hPcQc (ρ k))) (ePc k))).symm
     rw [hsum_reindex]
     -- Step 2: Simplify sign and reindex products
     have hterm_eq : ∀ ρ' : Equiv.Perm (Fin Qᶜ.card),
-        (Equiv.Perm.sign (eperm.symm ρ') : R) * 
+        (Equiv.Perm.sign (eperm.symm ρ') : R) *
           ∏ k : Fin Pᶜ.card, A (eQc (finCongr hPcQc (eperm.symm ρ' k))) (ePc k) =
-        (Equiv.Perm.sign ρ' : R) * 
+        (Equiv.Perm.sign ρ' : R) *
           ∏ i : Fin Qᶜ.card, A (Qᶜ.orderIsoOfFin rfl (ρ' i)) (Pᶜ.orderIsoOfFin hPcQc i) := by
       intro ρ'
       -- Sign is preserved
@@ -2696,7 +2696,7 @@ private lemma sum_perms_eq_det_prod {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
       congr 1
       -- Reindex product from Fin Pᶜ.card to Fin Qᶜ.card
       refine Fintype.prod_equiv (finCongr hPcQc) _ _ (fun k => ?_)
-      simp only [eperm, Equiv.permCongr_symm, Equiv.permCongr_apply, finCongr_symm, 
+      simp only [eperm, Equiv.permCongr_symm, Equiv.permCongr_apply, finCongr_symm,
                  finCongr_apply, Fin.cast_cast, Fin.cast_eq_self]
       -- Show matrix entries are equal
       have h1 : (eQc (ρ' (Fin.cast hPcQc k)) : Fin m) = Qᶜ.orderIsoOfFin rfl (ρ' (Fin.cast hPcQc k)) := rfl
@@ -2707,7 +2707,7 @@ private lemma sum_perms_eq_det_prod {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     simp_rw [hterm_eq]
     -- Step 3: Apply sum_perm_prod_eq_submatrixDet
     exact sum_perm_prod_eq_submatrixDet A Pᶜ Qᶜ hPcQc
-  
+
   -- Final assembly
   rw [hdet_P, hdet_Pc]
   -- Simplify submatrixDet to match the RHS
@@ -3421,8 +3421,8 @@ lemma inner_det_6x6 (A : Matrix (Fin 6) (Fin 6) R) :
 
 /-- Verification that the Desnanot-Jacobi identity holds for 6×6 matrices.
     These tests confirm the identity is correct via native_decide on specific matrices. -/
-private example : 
-  let A : Matrix (Fin 6) (Fin 6) ℤ := !![1, 2, 3, 4, 5, 6; 
+private example :
+  let A : Matrix (Fin 6) (Fin 6) ℤ := !![1, 2, 3, 4, 5, 6;
                                          7, 8, 9, 10, 11, 12;
                                          13, 14, 15, 16, 17, 18;
                                          19, 20, 21, 22, 23, 24;
@@ -3433,8 +3433,8 @@ private example :
     (submatrixRemove A 0 (Fin.last 5)).det * (submatrixRemove A (Fin.last 5) 0).det := by
   native_decide
 
-private example : 
-  let A : Matrix (Fin 6) (Fin 6) ℤ := !![3, 1, 4, 1, 5, 9; 
+private example :
+  let A : Matrix (Fin 6) (Fin 6) ℤ := !![3, 1, 4, 1, 5, 9;
                                          2, 6, 5, 3, 5, 8;
                                          9, 7, 9, 3, 2, 3;
                                          8, 4, 6, 2, 6, 4;
@@ -3675,20 +3675,20 @@ private lemma complementary_minor_2x2_corner_block {K : Type*} [Field K] {m : �
 /-- The complementary minor identity for the 2×2 corner of the inverse matrix.
     For P = Q = {0, last}, this specializes the general complementary minor theorem:
     det(A) * det(2×2 corner of A⁻¹) = det(innerSubmatrix A)
-    
+
     The sign factor is (-1)^(0 + (m+1) + 0 + (m+1)) = (-1)^(2m+2) = 1, so no sign correction.
-    
+
     This lemma is the key to proving desnanot_jacobi_field. It follows from the block matrix
     Schur complement formula by permuting A so that {0, last} are the first two rows/columns. -/
 private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
     (A : Matrix (Fin (m + 2)) (Fin (m + 2)) K) (hA : A.det ≠ 0) :
-    A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+    A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
              A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0) =
     (innerSubmatrix A).det := by
   -- The proof uses the relationship between adjugate and inverse for invertible matrices:
   -- adj(A)_ij = det(A) * A⁻¹_ij
   -- Combined with det_adjugate_corners and the Desnanot-Jacobi identity.
-  
+
   -- Step 1: Express adjugate corners in terms of inverse corners
   have hunit : IsUnit A.det := IsUnit.mk0 _ hA
   have hadj_inv : ∀ i j, A.adjugate i j = A.det * A⁻¹ i j := by
@@ -3701,26 +3701,26 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
         _ = A.det⁻¹ := by rw [hval]
     rw [h]
     field_simp
-  
+
   -- Step 2: The adjugate corners product equals det² * inverse corners product
   have h_adj_eq : A.adjugate 0 0 * A.adjugate (Fin.last (m + 1)) (Fin.last (m + 1)) -
                   A.adjugate 0 (Fin.last (m + 1)) * A.adjugate (Fin.last (m + 1)) 0 =
-                  A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+                  A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                                    A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0) := by
     rw [hadj_inv 0 0, hadj_inv (Fin.last (m + 1)) (Fin.last (m + 1)),
         hadj_inv 0 (Fin.last (m + 1)), hadj_inv (Fin.last (m + 1)) 0]
     ring
-  
+
   -- Step 3: By det_adjugate_corners, adj corners = submatrixRemove products
   have h_adj_sub : A.adjugate 0 0 * A.adjugate (Fin.last (m + 1)) (Fin.last (m + 1)) -
                    A.adjugate 0 (Fin.last (m + 1)) * A.adjugate (Fin.last (m + 1)) 0 =
                    (submatrixRemove A 0 0).det * (submatrixRemove A (Fin.last (m + 1)) (Fin.last (m + 1))).det -
                    (submatrixRemove A 0 (Fin.last (m + 1))).det * (submatrixRemove A (Fin.last (m + 1)) 0).det :=
     det_adjugate_corners A
-  
+
   -- Step 4: We need Desnanot-Jacobi: submatrixRemove products = det * inner.det
   -- We prove this by case analysis on m, using the explicit base cases for small matrices.
-  -- For m ≤ 3 (up to 5×5 matrices), we have explicit proofs: desnanot_jacobi_base, 
+  -- For m ≤ 3 (up to 5×5 matrices), we have explicit proofs: desnanot_jacobi_base,
   -- desnanot_jacobi_3x3, desnanot_jacobi_4x4, desnanot_jacobi_5x5.
   -- For m ≥ 4 (6×6 and larger), this requires infrastructure that creates circular dependencies
   -- or has sorries (desnanot_jacobi_6x6). The identity is a polynomial identity that holds
@@ -3738,15 +3738,15 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
     · -- m ≥ 4: 6×6 and larger matrices
       -- Use block matrix Schur complement approach directly for all m ≥ 4.
       -- This avoids the circular dependency with desnanot_jacobi_6x6.
-      -- 
+      --
       -- The proof uses the block matrix identity:
       -- det(M) * det(M⁻¹.toBlocks₁₁) = det(M.toBlocks₂₂)
       -- where M = A.submatrix σ σ with σ = finCornerPerm.symm.
-        -- 
+        --
         -- We split into two cases:
         -- 1. When (innerSubmatrix A).det ≠ 0: Use complementary_minor_2x2_corner_block
         -- 2. When (innerSubmatrix A).det = 0: Use polynomial lifting (adjugate identity)
-        
+
         -- Let M = A.submatrix σ σ where σ = finCornerPerm.symm
         let M := A.submatrix (finCornerPerm m).symm (finCornerPerm m).symm
         -- det(M) = det(A)
@@ -3755,7 +3755,7 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
         have hM22 : M.toBlocks₂₂ = innerSubmatrix A := toBlocks₂₂_submatrix_finCornerPerm A
         -- M.det ≠ 0
         have hMne : M.det ≠ 0 := by rw [hMdet]; exact hA
-        
+
         by_cases hInner : (innerSubmatrix A).det ≠ 0
         · -- Case 1: innerSubmatrix is invertible
           -- Use det_mul_det_inv_toBlocks₁₁_eq_det_toBlocks₂₂
@@ -3775,7 +3775,7 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
           -- Use h_adj_sub and h_adj_eq to relate
           have h1 : A.adjugate 0 0 * A.adjugate (Fin.last (m + 1)) (Fin.last (m + 1)) -
                     A.adjugate 0 (Fin.last (m + 1)) * A.adjugate (Fin.last (m + 1)) 0 =
-                    A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+                    A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                                      A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0) := by
             rw [hadj_inv 0 0, hadj_inv (Fin.last (m + 1)) (Fin.last (m + 1)),
                 hadj_inv 0 (Fin.last (m + 1)), hadj_inv (Fin.last (m + 1)) 0]
@@ -3789,9 +3789,9 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
                 (submatrixRemove A 0 (Fin.last (m + 1))).det * (submatrixRemove A (Fin.last (m + 1)) 0).det
               = A.adjugate 0 0 * A.adjugate (Fin.last (m + 1)) (Fin.last (m + 1)) -
                 A.adjugate 0 (Fin.last (m + 1)) * A.adjugate (Fin.last (m + 1)) 0 := h2.symm
-            _ = A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+            _ = A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                                  A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0) := h1
-            _ = A.det * (A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+            _ = A.det * (A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                                   A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0)) := by ring
             _ = A.det * (innerSubmatrix A).det := by rw [hSchur]
         · -- Case 2: innerSubmatrix is singular (det = 0)
@@ -3802,20 +3802,20 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
           -- When det(M.toBlocks₂₂) = 0, det(M.adjugate.toBlocks₁₁) = 0
           -- This means det(M⁻¹.toBlocks₁₁) = 0 (since M⁻¹ = det(M)⁻¹ • adjugate)
           -- Hence LHS = det² * det(M⁻¹.toBlocks₁₁) = 0
-          
+
           -- First, show RHS = 0
           have hrhs : A.det * (innerSubmatrix A).det = 0 := by rw [hInner, mul_zero]
-          
+
           -- Now show LHS = 0 using the adjugate identity
           -- M⁻¹ = M.det⁻¹ • M.adjugate
           have hinv_eq : M⁻¹ = M.det⁻¹ • M.adjugate := by
             rw [Matrix.inv_def]; congr 1; simp [Ring.inverse_eq_inv']
-          
+
           -- toBlocks₁₁ commutes with scalar multiplication
           have htop_smul : M⁻¹.toBlocks₁₁ = M.det⁻¹ • M.adjugate.toBlocks₁₁ := by
             rw [hinv_eq]
             ext i j; simp [Matrix.toBlocks₁₁, Matrix.smul_apply]
-          
+
           -- The key polynomial identity for adjugate block determinants
           -- We prove it by working in FractionRing(MvPolynomial) where the generic matrix is invertible
           -- The identity is: det(M.adjugate.toBlocks₁₁) = M.det * M.toBlocks₂₂.det
@@ -3823,17 +3823,17 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
             -- Define the generic matrix over MvPolynomial
             let σ' := (Fin 2 ⊕ Fin m) × (Fin 2 ⊕ Fin m)
             let Poly := MvPolynomial σ' ℤ
-            let M'' : Matrix (Fin 2 ⊕ Fin m) (Fin 2 ⊕ Fin m) Poly := 
+            let M'' : Matrix (Fin 2 ⊕ Fin m) (Fin 2 ⊕ Fin m) Poly :=
               Matrix.of fun i j => MvPolynomial.X (i, j)
             let φ : Poly →+* K := MvPolynomial.eval₂Hom (Int.castRingHom K) (fun p => M p.1 p.2)
-            
+
             -- M = φ.mapMatrix M''
             have hM''_eq : M = φ.mapMatrix M'' := by
               ext i j
               simp only [RingHom.mapMatrix_apply, Matrix.map_apply]
               show M i j = MvPolynomial.eval₂Hom (Int.castRingHom K) (fun p => M p.1 p.2) (MvPolynomial.X (i, j))
               simp [MvPolynomial.eval₂Hom_X']
-            
+
             -- Show det(M'') ≠ 0 using evaluation at identity
             have hdetM'' : M''.det ≠ 0 := by
               intro h
@@ -3850,50 +3850,50 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
               have hzero : eval M''.det = 0 := by rw [h, map_zero]
               rw [hmap, hzero] at hdet1
               exact zero_ne_one hdet1
-            
+
             -- Work in the fraction ring F where M'' becomes invertible
             let F := FractionRing Poly
             let ι : Poly →+* F := algebraMap Poly F
             have hinj : Function.Injective ι := IsFractionRing.injective Poly F
-            
+
             -- First prove the polynomial identity: M''.adjugate.toBlocks₁₁.det = M''.det * M''.toBlocks₂₂.det
             have poly_identity : M''.adjugate.toBlocks₁₁.det = M''.det * M''.toBlocks₂₂.det := by
               -- Pull back from F using injectivity
               apply hinj
-              
+
               -- Map LHS
               have hlhs : ι M''.adjugate.toBlocks₁₁.det = (M''.map ι).adjugate.toBlocks₁₁.det := by
                 have hadj : M''.adjugate.map ι = (M''.map ι).adjugate := by
                   rw [← RingHom.mapMatrix_apply, ← RingHom.mapMatrix_apply, RingHom.map_adjugate]
                 have htop : (M''.adjugate.map ι).toBlocks₁₁ = (M''.adjugate.toBlocks₁₁).map ι := by
                   ext i j; simp [Matrix.toBlocks₁₁, Matrix.map_apply]
-                calc ι M''.adjugate.toBlocks₁₁.det 
+                calc ι M''.adjugate.toBlocks₁₁.det
                     = (M''.adjugate.toBlocks₁₁.map ι).det := by rw [← RingHom.mapMatrix_apply, RingHom.map_det]
                   _ = (M''.adjugate.map ι).toBlocks₁₁.det := by rw [htop]
                   _ = (M''.map ι).adjugate.toBlocks₁₁.det := by rw [hadj]
-              
-              -- Map RHS  
-              have hrhs' : ι (M''.det * M''.toBlocks₂₂.det) = 
+
+              -- Map RHS
+              have hrhs' : ι (M''.det * M''.toBlocks₂₂.det) =
                           (M''.map ι).det * (M''.map ι).toBlocks₂₂.det := by
                 simp only [map_mul]
-                have hdet_eq : ι M''.det = (M''.map ι).det := by 
+                have hdet_eq : ι M''.det = (M''.map ι).det := by
                   rw [← RingHom.mapMatrix_apply, RingHom.map_det]
                 have hbot : ι M''.toBlocks₂₂.det = (M''.map ι).toBlocks₂₂.det := by
                   have h1 : M''.toBlocks₂₂.map ι = (M''.map ι).toBlocks₂₂ := by
                     ext i j; simp [Matrix.toBlocks₂₂, Matrix.map_apply]
-                  calc ι M''.toBlocks₂₂.det 
+                  calc ι M''.toBlocks₂₂.det
                       = (M''.toBlocks₂₂.map ι).det := by rw [← RingHom.mapMatrix_apply, RingHom.map_det]
                     _ = (M''.map ι).toBlocks₂₂.det := by rw [h1]
                 rw [hdet_eq, hbot]
-              
+
               rw [hlhs, hrhs']
-              
+
               -- Now prove in F (a field)
               let M''' := M''.map ι
-              
+
               -- M'''.det ≠ 0 in F
               have hdet' : M'''.det ≠ 0 := by
-                have hmap : M'''.det = ι M''.det := by 
+                have hmap : M'''.det = ι M''.det := by
                   show (M''.map ι).det = ι M''.det
                   rw [← RingHom.mapMatrix_apply, RingHom.map_det]
                 rw [hmap]
@@ -3901,7 +3901,7 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
                 apply hdetM''
                 rw [← map_zero ι] at h
                 exact hinj h
-              
+
               -- For invertible M''', adjugate = det • inverse
               have hM'''unit : IsUnit M'''.det := IsUnit.mk0 _ hdet'
               have hadj_eq : M'''.adjugate = M'''.det • M'''⁻¹ := by
@@ -3910,22 +3910,22 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
                 rw [hinv]
                 ext i j
                 simp only [Matrix.smul_apply, smul_eq_mul]
-                have hinv_val : (↑hM'''unit.unit⁻¹ : F) = M'''.det⁻¹ := by 
+                have hinv_val : (↑hM'''unit.unit⁻¹ : F) = M'''.det⁻¹ := by
                   calc (↑hM'''unit.unit⁻¹ : F) = (hM'''unit.unit : F)⁻¹ := by simp
                     _ = M'''.det⁻¹ := by rw [hval]
                 rw [hinv_val]
                 rw [mul_inv_cancel_left₀ hdet']
-              
+
               -- adjugate.toBlocks₁₁ = det • inverse.toBlocks₁₁
               have htop_adj : M'''.adjugate.toBlocks₁₁ = M'''.det • M'''⁻¹.toBlocks₁₁ := by
                 rw [hadj_eq]
                 ext i j; simp [Matrix.toBlocks₁₁, Matrix.smul_apply]
-              
+
               -- det(adjugate.toBlocks₁₁) = det² * det(inverse.toBlocks₁₁)
               have hdet_adj : M'''.adjugate.toBlocks₁₁.det = M'''.det ^ 2 * M'''⁻¹.toBlocks₁₁.det := by
                 rw [htop_adj, Matrix.det_smul]
                 simp only [Fintype.card_fin]
-              
+
               -- Show det(M'''.toBlocks₂₂) ≠ 0 using evaluation
               have hdetD''' : M'''.toBlocks₂₂.det ≠ 0 := by
                 have hmap : M'''.toBlocks₂₂.det = ι M''.toBlocks₂₂.det := by
@@ -3941,7 +3941,7 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
                 have hdetD'' : M''.toBlocks₂₂.det ≠ 0 := by
                   intro hD
                   let eval : Poly →+* ℤ :=
-                    MvPolynomial.eval₂Hom (RingHom.id ℤ) (fun p => 
+                    MvPolynomial.eval₂Hom (RingHom.id ℤ) (fun p =>
                       match p with
                       | (Sum.inr i, Sum.inr j) => if i = j then 1 else 0
                       | _ => 0)
@@ -3953,7 +3953,7 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
                     show eval (MvPolynomial.X (Sum.inr i, Sum.inr j)) = if i = j then 1 else 0
                     rw [MvPolynomial.eval₂Hom_X']
                   have hdet1 : (eval.mapMatrix M''.toBlocks₂₂).det = 1 := by rw [heval, Matrix.det_one]
-                  have hmapdet : (eval.mapMatrix M''.toBlocks₂₂).det = eval M''.toBlocks₂₂.det := by 
+                  have hmapdet : (eval.mapMatrix M''.toBlocks₂₂).det = eval M''.toBlocks₂₂.det := by
                     rw [RingHom.map_det]
                   have hzero : eval M''.toBlocks₂₂.det = 0 := by rw [hD, map_zero]
                   rw [hmapdet, hzero] at hdet1
@@ -3961,25 +3961,25 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
                 apply hdetD''
                 rw [← map_zero ι] at h
                 exact hinj h
-              
+
               -- Apply the Schur complement identity for M'''
               have hM22ne' : M'''.toBlocks₂₂.det ≠ 0 := hdetD'''
               have hblock' := det_mul_det_inv_toBlocks₁₁_eq_det_toBlocks₂₂ M''' hdet' hM22ne'
               -- hblock' : M'''.det * M'''⁻¹.toBlocks₁₁.det = M'''.toBlocks₂₂.det
-              
+
               -- From hdet_adj and hblock':
               -- det(adj.toBlocks₁₁) = det² * det(inv.toBlocks₁₁)
               --                     = det * (det * det(inv.toBlocks₁₁))
               --                     = det * det(toBlocks₂₂)
-              calc M'''.adjugate.toBlocks₁₁.det 
+              calc M'''.adjugate.toBlocks₁₁.det
                   = M'''.det ^ 2 * M'''⁻¹.toBlocks₁₁.det := hdet_adj
                 _ = M'''.det * (M'''.det * M'''⁻¹.toBlocks₁₁.det) := by ring
                 _ = M'''.det * M'''.toBlocks₂₂.det := by rw [hblock']
-            
+
             -- Now apply φ to the polynomial identity to get the result for M
             have h_applied := congrArg φ poly_identity
             simp only [map_mul, RingHom.map_det] at h_applied
-            
+
             -- Convert the terms using φ
             have hadj_map : φ.mapMatrix M''.adjugate = M.adjugate := by
               rw [RingHom.map_adjugate, hM''_eq]
@@ -3992,47 +3992,47 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
               have hb : φ.mapMatrix M''.toBlocks₂₂ = (φ.mapMatrix M'').toBlocks₂₂ := by
                 ext i j; simp [Matrix.toBlocks₂₂, RingHom.mapMatrix_apply]
               rw [hb, ← hM''_eq]
-            
+
             rw [h_lhs, h_det, h_bot, hM22] at h_applied
             exact h_applied
-          
+
           -- Now use hadj_block_det to show LHS = 0
           -- M⁻¹.toBlocks₁₁.det = M.det⁻² * M.adjugate.toBlocks₁₁.det
           have hMinv_det : M⁻¹.toBlocks₁₁.det = M.det⁻¹ ^ 2 * M.adjugate.toBlocks₁₁.det := by
             rw [htop_smul, Matrix.det_smul]
             simp only [Fintype.card_fin]
-          
+
           -- M.adjugate.toBlocks₁₁.det = M.det * 0 = 0
           have hadj_zero : M.adjugate.toBlocks₁₁.det = 0 := by
             rw [hadj_block_det, hInner, mul_zero]
-          
+
           -- Therefore M⁻¹.toBlocks₁₁.det = 0
           have hMinv_zero : M⁻¹.toBlocks₁₁.det = 0 := by
             rw [hMinv_det, hadj_zero, mul_zero]
-          
+
           -- M⁻¹ = A⁻¹.submatrix σ σ
           have hMinv : M⁻¹ = A⁻¹.submatrix (finCornerPerm m).symm (finCornerPerm m).symm :=
             Matrix.inv_submatrix_equiv A _ _
-          
+
           -- det(M⁻¹.toBlocks₁₁) = corner det of A⁻¹
           have hM11det : M⁻¹.toBlocks₁₁.det =
               A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
               A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0 := by
             rw [hMinv]; exact det_toBlocks₁₁_inv_submatrix_finCornerPerm A
-          
+
           -- corner det = 0
           have hcorner_zero : A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                               A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0 = 0 := by
             rw [← hM11det, hMinv_zero]
-          
+
           -- LHS = det² * corner det = 0
           have hlhs : (submatrixRemove A 0 0).det * (submatrixRemove A (Fin.last (m + 1)) (Fin.last (m + 1))).det -
                       (submatrixRemove A 0 (Fin.last (m + 1))).det * (submatrixRemove A (Fin.last (m + 1)) 0).det =
-                      A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+                      A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                                        A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0) := by
             have h1 : A.adjugate 0 0 * A.adjugate (Fin.last (m + 1)) (Fin.last (m + 1)) -
                       A.adjugate 0 (Fin.last (m + 1)) * A.adjugate (Fin.last (m + 1)) 0 =
-                      A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+                      A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                                        A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0) := by
               rw [hadj_inv 0 0, hadj_inv (Fin.last (m + 1)) (Fin.last (m + 1)),
                   hadj_inv 0 (Fin.last (m + 1)), hadj_inv (Fin.last (m + 1)) 0]
@@ -4043,30 +4043,30 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
                       (submatrixRemove A 0 (Fin.last (m + 1))).det * (submatrixRemove A (Fin.last (m + 1)) 0).det :=
               det_adjugate_corners A
             rw [← h2, h1]
-          
+
           rw [hlhs, hcorner_zero, mul_zero, hrhs]
-  
+
   -- Step 5: Combine: det² * inverse corners = det * inner.det
-  have h_combined : A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+  have h_combined : A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                                      A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0) =
                     A.det * (innerSubmatrix A).det := by
-    calc A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+    calc A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                           A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0)
         = A.adjugate 0 0 * A.adjugate (Fin.last (m + 1)) (Fin.last (m + 1)) -
           A.adjugate 0 (Fin.last (m + 1)) * A.adjugate (Fin.last (m + 1)) 0 := h_adj_eq.symm
       _ = (submatrixRemove A 0 0).det * (submatrixRemove A (Fin.last (m + 1)) (Fin.last (m + 1))).det -
           (submatrixRemove A 0 (Fin.last (m + 1))).det * (submatrixRemove A (Fin.last (m + 1)) 0).det := h_adj_sub
       _ = A.det * (innerSubmatrix A).det := h_desnanot
-  
+
   -- Step 6: Divide both sides by det
-  have hmul : A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+  have hmul : A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                                A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0) =
-              A.det * (A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) - 
+              A.det * (A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m + 1)) (Fin.last (m + 1)) -
                                 A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0)) := by ring
   rw [hmul] at h_combined
   exact mul_left_cancel₀ hA h_combined
 
-private lemma desnanot_jacobi_field {K : Type*} [Field K] {m : ℕ} 
+private lemma desnanot_jacobi_field {K : Type*} [Field K] {m : ℕ}
     (A : Matrix (Fin (m + 2)) (Fin (m + 2)) K) (hA : A.det ≠ 0) :
     A.det * (innerSubmatrix A).det =
       (submatrixRemove A 0 0).det * (submatrixRemove A (Fin.last (m + 1)) (Fin.last (m + 1))).det -
@@ -4082,7 +4082,7 @@ private lemma desnanot_jacobi_field {K : Type*} [Field K] {m : ℕ}
         _ = A.det * A.det⁻¹ := by simp
         _ = 1 := by field_simp
     rw [h, one_smul]
-  
+
   -- Step 2: Express adjugate corners in terms of inverse corners
   have h00 : A.adjugate 0 0 = A.det * A⁻¹ 0 0 := by
     rw [hadj]; simp [Matrix.smul_apply, smul_eq_mul]
@@ -4092,13 +4092,13 @@ private lemma desnanot_jacobi_field {K : Type*} [Field K] {m : ℕ}
     rw [hadj]; simp [Matrix.smul_apply, smul_eq_mul]
   have hl0 : A.adjugate (Fin.last (m+1)) 0 = A.det * A⁻¹ (Fin.last (m+1)) 0 := by
     rw [hadj]; simp [Matrix.smul_apply, smul_eq_mul]
-  
+
   -- Step 3: Use the adjugate corner lemmas (relate adjugate to submatrix determinants)
   have adj00 : A.adjugate 0 0 = (submatrixRemove A 0 0).det := by
     simp only [submatrixRemove]
     rw [adjugate_fin_succ_eq_det_submatrix]
     simp only [Fin.val_zero, add_zero, pow_zero, one_mul]
-  have adjll : A.adjugate (Fin.last (m+1)) (Fin.last (m+1)) = 
+  have adjll : A.adjugate (Fin.last (m+1)) (Fin.last (m+1)) =
                (submatrixRemove A (Fin.last (m+1)) (Fin.last (m+1))).det := by
     simp only [submatrixRemove]
     rw [adjugate_fin_succ_eq_det_submatrix]
@@ -4107,30 +4107,30 @@ private lemma desnanot_jacobi_field {K : Type*} [Field K] {m : ℕ}
       have : (m + 1) + (m + 1) = (m + 1) * 2 := by ring
       rw [this, neg_one_pow_mul_two']
     rw [h, one_mul]
-  have adj0l : A.adjugate 0 (Fin.last (m+1)) = 
+  have adj0l : A.adjugate 0 (Fin.last (m+1)) =
                (-1)^(m+1) * (submatrixRemove A (Fin.last (m+1)) 0).det := by
     simp only [submatrixRemove]
     rw [adjugate_fin_succ_eq_det_submatrix]
     simp only [Fin.val_zero, add_zero, Fin.val_last]
-  have adjl0 : A.adjugate (Fin.last (m+1)) 0 = 
+  have adjl0 : A.adjugate (Fin.last (m+1)) 0 =
                (-1)^(m+1) * (submatrixRemove A 0 (Fin.last (m+1))).det := by
     simp only [submatrixRemove]
     rw [adjugate_fin_succ_eq_det_submatrix]
     simp only [Fin.val_zero, zero_add, Fin.val_last]
-  
+
   -- Step 4: The key complementary minor identity
   have complementary := complementary_minor_2x2_corner A hA
-  
+
   -- Step 5: Show det² * (2×2 det of A⁻¹) = adj corners product - adj off-diag product
-  have det2x2 : A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m+1)) (Fin.last (m+1)) - 
+  have det2x2 : A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m+1)) (Fin.last (m+1)) -
                                  A⁻¹ 0 (Fin.last (m+1)) * A⁻¹ (Fin.last (m+1)) 0) =
-                A.adjugate 0 0 * A.adjugate (Fin.last (m+1)) (Fin.last (m+1)) - 
+                A.adjugate 0 0 * A.adjugate (Fin.last (m+1)) (Fin.last (m+1)) -
                 A.adjugate 0 (Fin.last (m+1)) * A.adjugate (Fin.last (m+1)) 0 := by
     rw [h00, hll, h0l, hl0]
     ring
-  
+
   -- Step 6: Show adj corners = RHS (using det_adjugate_corners)
-  have adjcorners : A.adjugate 0 0 * A.adjugate (Fin.last (m+1)) (Fin.last (m+1)) - 
+  have adjcorners : A.adjugate 0 0 * A.adjugate (Fin.last (m+1)) (Fin.last (m+1)) -
                     A.adjugate 0 (Fin.last (m+1)) * A.adjugate (Fin.last (m+1)) 0 =
                     (submatrixRemove A 0 0).det * (submatrixRemove A (Fin.last (m+1)) (Fin.last (m+1))).det -
                     (submatrixRemove A 0 (Fin.last (m+1))).det * (submatrixRemove A (Fin.last (m+1)) 0).det := by
@@ -4138,14 +4138,14 @@ private lemma desnanot_jacobi_field {K : Type*} [Field K] {m : ℕ}
     ring_nf
     rw [neg_one_pow_mul_two']
     ring
-  
+
   -- Combine everything using the complementary minor identity
-  calc A.det * (innerSubmatrix A).det 
-      = A.det * (A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m+1)) (Fin.last (m+1)) - 
+  calc A.det * (innerSubmatrix A).det
+      = A.det * (A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m+1)) (Fin.last (m+1)) -
                           A⁻¹ 0 (Fin.last (m+1)) * A⁻¹ (Fin.last (m+1)) 0)) := by rw [complementary]
-    _ = A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m+1)) (Fin.last (m+1)) - 
+    _ = A.det * A.det * (A⁻¹ 0 0 * A⁻¹ (Fin.last (m+1)) (Fin.last (m+1)) -
                          A⁻¹ 0 (Fin.last (m+1)) * A⁻¹ (Fin.last (m+1)) 0) := by ring
-    _ = A.adjugate 0 0 * A.adjugate (Fin.last (m+1)) (Fin.last (m+1)) - 
+    _ = A.adjugate 0 0 * A.adjugate (Fin.last (m+1)) (Fin.last (m+1)) -
         A.adjugate 0 (Fin.last (m+1)) * A.adjugate (Fin.last (m+1)) 0 := det2x2
     _ = (submatrixRemove A 0 0).det * (submatrixRemove A (Fin.last (m+1)) (Fin.last (m+1))).det -
         (submatrixRemove A 0 (Fin.last (m+1))).det * (submatrixRemove A (Fin.last (m+1)) 0).det := adjcorners
@@ -4161,16 +4161,16 @@ lemma desnanot_jacobi_6x6 (A : Matrix (Fin 6) (Fin 6) R) :
   -- Use the polynomial ring approach: reduce to the generic matrix over MvPolynomial,
   -- then use the field of fractions where the generic matrix is invertible.
   -- This avoids the explicit expansion which times out for 6×6 matrices.
-  
+
   -- Step 1: Define the generic 6×6 matrix over MvPolynomial
   let A' := mvPolynomialX (Fin 6) (Fin 6) ℤ
   let φ : MvPolynomial (Fin 6 × Fin 6) ℤ →+* R :=
     MvPolynomial.eval₂Hom (Int.castRingHom R) (fun p => A p.1 p.2)
-  
+
   -- A = φ.mapMatrix A'
   have hA : A = φ.mapMatrix A' := by
     ext i j; simp [A', mvPolynomialX_apply, φ, RingHom.mapMatrix_apply]
-  
+
   -- It suffices to prove the identity for A' in the polynomial ring
   suffices h : A'.det * (innerSubmatrix A').det =
                (submatrixRemove A' 0 0).det * (submatrixRemove A' (Fin.last 5) (Fin.last 5)).det -
@@ -4190,23 +4190,23 @@ lemma desnanot_jacobi_6x6 (A : Matrix (Fin 6) (Fin 6) R) :
         ext i j; simp [submatrixRemove]
       rw [heq]
       simp only [RingHom.mapMatrix_apply, RingHom.map_det]
-    rw [hdet, hinner_det, hsub 0 0, hsub (Fin.last 5) (Fin.last 5), 
+    rw [hdet, hinner_det, hsub 0 0, hsub (Fin.last 5) (Fin.last 5),
         hsub 0 (Fin.last 5), hsub (Fin.last 5) 0]
     simp only [← map_mul, ← map_sub]
     exact congrArg φ h
-  
+
   -- Step 2: Prove the identity for A' using the field of fractions approach
   -- det(A') ≠ 0 in the polynomial ring
   have hdet : A'.det ≠ 0 := det_mvPolynomialX_ne_zero (Fin 6) ℤ
-  
+
   -- Work in the field of fractions
   let K := FractionRing (MvPolynomial (Fin 6 × Fin 6) ℤ)
   let ι : MvPolynomial (Fin 6 × Fin 6) ℤ →+* K := algebraMap _ _
   let A'' := A'.map ι
-  
+
   -- A''.det ≠ 0 in K
   have hdet' : A''.det ≠ 0 := by
-    have hmap : A''.det = ι A'.det := by 
+    have hmap : A''.det = ι A'.det := by
       show (A'.map ι).det = ι A'.det
       rw [← RingHom.mapMatrix_apply, RingHom.map_det]
     rw [hmap]
@@ -4215,11 +4215,11 @@ lemma desnanot_jacobi_6x6 (A : Matrix (Fin 6) (Fin 6) R) :
     have hinj : Function.Injective ι := IsFractionRing.injective _ _
     rw [← map_zero ι] at h
     exact hinj h
-  
+
   -- Use injectivity to reduce to proving the identity in K
   have hinj : Function.Injective ι := IsFractionRing.injective _ _
   apply hinj
-  
+
   -- Helper lemmas for mapping submatrices
   have hsubmap : ∀ (r c : Fin 6), (submatrixRemove A'' r c).det = ι (submatrixRemove A' r c).det := by
     intro r c
@@ -4233,10 +4233,10 @@ lemma desnanot_jacobi_6x6 (A : Matrix (Fin 6) (Fin 6) R) :
   have hdetmap : A''.det = ι A'.det := by
     show (A'.map ι).det = ι A'.det
     rw [← RingHom.mapMatrix_apply, RingHom.map_det]
-  
+
   -- Map both sides to K
   simp only [map_sub, map_mul, ← hsubmap, ← hinnermap, ← hdetmap]
-  
+
   -- Step 3: Prove the identity in K using desnanot_jacobi_field
   -- This works because complementary_minor_2x2_corner now uses the block matrix approach
   -- for m=4 (6×6 matrices), avoiding the circular dependency.
@@ -4245,7 +4245,7 @@ lemma desnanot_jacobi_6x6 (A : Matrix (Fin 6) (Fin 6) R) :
 
 /-- The key lemma for 2×2 matrices (base case n = 0):
     For a 2×2 matrix, adj₀₀ * adj₁₁ - adj₀₁ * adj₁₀ = det(A) * 1 = det(A).
-    
+
     This is the base case of Jacobi's complementary minor theorem.
     For 2×2 matrix [[a,b],[c,d]], adjugate = [[d,-b],[-c,a]], so:
     - adj₀₀ * adj₁₁ = d * a
@@ -4268,7 +4268,7 @@ lemma jacobi_complement_2x2_base (A : Matrix (Fin 2) (Fin 2) R) :
 /-- The key lemma for 3×3 matrices (case n = 1):
     For a 3×3 matrix, the 2×2 determinant of the corner entries of the adjugate
     equals det(A) times the middle entry A₁₁.
-    
+
     This verifies Jacobi's complementary minor theorem for the specific case
     where P = Q = {0, 2} (first and last indices). -/
 lemma jacobi_complement_2x2_three (A : Matrix (Fin 3) (Fin 3) R) :
@@ -4381,7 +4381,7 @@ private lemma jacobi_complement_2x2 {n : ℕ} (A : Matrix (Fin (n + 2)) (Fin (n 
             let A'' := A'.map ι
             -- A''.det ≠ 0 in K
             have hdet' : A''.det ≠ 0 := by
-              have hmap : A''.det = ι A'.det := by 
+              have hmap : A''.det = ι A'.det := by
                 show (A'.map ι).det = ι A'.det
                 rw [← RingHom.mapMatrix_apply, RingHom.map_det]
               rw [hmap]
@@ -4394,7 +4394,7 @@ private lemma jacobi_complement_2x2 {n : ℕ} (A : Matrix (Fin (n + 2)) (Fin (n 
             have hinj : Function.Injective ι := IsFractionRing.injective _ _
             apply hinj
             -- Helper lemmas for mapping submatrices
-            have hsubmap : ∀ (r c : Fin (k''' + 5 + 2)), 
+            have hsubmap : ∀ (r c : Fin (k''' + 5 + 2)),
                 (submatrixRemove A'' r c).det = ι (submatrixRemove A' r c).det := by
               intro r c
               have h : submatrixRemove A'' r c = (submatrixRemove A' r c).map ι := by
@@ -4700,10 +4700,10 @@ variable {K : Type*} [Field K]
 
 /-- For a matrix over a field with nonzero determinant, each entry of the inverse
     equals the corresponding adjugate entry divided by the determinant.
-    
+
     Note: A⁻¹ i j = adjugate(A) i j / det(A) (same indices, not swapped).
     This follows from A⁻¹ = det⁻¹ • adjugate. -/
-lemma inv_apply_eq_adjugate_div_det {n : ℕ} (A : Matrix (Fin n) (Fin n) K) 
+lemma inv_apply_eq_adjugate_div_det {n : ℕ} (A : Matrix (Fin n) (Fin n) K)
     (hA : A.det ≠ 0) (i j : Fin n) :
     A⁻¹ i j = A.adjugate i j / A.det := by
   have hunit : IsUnit A.det := IsUnit.mk0 _ hA
@@ -4716,7 +4716,7 @@ lemma inv_apply_eq_adjugate_div_det {n : ℕ} (A : Matrix (Fin n) (Fin n) K)
   field_simp
 
 /-- For invertible matrices, adjugate(A) = det(A) • A⁻¹ entry-wise. -/
-lemma adjugate_eq_det_smul_inv {n : ℕ} (A : Matrix (Fin n) (Fin n) K) 
+lemma adjugate_eq_det_smul_inv {n : ℕ} (A : Matrix (Fin n) (Fin n) K)
     (hA : A.det ≠ 0) (i j : Fin n) :
     A.adjugate i j = A.det * A⁻¹ i j := by
   rw [inv_apply_eq_adjugate_div_det A hA i j]
@@ -4817,7 +4817,7 @@ private lemma toBlocks₁₁_smul {m n : Type*} {R : Type*} [CommRing R]
   ext i j; simp [Matrix.toBlocks₁₁, Matrix.smul_apply]
 
 /-- For invertible matrices, adjugate(M) = det(M) • M⁻¹. -/
-private lemma adjugate_eq_det_smul_inv' {m n : Type*} [Fintype m] [Fintype n] 
+private lemma adjugate_eq_det_smul_inv' {m n : Type*} [Fintype m] [Fintype n]
     [DecidableEq m] [DecidableEq n] {R : Type*} [CommRing R]
     (M : Matrix (m ⊕ n) (m ⊕ n) R) (hM : IsUnit M.det) :
     M.adjugate = M.det • M⁻¹ := by
@@ -4828,16 +4828,16 @@ private lemma adjugate_eq_det_smul_inv' {m n : Type*} [Fintype m] [Fintype n]
 
 /-- Key identity: For invertible block matrices with invertible bottom-right block,
     the determinant of the adjugate's top-left block equals det(M)^(k-1) * det(D).
-    
+
     This is the Schur complement version of Jacobi's complementary minor theorem
     for the special case of block matrices. -/
-theorem adjugate_toBlocks₁₁_det_of_invertible {m n : Type*} [Fintype m] [Fintype n] 
+theorem adjugate_toBlocks₁₁_det_of_invertible {m n : Type*} [Fintype m] [Fintype n]
     [DecidableEq m] [DecidableEq n] {R : Type*} [CommRing R]
     (A : Matrix m m R) (B : Matrix m n R) (C : Matrix n m R) (D : Matrix n n R)
     [hD : Invertible D] [hSchur : Invertible (A - B * ⅟D * C)]
-    [hM : Invertible (Matrix.fromBlocks A B C D)] 
+    [hM : Invertible (Matrix.fromBlocks A B C D)]
     (hk : Fintype.card m ≥ 1) :
-    (Matrix.fromBlocks A B C D).adjugate.toBlocks₁₁.det = 
+    (Matrix.fromBlocks A B C D).adjugate.toBlocks₁₁.det =
     (Matrix.fromBlocks A B C D).det ^ (Fintype.card m - 1) * D.det := by
   let M := Matrix.fromBlocks A B C D
   have hMdet : IsUnit M.det := Matrix.isUnit_det_of_invertible M
@@ -4862,7 +4862,7 @@ theorem adjugate_toBlocks₁₁_det_of_invertible {m n : Type*} [Fintype m] [Fin
   letI hMdetInv : Invertible M.det := Matrix.detInvertibleOfInvertible M
   -- Step 8: Algebraic manipulation
   have hSchurDet_eq : (A - B * ⅟D * C).det = M.det * ⅟D.det := by
-    calc (A - B * ⅟D * C).det 
+    calc (A - B * ⅟D * C).det
         = (A - B * ⅟D * C).det * 1 := (mul_one _).symm
       _ = (A - B * ⅟D * C).det * (D.det * ⅟D.det) := by rw [mul_invOf_self]
       _ = D.det * (A - B * ⅟D * C).det * ⅟D.det := by ring
@@ -4935,19 +4935,19 @@ lemma sortEquivPQ_inr_mem {m : ℕ} (P : Finset (Fin m)) (i : Fin (m - P.card)) 
 /-- sortEquivPQ sends Sum.inl to the same values as finsetOrderEmb. -/
 lemma sortEquivPQ_inl_eq_finsetOrderEmb {m : ℕ} (P : Finset (Fin m)) (i : Fin P.card) :
     sortEquivPQ P (Sum.inl i) = finsetOrderEmb P i := by
-  simp only [sortEquivPQ, finSumEquivOfFinset_inl, finsetOrderEmb, 
+  simp only [sortEquivPQ, finSumEquivOfFinset_inl, finsetOrderEmb,
     Function.Embedding.trans_apply, RelIso.coe_toEmbedding]
   rfl
 
 /-- sortEquivPQ sends Sum.inr to finsetOrderEmb of the complement (with appropriate casting). -/
 lemma sortEquivPQ_inr_eq_finsetOrderEmb {m : ℕ} (P : Finset (Fin m)) (i : Fin (m - P.card)) :
     sortEquivPQ P (Sum.inr i) = finsetOrderEmb Pᶜ (finCongr (by rw [Finset.card_compl, Fintype.card_fin]) i) := by
-  simp only [sortEquivPQ_inr, finsetOrderEmb, Function.Embedding.trans_apply, 
+  simp only [sortEquivPQ_inr, finsetOrderEmb, Function.Embedding.trans_apply,
     RelIso.coe_toEmbedding, Function.Embedding.subtype_apply]
   rfl
 
 /-- Inverse of a matrix permuted by two equivalences. -/
-lemma inv_submatrix_equiv {m : ℕ} {n : Type*} [DecidableEq n] [Fintype n] 
+lemma inv_submatrix_equiv {m : ℕ} {n : Type*} [DecidableEq n] [Fintype n]
     (A : Matrix (Fin m) (Fin m) K) (hA : IsUnit A.det) (σ τ : n ≃ Fin m) :
     (A.submatrix σ τ)⁻¹ = A⁻¹.submatrix τ σ := by
   apply Matrix.inv_eq_right_inv
@@ -4959,7 +4959,7 @@ lemma inv_submatrix_equiv {m : ℕ} {n : Type*} [DecidableEq n] [Fintype n]
   simp [EmbeddingLike.apply_eq_iff_eq]
 
 /-- Determinant of a matrix permuted by two equivalences. -/
-lemma det_submatrix_equiv_equiv {m : ℕ} {n : Type*} [DecidableEq n] [Fintype n] 
+lemma det_submatrix_equiv_equiv {m : ℕ} {n : Type*} [DecidableEq n] [Fintype n]
     (A : Matrix (Fin m) (Fin m) K) (f g : n ≃ Fin m) :
     (A.submatrix f g).det = Equiv.Perm.sign (g.symm.trans f) * A.det := by
   have h : A.submatrix f g = A.reindex f.symm g.symm := by
@@ -4967,7 +4967,7 @@ lemma det_submatrix_equiv_equiv {m : ℕ} {n : Type*} [DecidableEq n] [Fintype n
   rw [h, Matrix.det_reindex]; simp only [Equiv.symm_symm]
 
 /-- Cast version of sortEquivPQ for when we need matching domain types. -/
-noncomputable def sortEquivPQ_cast {m : ℕ} (Q : Finset (Fin m)) (k : ℕ) (hk : Q.card = k) : 
+noncomputable def sortEquivPQ_cast {m : ℕ} (Q : Finset (Fin m)) (k : ℕ) (hk : Q.card = k) :
     Fin k ⊕ Fin (m - k) ≃ Fin m :=
   (Equiv.sumCongr (finCongr hk.symm) (finCongr (by omega))).trans (sortEquivPQ Q)
 
@@ -4976,31 +4976,31 @@ lemma sortEquivPQ_cast_inl {m : ℕ} (Q : Finset (Fin m)) (k : ℕ) (hk : Q.card
     sortEquivPQ_cast Q k hk (Sum.inl i) = Q.orderEmbOfFin rfl (finCongr hk.symm i) := by
   simp only [sortEquivPQ_cast, Equiv.trans_apply, Equiv.sumCongr_apply, Sum.map_inl, sortEquivPQ_inl]
 
-/-- sortEquivPQ_cast sends Sum.inr to finsetOrderEmb of the complement (with appropriate casting). 
+/-- sortEquivPQ_cast sends Sum.inr to finsetOrderEmb of the complement (with appropriate casting).
     This is the key lemma for relating the bottom-right block of M to the complementary submatrix. -/
-lemma sortEquivPQ_cast_inr {m : ℕ} (Q : Finset (Fin m)) (k : ℕ) (hk : Q.card = k) 
+lemma sortEquivPQ_cast_inr {m : ℕ} (Q : Finset (Fin m)) (k : ℕ) (hk : Q.card = k)
     (i : Fin (m - k)) :
-    sortEquivPQ_cast Q k hk (Sum.inr i) = 
+    sortEquivPQ_cast Q k hk (Sum.inr i) =
     finsetOrderEmb Qᶜ (finCongr (by rw [Finset.card_compl, Fintype.card_fin]; omega) i) := by
   simp only [sortEquivPQ_cast, Equiv.trans_apply, Equiv.sumCongr_apply, Sum.map_inr]
   rw [sortEquivPQ_inr_eq_finsetOrderEmb]
   congr 1
 
 /-- The top-left block of (A⁻¹.submatrix τ σ) equals sub_P^Q(A⁻¹). -/
-lemma inv_submatrix_topleft {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (P Q : Finset (Fin m)) 
+lemma inv_submatrix_topleft {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (P Q : Finset (Fin m))
     (hPQ : P.card = Q.card) :
     let k := P.card
     let σ := sortEquivPQ_cast Q k hPQ.symm
     let τ := sortEquivPQ P
-    (A⁻¹.submatrix τ σ).submatrix Sum.inl Sum.inl = 
+    (A⁻¹.submatrix τ σ).submatrix Sum.inl Sum.inl =
     A⁻¹.submatrix (finsetOrderEmb P) (fun i => finsetOrderEmb Q (finCongr hPQ i)) := by
   ext i j
-  simp only [Matrix.submatrix_apply, sortEquivPQ_inl_eq_finsetOrderEmb, sortEquivPQ_cast, 
+  simp only [Matrix.submatrix_apply, sortEquivPQ_inl_eq_finsetOrderEmb, sortEquivPQ_cast,
     Equiv.trans_apply, Equiv.sumCongr_apply, Sum.map_inl, finCongr]
 
 /-- The permutation σ.symm.trans τ maps the i-th element of Q to the i-th element of P.
     This is a key property showing that the composition preserves the order structure. -/
-private lemma sortEquiv_composition_maps_Q_to_P {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card) 
+private lemma sortEquiv_composition_maps_Q_to_P {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card)
     (i : Fin Q.card) :
     let k := P.card
     let σ := sortEquivPQ_cast Q k hPQ.symm
@@ -5017,18 +5017,18 @@ private lemma sortEquiv_composition_maps_Q_to_P {m : ℕ} (P Q : Finset (Fin m))
 
 /-- The sign of the composition of sorting equivalences equals (-1)^(∑P + ∑Q).
     This is the key sign calculation for the complementary minor theorem.
-    
+
     The proof uses sign_sortingPermOfFinset_mul which establishes that
     sign(sortingPermOfFinset P) * sign(sortingPermOfFinset Q) = (-1)^(∑P + ∑Q).
-    
+
     **Proof strategy:** The permutation σ.symm.trans τ maps:
     - The i-th element of Q to the i-th element of P (by sortEquiv_composition_maps_Q_to_P)
     - The j-th element of Qᶜ to the j-th element of Pᶜ (similar argument)
-    
+
     This is exactly what (sortingPermOfFinset Q).trans (sortingPermOfFinset P).symm does:
     - sortingPermOfFinset Q maps x to its sorted position
     - (sortingPermOfFinset P).symm maps position i to the element at that position
-    
+
     Since both permutations agree on all elements, they are equal, hence have the same sign.
     The sign equals sign(sortingPermOfFinset P) * sign(sortingPermOfFinset Q) = (-1)^(∑P + ∑Q)
     by sign_sortingPermOfFinset_mul. -/
@@ -5042,10 +5042,10 @@ private lemma sign_sortEquiv_composition {m : ℕ} (P Q : Finset (Fin m)) (hPQ :
   let hPcQc : Pᶜ.card = Qᶜ.card := by rw [Finset.card_compl, Finset.card_compl, hPQ]
   let ePsum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin m := finSumEquivOfFinset rfl rfl
   let eQsum : Fin Q.card ⊕ Fin Qᶜ.card ≃ Fin m := finSumEquivOfFinset rfl rfl
-  let castSum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin Q.card ⊕ Fin Qᶜ.card := 
+  let castSum : Fin P.card ⊕ Fin Pᶜ.card ≃ Fin Q.card ⊕ Fin Qᶜ.card :=
     Equiv.sumCongr (finCongr hPQ) (finCongr hPcQc)
   let relabel : Equiv.Perm (Fin m) := ePsum.symm.trans (castSum.trans eQsum)
-  
+
   -- Step 2: Show σ.symm.trans τ = relabel.symm by extensionality
   have heq : σ.symm.trans τ = relabel.symm := by
     ext x
@@ -5057,7 +5057,7 @@ private lemma sign_sortEquiv_composition {m : ℕ} (P Q : Finset (Fin m)) (hPQ :
         apply σ.injective
         simp only [Equiv.apply_symm_apply, σ, sortEquivPQ_cast, Equiv.trans_apply]
         rw [Equiv.sumCongr_apply, Sum.map_inl, sortEquivPQ_inl]
-        simp only [Finset.orderEmbOfFin, RelEmbedding.coe_trans, Function.comp_apply, 
+        simp only [Finset.orderEmbOfFin, RelEmbedding.coe_trans, Function.comp_apply,
                    OrderEmbedding.coe_subtype, OrderIso.coe_toOrderEmbedding]
         have heq : finCongr hPQ.symm.symm (finCongr hPQ.symm j) = j := by ext; rfl
         rw [heq]
@@ -5069,7 +5069,7 @@ private lemma sign_sortEquiv_composition {m : ℕ} (P Q : Finset (Fin m)) (hPQ :
       have heQsum_inv : eQsum.symm x = Sum.inl j := by
         apply eQsum.injective
         simp only [Equiv.apply_symm_apply, eQsum, finSumEquivOfFinset_inl]
-        simp only [Finset.orderEmbOfFin, RelEmbedding.coe_trans, Function.comp_apply, 
+        simp only [Finset.orderEmbOfFin, RelEmbedding.coe_trans, Function.comp_apply,
                    OrderEmbedding.coe_subtype, OrderIso.coe_toOrderEmbedding]
         have h := OrderIso.apply_symm_apply (Q.orderIsoOfFin rfl) ⟨x, hxQ⟩
         exact congrArg Subtype.val h.symm
@@ -5086,7 +5086,7 @@ private lemma sign_sortEquiv_composition {m : ℕ} (P Q : Finset (Fin m)) (hPQ :
         apply σ.injective
         simp only [Equiv.apply_symm_apply, σ, sortEquivPQ_cast, Equiv.trans_apply]
         rw [Equiv.sumCongr_apply, Sum.map_inr, sortEquivPQ_inr]
-        simp only [Finset.orderEmbOfFin, RelEmbedding.coe_trans, Function.comp_apply, 
+        simp only [Finset.orderEmbOfFin, RelEmbedding.coe_trans, Function.comp_apply,
                    OrderEmbedding.coe_subtype, OrderIso.coe_toOrderEmbedding, j', finCongr]
         have h := OrderIso.apply_symm_apply (Qᶜ.orderIsoOfFin rfl) ⟨x, hxQc⟩
         exact congrArg Subtype.val h.symm
@@ -5096,28 +5096,28 @@ private lemma sign_sortEquiv_composition {m : ℕ} (P Q : Finset (Fin m)) (hPQ :
       have heQsum_inv : eQsum.symm x = Sum.inr j := by
         apply eQsum.injective
         simp only [Equiv.apply_symm_apply, eQsum, finSumEquivOfFinset_inr]
-        simp only [Finset.orderEmbOfFin, RelEmbedding.coe_trans, Function.comp_apply, 
+        simp only [Finset.orderEmbOfFin, RelEmbedding.coe_trans, Function.comp_apply,
                    OrderEmbedding.coe_subtype, OrderIso.coe_toOrderEmbedding]
         have h := OrderIso.apply_symm_apply (Qᶜ.orderIsoOfFin rfl) ⟨x, hxQc⟩
         exact congrArg Subtype.val h.symm
       rw [heQsum_inv]
       simp only [castSum, Equiv.sumCongr_symm, Equiv.sumCongr_apply, Sum.map_inr, finCongr_symm, ePsum]
       simp only [Equiv.symm_symm, finSumEquivOfFinset_inr]
-      simp only [Finset.orderEmbOfFin, RelEmbedding.coe_trans, Function.comp_apply, 
+      simp only [Finset.orderEmbOfFin, RelEmbedding.coe_trans, Function.comp_apply,
                  OrderEmbedding.coe_subtype, OrderIso.coe_toOrderEmbedding]
       simp only [j', finCongr, Equiv.coe_fn_mk]
       rfl
-  
+
   -- Step 3: Use sign_relabel_eq combined with sign_sortingPermOfFinset_mul
   -- sign_relabel_eq gives: sign(relabel) = sign(sortP) * sign(sortQ)
   -- sign_sortingPermOfFinset_mul gives: sign(sortP) * sign(sortQ) = (-1)^(P.sum + Q.sum)
   have h_relabel_sign : (Equiv.Perm.sign relabel : ℤ) = (-1 : ℤ) ^ (P.sum Fin.val + Q.sum Fin.val) := by
     have h1 := sign_relabel_eq P Q hPQ
     have h2 := sign_sortingPermOfFinset_mul P Q hPQ
-    calc (Equiv.Perm.sign relabel : ℤ) 
+    calc (Equiv.Perm.sign relabel : ℤ)
         = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) * (Equiv.Perm.sign (sortingPermOfFinset Q) : ℤ) := h1
       _ = (-1 : ℤ) ^ (P.sum Fin.val + Q.sum Fin.val) := h2
-  
+
   -- Step 4: Combine using sign(relabel.symm) = sign(relabel)
   rw [heq]
   simp only [Equiv.Perm.sign_symm]
@@ -5159,7 +5159,7 @@ private lemma sign_trans_inv_eq_one {m : ℕ} {n : Type*} [DecidableEq n] [Finty
     _ = 1 := by simp
 
 /-- Helper lemma for comparing determinants with finCongr reindexing. -/
-private lemma det_congr_finCongr {R : Type*} [CommRing R] {n₁ n₂ : ℕ} 
+private lemma det_congr_finCongr {R : Type*} [CommRing R] {n₁ n₂ : ℕ}
     (A : Matrix (Fin n₁) (Fin n₁) R) (B : Matrix (Fin n₂) (Fin n₂) R)
     (h : n₁ = n₂)
     (hab : ∀ i j, A i j = B (finCongr h i) (finCongr h j)) :
@@ -5177,11 +5177,11 @@ private lemma toBlocks22_det_eq {m : ℕ} (A : Matrix (Fin m) (Fin m) K)
     let σ := sortEquivPQ_cast Q k hPQ.symm
     let τ := sortEquivPQ P
     let M := A.submatrix σ τ
-    M.toBlocks₂₂.det = (A.submatrix (finsetOrderEmb Qᶜ) 
+    M.toBlocks₂₂.det = (A.submatrix (finsetOrderEmb Qᶜ)
         (fun i => finsetOrderEmb Pᶜ (finCongr (by simp only [Finset.card_compl]; omega) i))).det := by
   intro k σ τ M
   -- The dimension equality
-  have hQc : Qᶜ.card = m - k := by 
+  have hQc : Qᶜ.card = m - k := by
     rw [Finset.card_compl, Fintype.card_fin]
     simp only [k]
     rw [hPQ.symm]
@@ -5194,9 +5194,9 @@ private lemma toBlocks22_det_eq {m : ℕ} (A : Matrix (Fin m) (Fin m) K)
   change (A.submatrix σ τ) (Sum.inr i) (Sum.inr j) = _
   simp only [Matrix.submatrix_apply]
   -- Use sortEquivPQ_cast_inr and sortEquivPQ_inr_eq_finsetOrderEmb
-  have hσ : σ (Sum.inr i) = finsetOrderEmb Qᶜ (finCongr (by rw [Finset.card_compl, Fintype.card_fin]; omega) i) := 
+  have hσ : σ (Sum.inr i) = finsetOrderEmb Qᶜ (finCongr (by rw [Finset.card_compl, Fintype.card_fin]; omega) i) :=
     sortEquivPQ_cast_inr Q k hPQ.symm i
-  have hτ : τ (Sum.inr j) = finsetOrderEmb Pᶜ (finCongr (by rw [Finset.card_compl, Fintype.card_fin]) j) := 
+  have hτ : τ (Sum.inr j) = finsetOrderEmb Pᶜ (finCongr (by rw [Finset.card_compl, Fintype.card_fin]) j) :=
     sortEquivPQ_inr_eq_finsetOrderEmb P j
   rw [hσ, hτ]
   -- The key is that finCongr _ i and finCongr hQc.symm i are the same element (just different proofs)
@@ -5253,12 +5253,12 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
   -- This matches M.toBlocks₂₂ since M has rows sorted by P (bottom = Pᶜ) and cols by Q (right = Qᶜ)
 
   -- 8. M.toBlocks₂₂ equals sub_{Qᶜ}^{Pᶜ}(A) (rows from Qᶜ, cols from Pᶜ)
-  have hbotright : M.toBlocks₂₂ = A.submatrix 
+  have hbotright : M.toBlocks₂₂ = A.submatrix
       (fun i => σ (Sum.inr i)) (fun j => τ (Sum.inr j)) := by
     ext i j
     simp only [Matrix.toBlocks₂₂, Matrix.of_apply, Matrix.submatrix_apply]
     rfl
-  
+
   -- 9. M is invertible since det(M) = sign(...) * det(A) and det(A) ≠ 0
   have hMne : M.det ≠ 0 := by
     rw [hMdet]
@@ -5303,14 +5303,14 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
       rw [hD_zero, mul_eq_zero]
       right
       -- When det(D') = 0 but det(M) ≠ 0, we need det(M⁻¹.toBlocks₁₁) = 0.
-      -- 
+      --
       -- Strategy: Use polynomial lifting (MvPolynomial approach)
       -- 1. M⁻¹ = M.det⁻¹ • M.adjugate (since det(M) ≠ 0)
       -- 2. M⁻¹.toBlocks₁₁ = M.det⁻¹ • M.adjugate.toBlocks₁₁
       -- 3. det(M⁻¹.toBlocks₁₁) = (M.det⁻¹)^k * det(M.adjugate.toBlocks₁₁)
       -- 4. The polynomial identity: det(M.adjugate.toBlocks₁₁) = det(M)^(k-1) * det(D')
       -- 5. When det(D') = 0: det(M.adjugate.toBlocks₁₁) = 0, hence det(M⁻¹.toBlocks₁₁) = 0
-      
+
       -- First, prove k ≥ 1. If k = 0, then D' = M.toBlocks₂₂ is essentially the whole matrix M
       -- (since Fin 0 is empty), so det(D') = det(M) ≠ 0, contradicting hD_zero.
       have hk1 : k ≥ 1 := by
@@ -5323,18 +5323,18 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
           intro h
           apply hA
           have hsign_ne : (Equiv.Perm.sign (τ.symm.trans σ) : K) ≠ 0 := by
-            have h' : (Equiv.Perm.sign (τ.symm.trans σ) : ℤˣ) = 1 ∨ 
+            have h' : (Equiv.Perm.sign (τ.symm.trans σ) : ℤˣ) = 1 ∨
                       (Equiv.Perm.sign (τ.symm.trans σ) : ℤˣ) = -1 := Int.units_eq_one_or _
             cases h' with
             | inl h' => simp [h']
             | inr h' => simp [h']
           exact (mul_eq_zero.mp h).resolve_left hsign_ne
-        -- When k = 0, det(M) = det(D') 
+        -- When k = 0, det(M) = det(D')
         -- This is because when the first index type is empty, the block matrix
         -- is essentially just the bottom-right block
         have hdet_eq : M.det = D'.det := by
           haveI hempty : IsEmpty (Fin k) := by rw [hk_eq]; exact Fin.isEmpty
-          haveI hemptyP : IsEmpty (Fin P.card) := by 
+          haveI hemptyP : IsEmpty (Fin P.card) := by
             have : P.card = k := rfl
             rw [this, hk_eq]
             exact Fin.isEmpty
@@ -5353,40 +5353,40 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
           -- Since A' is 0×k matrix and B' is k×(m-k), C' * ⅟A' * B' = 0
           have hCB : C' * ⅟A' * B' = 0 := by
             ext i j
-            simp only [Matrix.mul_apply, Finset.univ_eq_empty, Finset.sum_empty, 
+            simp only [Matrix.mul_apply, Finset.univ_eq_empty, Finset.sum_empty,
                        Matrix.zero_apply]
           rw [hCB, sub_zero]
         rw [hdet_eq] at hMdet_ne
         exact hMdet_ne hD_zero
-      
+
       -- Helper: M⁻¹ = M.det⁻¹ • M.adjugate
       have hinv_eq : M⁻¹ = M.det⁻¹ • M.adjugate := by
         rw [Matrix.inv_def]; congr 1; simp [Ring.inverse_eq_inv']
-      
+
       -- Helper: toBlocks₁₁ commutes with scalar multiplication
       have htop_smul : M⁻¹.toBlocks₁₁ = M.det⁻¹ • M.adjugate.toBlocks₁₁ := by
         rw [hinv_eq]
         ext i j; simp [Matrix.toBlocks₁₁, Matrix.smul_apply]
-      
+
       rw [htop_smul, det_smul]
-      
+
       -- Define the generic matrix and evaluation map for polynomial lifting
       let σ' := (Fin k ⊕ Fin (m - k)) × (Fin k ⊕ Fin (m - k))
       let Poly := MvPolynomial σ' ℤ
-      let M'' : Matrix (Fin k ⊕ Fin (m - k)) (Fin k ⊕ Fin (m - k)) Poly := 
+      let M'' : Matrix (Fin k ⊕ Fin (m - k)) (Fin k ⊕ Fin (m - k)) Poly :=
         Matrix.of fun i j => MvPolynomial.X (i, j)
       let φ : Poly →+* K := MvPolynomial.eval₂Hom (Int.castRingHom K) (fun p => M p.1 p.2)
-      
+
       -- M = φ.mapMatrix M''
       have hM''_eq : M = φ.mapMatrix M'' := by
         ext i j
         simp only [RingHom.mapMatrix_apply, Matrix.map_apply]
         show M i j = MvPolynomial.eval₂Hom (Int.castRingHom K) (fun p => M p.1 p.2) (MvPolynomial.X (i, j))
         simp [MvPolynomial.eval₂Hom_X']
-      
+
       -- The key polynomial identity (Jacobi's complementary minor for block matrices):
       -- det(M''.adjugate.toBlocks₁₁) = det(M'')^(k-1) * det(M''.toBlocks₂₂)
-      -- 
+      --
       -- PROOF STRATEGY: This identity is proved for invertible block matrices by
       -- `adjugate_toBlocks₁₁_det_of_invertible` using the Schur complement formula.
       -- For the generic matrix M'' over MvPolynomial, we need to:
@@ -5394,12 +5394,12 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
       -- 2. Work in FractionRing(MvPolynomial) where M'' becomes invertible
       -- 3. Apply `adjugate_toBlocks₁₁_det_of_invertible`
       -- 4. Show the result has no denominators (both sides are in MvPolynomial)
-      
+
       have key_poly : M''.adjugate.toBlocks₁₁.det = M''.det ^ (k - 1) * M''.toBlocks₂₂.det := by
         -- The polynomial identity holds in FractionRing where M'' is invertible
         -- Then we verify it's actually in MvPolynomial (no denominators)
         -- This is a polynomial identity that follows from Jacobi's complementary minor theorem
-        
+
         -- First, show det(M'') ≠ 0 using evaluation at identity
         have hdetM'' : M''.det ≠ 0 := by
           intro h
@@ -5416,12 +5416,12 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
           have hzero : eval M''.det = 0 := by rw [h, map_zero]
           rw [hmap, hzero] at hdet1
           exact zero_ne_one hdet1
-        
+
         -- Show det(M''.toBlocks₂₂) ≠ 0 using evaluation
         have hdetD'' : M''.toBlocks₂₂.det ≠ 0 := by
           intro h
           let eval : Poly →+* ℤ :=
-            MvPolynomial.eval₂Hom (RingHom.id ℤ) (fun p => 
+            MvPolynomial.eval₂Hom (RingHom.id ℤ) (fun p =>
               match p with
               | (Sum.inr i, Sum.inr j) => if i = j then 1 else 0
               | _ => 0)
@@ -5433,53 +5433,53 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
             show eval (MvPolynomial.X (Sum.inr i, Sum.inr j)) = if i = j then 1 else 0
             rw [MvPolynomial.eval₂Hom_X']
           have hdet1 : (eval.mapMatrix M''.toBlocks₂₂).det = 1 := by rw [heval, Matrix.det_one]
-          have hmap : (eval.mapMatrix M''.toBlocks₂₂).det = eval M''.toBlocks₂₂.det := by 
+          have hmap : (eval.mapMatrix M''.toBlocks₂₂).det = eval M''.toBlocks₂₂.det := by
             rw [RingHom.map_det]
           have hzero : eval M''.toBlocks₂₂.det = 0 := by rw [h, map_zero]
           rw [hmap, hzero] at hdet1
           exact zero_ne_one hdet1
-        
+
         -- Work in the fraction ring F where M'' becomes invertible
         let F := FractionRing Poly
         let ι : Poly →+* F := algebraMap Poly F
         have hinj : Function.Injective ι := IsFractionRing.injective Poly F
-        
+
         -- Pull back from F using injectivity
         apply hinj
-        
+
         -- Map LHS
         have hlhs : ι M''.adjugate.toBlocks₁₁.det = (M''.map ι).adjugate.toBlocks₁₁.det := by
           have hadj : M''.adjugate.map ι = (M''.map ι).adjugate := by
             rw [← RingHom.mapMatrix_apply, ← RingHom.mapMatrix_apply, RingHom.map_adjugate]
           have htop : (M''.adjugate.map ι).toBlocks₁₁ = (M''.adjugate.toBlocks₁₁).map ι := by
             ext i j; simp [Matrix.toBlocks₁₁, Matrix.map_apply]
-          calc ι M''.adjugate.toBlocks₁₁.det 
+          calc ι M''.adjugate.toBlocks₁₁.det
               = (M''.adjugate.toBlocks₁₁.map ι).det := by rw [← RingHom.mapMatrix_apply, RingHom.map_det]
             _ = (M''.adjugate.map ι).toBlocks₁₁.det := by rw [htop]
             _ = (M''.map ι).adjugate.toBlocks₁₁.det := by rw [hadj]
-        
-        -- Map RHS  
-        have hrhs : ι (M''.det ^ (k - 1) * M''.toBlocks₂₂.det) = 
+
+        -- Map RHS
+        have hrhs : ι (M''.det ^ (k - 1) * M''.toBlocks₂₂.det) =
                     (M''.map ι).det ^ (k - 1) * (M''.map ι).toBlocks₂₂.det := by
           simp only [map_mul, map_pow]
-          have hdet_eq : ι M''.det = (M''.map ι).det := by 
+          have hdet_eq : ι M''.det = (M''.map ι).det := by
             rw [← RingHom.mapMatrix_apply, RingHom.map_det]
           have hbot : ι M''.toBlocks₂₂.det = (M''.map ι).toBlocks₂₂.det := by
             have h1 : M''.toBlocks₂₂.map ι = (M''.map ι).toBlocks₂₂ := by
               ext i j; simp [Matrix.toBlocks₂₂, Matrix.map_apply]
-            calc ι M''.toBlocks₂₂.det 
+            calc ι M''.toBlocks₂₂.det
                 = (M''.toBlocks₂₂.map ι).det := by rw [← RingHom.mapMatrix_apply, RingHom.map_det]
               _ = (M''.map ι).toBlocks₂₂.det := by rw [h1]
           rw [hdet_eq, hbot]
-        
+
         rw [hlhs, hrhs]
-        
+
         -- Now prove in F (a field)
         let M''' := M''.map ι
-        
+
         -- M'''.det ≠ 0 in F
         have hdet' : M'''.det ≠ 0 := by
-          have hmap : M'''.det = ι M''.det := by 
+          have hmap : M'''.det = ι M''.det := by
             show (M''.map ι).det = ι M''.det
             rw [← RingHom.mapMatrix_apply, RingHom.map_det]
           rw [hmap]
@@ -5487,7 +5487,7 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
           apply hdetM''
           rw [← map_zero ι] at h
           exact hinj h
-        
+
         -- M'''.toBlocks₂₂.det ≠ 0 in F
         have hdet22' : M'''.toBlocks₂₂.det ≠ 0 := by
           have hmap : M'''.toBlocks₂₂.det = ι M''.toBlocks₂₂.det := by
@@ -5502,23 +5502,23 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
           apply hdetD''
           rw [← map_zero ι] at h
           exact hinj h
-        
+
         -- Set up block structure
         let A' := M'''.toBlocks₁₁
         let B' := M'''.toBlocks₁₂
         let C' := M'''.toBlocks₂₁
         let D' := M'''.toBlocks₂₂
         have hM'''_eq : M''' = Matrix.fromBlocks A' B' C' D' := (Matrix.fromBlocks_toBlocks M''').symm
-        
+
         -- D' is invertible
         have hD'_unit : IsUnit D'.det := IsUnit.mk0 _ hdet22'
         haveI hD'_inv : Invertible D' := Matrix.invertibleOfIsUnitDet _ hD'_unit
-        
+
         -- det(M''') = det(D') * det(A' - B' * ⅟D' * C')
         have hdet_eq : M'''.det = D'.det * (A' - B' * ⅟D' * C').det := by
           rw [hM'''_eq]
           exact Matrix.det_fromBlocks₂₂ A' B' C' D'
-        
+
         -- Schur complement is invertible
         have hSchur_ne : (A' - B' * ⅟D' * C').det ≠ 0 := by
           intro h
@@ -5526,28 +5526,28 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
           exact hdet' rfl
         have hSchur_unit : IsUnit (A' - B' * ⅟D' * C').det := IsUnit.mk0 _ hSchur_ne
         haveI hSchur_inv : Invertible (A' - B' * ⅟D' * C') := Matrix.invertibleOfIsUnitDet _ hSchur_unit
-        
+
         -- M''' is invertible
         have hM'''_unit : IsUnit M'''.det := IsUnit.mk0 _ hdet'
         haveI hM'''_inv : Invertible M''' := Matrix.invertibleOfIsUnitDet _ hM'''_unit
         haveI hfb_inv : Invertible (Matrix.fromBlocks A' B' C' D') := by rw [← hM'''_eq]; exact hM'''_inv
-        
+
         -- Apply adjugate_toBlocks₁₁_det_of_invertible
         have hcard : Fintype.card (Fin k) = k := Fintype.card_fin k
-        have hresult := @adjugate_toBlocks₁₁_det_of_invertible (Fin k) (Fin (m - k)) _ _ _ _ F _ 
+        have hresult := @adjugate_toBlocks₁₁_det_of_invertible (Fin k) (Fin (m - k)) _ _ _ _ F _
           A' B' C' D' hD'_inv hSchur_inv hfb_inv (by rw [hcard]; exact hk1)
-        
+
         -- Convert to our goal
         have heq1 : M'''.adjugate.toBlocks₁₁ = (Matrix.fromBlocks A' B' C' D').adjugate.toBlocks₁₁ := by
           rw [← hM'''_eq]
         have heq2 : M'''.det = (Matrix.fromBlocks A' B' C' D').det := by rw [← hM'''_eq]
-        
+
         rw [heq1, heq2, hresult, hcard]
-      
+
       -- Apply φ to the polynomial identity
       have h_applied := congrArg φ key_poly
       simp only [map_mul, map_pow, RingHom.map_det] at h_applied
-      
+
       -- Convert the terms using φ
       have hadj : φ.mapMatrix M''.adjugate = M.adjugate := by
         rw [RingHom.map_adjugate, hM''_eq]
@@ -5560,51 +5560,51 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
         have hb : φ.mapMatrix M''.toBlocks₂₂ = (φ.mapMatrix M'').toBlocks₂₂ := by
           ext i j; simp [Matrix.toBlocks₂₂, RingHom.mapMatrix_apply]
         rw [hb, ← hM''_eq]
-      
+
       rw [h1, h2, h3] at h_applied
       -- Now: M.adjugate.toBlocks₁₁.det = M.det ^ (k - 1) * M.toBlocks₂₂.det
       -- Since D' = M.toBlocks₂₂ and hD_zero : D'.det = 0:
       rw [h_applied, hD_zero, mul_zero, mul_zero]
-  
+
   -- 11. M⁻¹.toBlocks₁₁ = (A⁻¹.submatrix τ σ).submatrix Sum.inl Sum.inl
   have hMinv_top : M⁻¹.toBlocks₁₁ = (A⁻¹.submatrix τ σ).submatrix Sum.inl Sum.inl := by
     rw [hMinv]
     ext i j
     simp only [Matrix.toBlocks₁₁, Matrix.of_apply, Matrix.submatrix_apply]
-  
+
   -- 12. Combine the relationships
   rw [hMinv_top, htopleft] at hblock
   rw [hMdet] at hblock
-  
+
   -- From hblock: sign(τ⁻¹σ) * det(A) * det(sub_P^Q(A⁻¹)) = det(M.toBlocks₂₂)
   have hsign_ne : (Equiv.Perm.sign (τ.symm.trans σ) : K) ≠ 0 := by
     have h : (Equiv.Perm.sign (τ.symm.trans σ) : ℤˣ) = 1 ∨ (Equiv.Perm.sign (τ.symm.trans σ) : ℤˣ) = -1 := Int.units_eq_one_or _
     cases h with
     | inl h => simp [h]
     | inr h => simp [h]
-  
-  have hsolve : A.det * (A⁻¹.submatrix (finsetOrderEmb P) 
-      (fun i => finsetOrderEmb Q (finCongr hPQ i))).det = 
+
+  have hsolve : A.det * (A⁻¹.submatrix (finsetOrderEmb P)
+      (fun i => finsetOrderEmb Q (finCongr hPQ i))).det =
       (Equiv.Perm.sign (σ.symm.trans τ) : K) * M.toBlocks₂₂.det := by
-    have h1 : (Equiv.Perm.sign (τ.symm.trans σ) : K) * A.det * 
-        (A⁻¹.submatrix (finsetOrderEmb P) (fun i => finsetOrderEmb Q (finCongr hPQ i))).det = 
+    have h1 : (Equiv.Perm.sign (τ.symm.trans σ) : K) * A.det *
+        (A⁻¹.submatrix (finsetOrderEmb P) (fun i => finsetOrderEmb Q (finCongr hPQ i))).det =
         M.toBlocks₂₂.det := hblock
     have hinv := hsign_inv
-    calc A.det * (A⁻¹.submatrix (finsetOrderEmb P) 
-          (fun i => finsetOrderEmb Q (finCongr hPQ i))).det 
-        = A.det * (A⁻¹.submatrix (finsetOrderEmb P) 
+    calc A.det * (A⁻¹.submatrix (finsetOrderEmb P)
+          (fun i => finsetOrderEmb Q (finCongr hPQ i))).det
+        = A.det * (A⁻¹.submatrix (finsetOrderEmb P)
           (fun i => finsetOrderEmb Q (finCongr hPQ i))).det * 1 := by ring
-      _ = A.det * (A⁻¹.submatrix (finsetOrderEmb P) 
-          (fun i => finsetOrderEmb Q (finCongr hPQ i))).det * 
+      _ = A.det * (A⁻¹.submatrix (finsetOrderEmb P)
+          (fun i => finsetOrderEmb Q (finCongr hPQ i))).det *
           ((Equiv.Perm.sign (τ.symm.trans σ) : K) * (Equiv.Perm.sign (σ.symm.trans τ) : K)) := by rw [hinv]
-      _ = ((Equiv.Perm.sign (τ.symm.trans σ) : K) * A.det * (A⁻¹.submatrix (finsetOrderEmb P) 
-          (fun i => finsetOrderEmb Q (finCongr hPQ i))).det) * 
+      _ = ((Equiv.Perm.sign (τ.symm.trans σ) : K) * A.det * (A⁻¹.submatrix (finsetOrderEmb P)
+          (fun i => finsetOrderEmb Q (finCongr hPQ i))).det) *
           (Equiv.Perm.sign (σ.symm.trans τ) : K) := by ring
         _ = M.toBlocks₂₂.det * (Equiv.Perm.sign (σ.symm.trans τ) : K) := by rw [h1]
         _ = (Equiv.Perm.sign (σ.symm.trans τ) : K) * M.toBlocks₂₂.det := by ring
 
   rw [hsolve, hsign]
-  
+
   -- 13. Show M.toBlocks₂₂.det equals the RHS submatrix determinant
   -- Use the helper lemma toBlocks22_det_eq
   rw [toBlocks22_det_eq A P Q hPQ]
@@ -5696,8 +5696,8 @@ private lemma submatrix_adjugate_det_pair {m : ℕ} (A : Matrix (Fin m) (Fin m) 
     let Q := ({p, q} : Finset (Fin m))
     let hPcard : P.card = 2 := Finset.card_pair (ne_of_lt huv)
     let hQcard : Q.card = 2 := Finset.card_pair (ne_of_lt hpq)
-    (A.adjugate.submatrix (P.orderEmbOfFin hPcard) 
-                          (fun i => Q.orderEmbOfFin hQcard i)).det = 
+    (A.adjugate.submatrix (P.orderEmbOfFin hPcard)
+                          (fun i => Q.orderEmbOfFin hQcard i)).det =
       A.adjugate u p * A.adjugate v q - A.adjugate u q * A.adjugate v p := by
   simp only
   have hP := orderEmbOfFin_pair u v huv
@@ -5912,7 +5912,7 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
           -- (-1)^(r+c) * adj c r = (-1)^(r+c) * (-1)^(r+c) * det(submatrix) = det(submatrix)
           calc (A''.submatrix r.succAbove c.succAbove).det
               = 1 * (A''.submatrix r.succAbove c.succAbove).det := by ring
-            _ = ((-1 : FractionRing (MvPolynomial (Fin (m''' + 1 + 1 + 1 + 2) × Fin (m''' + 1 + 1 + 1 + 2)) ℤ)) ^ (r.val + c.val) * (-1) ^ (r.val + c.val)) * 
+            _ = ((-1 : FractionRing (MvPolynomial (Fin (m''' + 1 + 1 + 1 + 2) × Fin (m''' + 1 + 1 + 1 + 2)) ℤ)) ^ (r.val + c.val) * (-1) ^ (r.val + c.val)) *
                 (A''.submatrix r.succAbove c.succAbove).det := by
                   have : ((-1 : FractionRing (MvPolynomial (Fin (m''' + 1 + 1 + 1 + 2) × Fin (m''' + 1 + 1 + 1 + 2)) ℤ)) ^ (r.val + c.val)) * (-1) ^ (r.val + c.val) = 1 := by
                     rw [← pow_add, ← two_mul, pow_mul]; simp
@@ -5936,16 +5936,16 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
         -- Combined with adjugate_2x2_eq:
         --   (-1)^k * (sub_pu * sub_qv - sub_qu * sub_pv) = det(A) * (-1)^k * det(sub2)
         -- Canceling (-1)^k: sub_pu * sub_qv - sub_qu * sub_pv = det(A) * det(sub2)
-        
+
         -- For now, we use the polynomial identity approach: the identity holds for all matrices
         -- because it's a polynomial identity that's been verified for specific matrix sizes.
         -- The general proof requires the complementary minor theorem which comes later in the file.
-        
+
         -- Direct approach: use that both sides are polynomial expressions in the matrix entries,
         -- and the identity holds when specialized to any specific matrix.
         -- Since A' is the generic polynomial matrix and we've mapped to the field of fractions,
         -- we can use the fact that A''.det ≠ 0 to apply inverse matrix formulas.
-        
+
         -- Key: adj(A'') = A''.det • A''⁻¹ for invertible A''
         have hAinv : A''.adjugate = A''.det • A''⁻¹ := by
           have hunit : IsUnit A''.det := IsUnit.mk0 _ hdet'
@@ -5959,7 +5959,7 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
               _ = A''.det⁻¹ := by rw [hval]
           rw [h]
           field_simp
-        
+
         -- The 2×2 adjugate determinant = det² * 2×2 inverse determinant
         have hadj_inv : A''.adjugate u p * A''.adjugate v q - A''.adjugate u q * A''.adjugate v p =
             A''.det * A''.det * (A''⁻¹ u p * A''⁻¹ v q - A''⁻¹ u q * A''⁻¹ v p) := by
@@ -5969,33 +5969,33 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
               = (A''.det * A''⁻¹ u p) * (A''.det * A''⁻¹ v q) - (A''.det * A''⁻¹ u q) * (A''.det * A''⁻¹ v p) := by
                 rw [h u p, h v q, h u q, h v p]
             _ = A''.det * A''.det * (A''⁻¹ u p * A''⁻¹ v q - A''⁻¹ u q * A''⁻¹ v p) := by ring
-        
+
         -- Combine adjugate_2x2_eq with hadj_inv
         have hkey : A''.det * A''.det * (A''⁻¹ u p * A''⁻¹ v q - A''⁻¹ u q * A''⁻¹ v p) =
             (-1) ^ (p.val + u.val + q.val + v.val) *
             ((submatrixRemove A'' p u).det * (submatrixRemove A'' q v).det -
              (submatrixRemove A'' q u).det * (submatrixRemove A'' p v).det) := by
           rw [← hadj_inv, hadj2x2]
-        
+
         -- Now we need the complementary minor formula for inverse matrices:
         -- det(A) * det(2x2 sub of A^(-1) at rows {u,v}, cols {p,q}) = (-1)^k * det(sub_{~{p,q}}^{~{u,v}}(A))
         -- This is proved in complementary_minor_inverse, but it comes later in the file.
         -- For now, we use the fact that this is a polynomial identity.
-        
+
         -- The key relationship is:
         -- det² * (inv_up * inv_vq - inv_uq * inv_vp) = (-1)^k * (sub_pu * sub_qv - sub_qu * sub_pv)
         -- det * (inv_up * inv_vq - inv_uq * inv_vp) = (-1)^k * (sub_pu * sub_qv - sub_qu * sub_pv) / det
         -- But we need: det * sub2det = sub_pu * sub_qv - sub_pv * sub_qu
-        
+
         -- From hkey: det² * (2x2 inv det) = (-1)^k * (sub products)
         -- We need: det * sub2det = sub products (reordered)
-        
+
         -- The missing link is: det * (2x2 inv det) = (-1)^k * sub2det
         -- This is the complementary minor formula.
-        
+
         -- The missing link is the 2×2 complementary minor formula for the inverse:
         -- A''.det * (inv_up * inv_vq - inv_uq * inv_vp) = (-1)^k * sub2det
-        -- 
+        --
         -- This is proved in complementary_minor_inverse (defined earlier in this file),
         -- which uses block matrix Schur complement and does NOT depend on
         -- desnanot_jacobi_direct.
@@ -6016,24 +6016,24 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
         --
         -- Apply complementary_minor_inverse with P = {u, v} and Q = {p, q}
         -- This gives: A''.det * det(2×2 sub of A''⁻¹) = (-1)^(u+v+p+q) * det(complementary)
-        
+
         -- Define the finsets
         let P := ({u, v} : Finset (Fin (m''' + 1 + 1 + 1 + 2)))
         let Q := ({p, q} : Finset (Fin (m''' + 1 + 1 + 1 + 2)))
         have hPcard : P.card = 2 := Finset.card_pair (ne_of_lt huv)
         have hQcard : Q.card = 2 := Finset.card_pair (ne_of_lt hpq)
         have hPQ : P.card = Q.card := by rw [hPcard, hQcard]
-        
+
         -- Sum of elements in P and Q
         have hPsum : P.sum Fin.val = u.val + v.val := Finset.sum_pair (ne_of_lt huv)
         have hQsum : Q.sum Fin.val = p.val + q.val := Finset.sum_pair (ne_of_lt hpq)
-        
+
         -- Apply complementary_minor_inverse
         have hcmi := complementary_minor_inverse A'' hdet' P Q hPQ
-        
+
         -- The 2×2 inverse submatrix determinant equals the product formula
-        have hinv_det : (A''⁻¹.submatrix (finsetOrderEmb P) 
-            (fun i => finsetOrderEmb Q (finCongr hPQ i))).det = 
+        have hinv_det : (A''⁻¹.submatrix (finsetOrderEmb P)
+            (fun i => finsetOrderEmb Q (finCongr hPQ i))).det =
             A''⁻¹ u p * A''⁻¹ v q - A''⁻¹ u q * A''⁻¹ v p := by
           have hPpair := orderEmbOfFin_pair u v huv
           have hQpair := orderEmbOfFin_pair p q hpq
@@ -6049,10 +6049,10 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
           have hQ1 : finsetOrderEmb Q ⟨1, by rw [hQcard]; omega⟩ = q := by
             simp only [finsetOrderEmb, Function.Embedding.trans_apply, RelIso.coe_toEmbedding]
             convert hQpair.2
-          have hreindex : (A''⁻¹.submatrix (finsetOrderEmb P) 
-              (fun i => finsetOrderEmb Q (finCongr hPQ i))).det = 
-              ((A''⁻¹.submatrix (finsetOrderEmb P) 
-              (fun i => finsetOrderEmb Q (finCongr hPQ i))).submatrix 
+          have hreindex : (A''⁻¹.submatrix (finsetOrderEmb P)
+              (fun i => finsetOrderEmb Q (finCongr hPQ i))).det =
+              ((A''⁻¹.submatrix (finsetOrderEmb P)
+              (fun i => finsetOrderEmb Q (finCongr hPQ i))).submatrix
               (Fin.castOrderIso hPcard).symm.toEquiv (Fin.castOrderIso hPcard).symm.toEquiv).det := by
             rw [Matrix.det_submatrix_equiv_self]
           rw [hreindex, Matrix.det_fin_two]
@@ -6062,27 +6062,27 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
           have hcast0 : finCongr hPQ ⟨0, by rw [hPcard]; omega⟩ = ⟨0, by rw [hQcard]; omega⟩ := rfl
           have hcast1 : finCongr hPQ ⟨1, by rw [hPcard]; omega⟩ = ⟨1, by rw [hQcard]; omega⟩ := rfl
           simp only [h00, h01, hcast0, hcast1, hP0, hP1, hQ0, hQ1]
-        
+
         -- The complementary minor equals submatrixRemove2
         -- From submatrixRemove2_det_eq_submatrixDet_compl:
         --   (submatrixRemove2 A p q u v).det = submatrixDet A {p,q}ᶜ {u,v}ᶜ
         -- And submatrixDet equals the finsetOrderEmb submatrix det
-        have hsub2_eq : (submatrixRemove2 A'' p q u v hpq huv).det = 
-            (A''.submatrix (finsetOrderEmb Qᶜ) 
+        have hsub2_eq : (submatrixRemove2 A'' p q u v hpq huv).det =
+            (A''.submatrix (finsetOrderEmb Qᶜ)
              (fun i => finsetOrderEmb Pᶜ (finCongr (by simp only [Finset.card_compl]; omega) i))).det := by
           rw [submatrixRemove2_det_eq_submatrixDet_compl]
           unfold submatrixDet submatrixOfFinsets'
           have hcard_eq : Qᶜ.card = Pᶜ.card := by simp only [Finset.card_compl, hPQ]
           rw [dif_pos hcard_eq]
           have heq : A''.submatrix (finsetToFin Qᶜ rfl) (finsetToFin Pᶜ hcard_eq.symm) =
-                     A''.submatrix (finsetOrderEmb Qᶜ) 
+                     A''.submatrix (finsetOrderEmb Qᶜ)
                       (fun i => finsetOrderEmb Pᶜ (finCongr (by simp only [Finset.card_compl]; omega) i)) := by
             ext i j
-            simp only [Matrix.submatrix_apply, finsetToFin, finsetOrderEmb, 
+            simp only [Matrix.submatrix_apply, finsetToFin, finsetOrderEmb,
                        Function.Embedding.trans_apply, finCongr, Function.Embedding.subtype_apply]
-            have hcast : (Pᶜ.orderIsoOfFin hcard_eq.symm).toEmbedding j = 
+            have hcast : (Pᶜ.orderIsoOfFin hcard_eq.symm).toEmbedding j =
                          (Pᶜ.orderIsoOfFin rfl).toEmbedding (Fin.cast hcard_eq.symm.symm j) := by
-              have h1 : ∀ (k : ℕ) (hk : Pᶜ.card = k) (i : Fin k), 
+              have h1 : ∀ (k : ℕ) (hk : Pᶜ.card = k) (i : Fin k),
                   (Pᶜ.orderIsoOfFin hk).toEmbedding i = (Pᶜ.orderIsoOfFin rfl).toEmbedding (Fin.cast hk.symm i) := by
                 intro k hk i
                 cases hk
@@ -6090,13 +6090,13 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
               exact h1 Qᶜ.card hcard_eq.symm j
             rw [hcast]; rfl
           exact congrArg Matrix.det heq
-        
+
         -- Rewrite hcmi using hinv_det and hsub2_eq
         rw [hinv_det, hPsum, hQsum] at hcmi
         rw [← hsub2_eq] at hcmi
-        -- Now hcmi: A''.det * (A''⁻¹ u p * A''⁻¹ v q - A''⁻¹ u q * A''⁻¹ v p) = 
+        -- Now hcmi: A''.det * (A''⁻¹ u p * A''⁻¹ v q - A''⁻¹ u q * A''⁻¹ v p) =
         --           (-1)^(u+v+p+q) * (submatrixRemove2 A'' p q u v).det
-        
+
         -- From hkey: A''.det² * (inv products) = (-1)^k * (sub products)
         -- From hcmi: A''.det * (inv products) = (-1)^k * sub2det
         -- Multiply hcmi by A''.det:
@@ -6105,46 +6105,46 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
         --   (-1)^k * (sub products) = A''.det * (-1)^k * sub2det
         -- Cancel (-1)^k:
         --   (sub products) = A''.det * sub2det
-        
+
         -- Combine with hkey (note: hkey has p.val + u.val + q.val + v.val which equals u.val + v.val + p.val + q.val)
         have hexp_eq : p.val + u.val + q.val + v.val = u.val + v.val + (p.val + q.val) := by omega
         rw [hexp_eq] at hkey
-        
+
         -- Multiply hcmi by A''.det
-        have hcmi_mul : A''.det * A''.det * (A''⁻¹ u p * A''⁻¹ v q - A''⁻¹ u q * A''⁻¹ v p) = 
+        have hcmi_mul : A''.det * A''.det * (A''⁻¹ u p * A''⁻¹ v q - A''⁻¹ u q * A''⁻¹ v p) =
             A''.det * ((-1) ^ (u.val + v.val + (p.val + q.val)) * (submatrixRemove2 A'' p q u v hpq huv).det) := by
           calc A''.det * A''.det * (A''⁻¹ u p * A''⁻¹ v q - A''⁻¹ u q * A''⁻¹ v p)
               = A''.det * (A''.det * (A''⁻¹ u p * A''⁻¹ v q - A''⁻¹ u q * A''⁻¹ v p)) := by ring
             _ = A''.det * ((-1) ^ (u.val + v.val + (p.val + q.val)) * (submatrixRemove2 A'' p q u v hpq huv).det) := by rw [hcmi]
-        
+
         -- Combine hkey and hcmi_mul (they have the same LHS)
-        have h_eq : (-1 : FractionRing (MvPolynomial (Fin (m''' + 1 + 1 + 1 + 2) × Fin (m''' + 1 + 1 + 1 + 2)) ℤ)) ^ 
+        have h_eq : (-1 : FractionRing (MvPolynomial (Fin (m''' + 1 + 1 + 1 + 2) × Fin (m''' + 1 + 1 + 1 + 2)) ℤ)) ^
             (u.val + v.val + (p.val + q.val)) *
             ((submatrixRemove A'' p u).det * (submatrixRemove A'' q v).det -
              (submatrixRemove A'' q u).det * (submatrixRemove A'' p v).det) =
             A''.det * ((-1) ^ (u.val + v.val + (p.val + q.val)) * (submatrixRemove2 A'' p q u v hpq huv).det) := by
           rw [← hkey, hcmi_mul]
-        
+
         -- Factor out (-1)^k from both sides
-        have h_factor : (-1 : FractionRing (MvPolynomial (Fin (m''' + 1 + 1 + 1 + 2) × Fin (m''' + 1 + 1 + 1 + 2)) ℤ)) ^ 
+        have h_factor : (-1 : FractionRing (MvPolynomial (Fin (m''' + 1 + 1 + 1 + 2) × Fin (m''' + 1 + 1 + 1 + 2)) ℤ)) ^
             (u.val + v.val + (p.val + q.val)) *
             ((submatrixRemove A'' p u).det * (submatrixRemove A'' q v).det -
              (submatrixRemove A'' q u).det * (submatrixRemove A'' p v).det) =
             (-1) ^ (u.val + v.val + (p.val + q.val)) * (A''.det * (submatrixRemove2 A'' p q u v hpq huv).det) := by
           rw [h_eq]; ring
-        
+
         -- Use the fact that (-1)^k ≠ 0 to cancel
-        have neg_one_ne_zero : ((-1 : FractionRing (MvPolynomial (Fin (m''' + 1 + 1 + 1 + 2) × Fin (m''' + 1 + 1 + 1 + 2)) ℤ)) ^ 
+        have neg_one_ne_zero : ((-1 : FractionRing (MvPolynomial (Fin (m''' + 1 + 1 + 1 + 2) × Fin (m''' + 1 + 1 + 1 + 2)) ℤ)) ^
             (u.val + v.val + (p.val + q.val))) ≠ 0 := by
           apply pow_ne_zero
           norm_num
-        
+
         have h_cancel : ((submatrixRemove A'' p u).det * (submatrixRemove A'' q v).det -
              (submatrixRemove A'' q u).det * (submatrixRemove A'' p v).det) =
             A''.det * (submatrixRemove2 A'' p q u v hpq huv).det := by
           have := mul_left_cancel₀ neg_one_ne_zero h_factor
           exact this
-        
+
         -- Final step: reorder the subtraction
         calc A''.det * (submatrixRemove2 A'' p q u v hpq huv).det
             = (submatrixRemove A'' p u).det * (submatrixRemove A'' q v).det -
@@ -6238,7 +6238,7 @@ lemma cauchyMat_apply {K : Type*} [Field K] (x y : Fin n → K)
 /-! ### Helper lemmas for Cauchy determinant -/
 
 /-- The numerator of the Cauchy determinant formula:
-    ∏_{i<j}((xᵢ - xⱼ)(yᵢ - yⱼ)) -/
+    ∏_{i< j}((xᵢ - xⱼ)(yᵢ - yⱼ)) -/
 def cauchyNumerator {K : Type*} [Field K] {m : ℕ} (x y : Fin m → K) : K :=
   ∏ i : Fin m, ∏ j ∈ Ioi i, (x i - x j) * (y i - y j)
 
@@ -6495,7 +6495,7 @@ omit [IsDomain R] in
     When we evaluate the finSuccEquiv image at X 0, it corresponds to
     substituting X 1 for X 0 in the original polynomial. -/
 lemma rename_succ_finSuccEquiv_eval_general (m : ℕ) (P : MvPolynomial (Fin (m + 2)) R) :
-    MvPolynomial.rename Fin.succ (Polynomial.eval (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R) 
+    MvPolynomial.rename Fin.succ (Polynomial.eval (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R)
                      (MvPolynomial.finSuccEquiv R (m + 1) P)) =
     MvPolynomial.eval₂ MvPolynomial.C (fun i : Fin (m + 2) => if i = 0 then MvPolynomial.X 1 else MvPolynomial.X i) P := by
   induction P using MvPolynomial.induction_on with
@@ -6506,21 +6506,21 @@ lemma rename_succ_finSuccEquiv_eval_general (m : ℕ) (P : MvPolynomial (Fin (m 
   | mul_X p i hp =>
     simp only [map_mul, MvPolynomial.eval₂_mul, Polynomial.eval_mul]
     cases' i using Fin.cases with i
-    · simp only [MvPolynomial.finSuccEquiv_X_zero, Polynomial.eval_X, MvPolynomial.rename_X, 
+    · simp only [MvPolynomial.finSuccEquiv_X_zero, Polynomial.eval_X, MvPolynomial.rename_X,
                  MvPolynomial.eval₂_X, if_true]
       rw [hp]
       simp only [Fin.succ_zero_eq_one]
-    · simp only [MvPolynomial.finSuccEquiv_X_succ, Polynomial.eval_C, MvPolynomial.rename_X, 
+    · simp only [MvPolynomial.finSuccEquiv_X_succ, Polynomial.eval_C, MvPolynomial.rename_X,
                  MvPolynomial.eval₂_X]
       rw [hp]
       simp only [Fin.succ_ne_zero, ↓reduceIte]
 
 omit [IsDomain R] in
 /-- Helper: finSuccEquiv sends rename Fin.succ to Polynomial.C -/
-lemma finSuccEquiv_rename_succ_general (m : ℕ) (p : MvPolynomial (Fin (m + 1)) R) : 
+lemma finSuccEquiv_rename_succ_general (m : ℕ) (p : MvPolynomial (Fin (m + 1)) R) :
     MvPolynomial.finSuccEquiv R (m + 1) (MvPolynomial.rename Fin.succ p) = Polynomial.C p := by
   induction p using MvPolynomial.induction_on with
-  | C r => 
+  | C r =>
     simp only [MvPolynomial.rename_C]
     simp [MvPolynomial.finSuccEquiv]
   | add p q hp hq =>
@@ -6533,40 +6533,40 @@ lemma finSuccEquiv_rename_succ_general (m : ℕ) (p : MvPolynomial (Fin (m + 1))
 omit [IsDomain R] in
 /-- The multivariate factor theorem for Fin (m+2) with indices 0 and 1:
     If P(X_0, X_1, ...) vanishes when X_0 is replaced by X_1, then (X_0 - X_1) divides P. -/
-theorem X_sub_X_dvd_of_eval₂_eq_zero_fin_01 (m : ℕ) (P : MvPolynomial (Fin (m + 2)) R) 
+theorem X_sub_X_dvd_of_eval₂_eq_zero_fin_01 (m : ℕ) (P : MvPolynomial (Fin (m + 2)) R)
     (h : MvPolynomial.eval₂ MvPolynomial.C (fun i : Fin (m + 2) => if i = 0 then MvPolynomial.X 1 else MvPolynomial.X i) P = 0) :
     MvPolynomial.X 0 - MvPolynomial.X 1 ∣ P := by
   let Q := MvPolynomial.finSuccEquiv R (m + 1) P
-  
+
   have hQ_eval : Polynomial.eval (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R) Q = 0 := by
     have key := rename_succ_finSuccEquiv_eval_general m P
     rw [h] at key
     have h2 : MvPolynomial.rename Fin.succ (Polynomial.eval (MvPolynomial.X 0) Q) = 0 := key
     exact MvPolynomial.rename_injective Fin.succ (Fin.succ_injective (m + 1)) h2
-  
+
   have hdvd : Polynomial.X - Polynomial.C (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R) ∣ Q := by
     rw [Polynomial.dvd_iff_isRoot, Polynomial.IsRoot]
     exact hQ_eval
-  
-  have hconv : (MvPolynomial.finSuccEquiv R (m + 1)).symm 
-               (Polynomial.X - Polynomial.C (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R)) = 
+
+  have hconv : (MvPolynomial.finSuccEquiv R (m + 1)).symm
+               (Polynomial.X - Polynomial.C (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R)) =
                MvPolynomial.X 0 - MvPolynomial.X 1 := by
     rw [map_sub]
     congr 1
     · rw [← MvPolynomial.finSuccEquiv_X_zero, AlgEquiv.symm_apply_apply]
-    · rw [← finSuccEquiv_rename_succ_general m (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R), 
+    · rw [← finSuccEquiv_rename_succ_general m (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R),
           AlgEquiv.symm_apply_apply]
       simp only [MvPolynomial.rename_X, Fin.succ_zero_eq_one]
-  
+
   obtain ⟨r, hr⟩ := hdvd
   use (MvPolynomial.finSuccEquiv R (m + 1)).symm r
   have hP : P = (MvPolynomial.finSuccEquiv R (m + 1)).symm Q := by
     simp only [Q, AlgEquiv.symm_apply_apply]
   calc P = (MvPolynomial.finSuccEquiv R (m + 1)).symm Q := hP
-    _ = (MvPolynomial.finSuccEquiv R (m + 1)).symm 
+    _ = (MvPolynomial.finSuccEquiv R (m + 1)).symm
         ((Polynomial.X - Polynomial.C (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R)) * r) := by rw [hr]
-    _ = (MvPolynomial.finSuccEquiv R (m + 1)).symm 
-        (Polynomial.X - Polynomial.C (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R)) * 
+    _ = (MvPolynomial.finSuccEquiv R (m + 1)).symm
+        (Polynomial.X - Polynomial.C (MvPolynomial.X 0 : MvPolynomial (Fin (m + 1)) R)) *
         (MvPolynomial.finSuccEquiv R (m + 1)).symm r := by rw [map_mul]
     _ = (MvPolynomial.X 0 - MvPolynomial.X 1) * (MvPolynomial.finSuccEquiv R (m + 1)).symm r := by rw [hconv]
 
@@ -6576,8 +6576,8 @@ omit [IsDomain R] in
 lemma X_sub_X_totalDegree_eq_one {σ : Type*} [DecidableEq σ] (i j : σ) (hij : i ≠ j) :
     (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).totalDegree = 1 := by
   have hle : (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).totalDegree ≤ 1 := by
-    calc MvPolynomial.totalDegree (MvPolynomial.X i - MvPolynomial.X j) 
-        ≤ max (MvPolynomial.X i).totalDegree (MvPolynomial.X j).totalDegree := 
+    calc MvPolynomial.totalDegree (MvPolynomial.X i - MvPolynomial.X j)
+        ≤ max (MvPolynomial.X i).totalDegree (MvPolynomial.X j).totalDegree :=
           MvPolynomial.totalDegree_sub _ _
       _ = max 1 1 := by rw [MvPolynomial.totalDegree_X, MvPolynomial.totalDegree_X]
       _ = 1 := by norm_num
@@ -6585,7 +6585,7 @@ lemma X_sub_X_totalDegree_eq_one {σ : Type*} [DecidableEq σ] (i j : σ) (hij :
     intro h
     have := MvPolynomial.X_injective (σ := σ) (R := ℤ) (sub_eq_zero.mp h)
     exact hij this
-  have hcoeff : MvPolynomial.coeff (Finsupp.single i 1) 
+  have hcoeff : MvPolynomial.coeff (Finsupp.single i 1)
       (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) = 1 := by
     rw [MvPolynomial.coeff_sub, MvPolynomial.coeff_X', MvPolynomial.coeff_X']
     have h2' : (Finsupp.single i 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 := by
@@ -6594,15 +6594,15 @@ lemma X_sub_X_totalDegree_eq_one {σ : Type*} [DecidableEq σ] (i j : σ) (hij :
       exact hij this
     have h3' : (Finsupp.single j 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := h2'.symm
     simp only [if_true, if_neg h3', sub_zero]
-  have hmem : Finsupp.single i 1 ∈ 
+  have hmem : Finsupp.single i 1 ∈
       (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).support := by
     rw [MvPolynomial.mem_support_iff, hcoeff]
     norm_num
   have hge : 1 ≤ (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).totalDegree := by
-    have hsum : (Finsupp.single i 1 : σ →₀ ℕ).sum (fun _ n => n) = 1 := 
+    have hsum : (Finsupp.single i 1 : σ →₀ ℕ).sum (fun _ n => n) = 1 :=
       Finsupp.sum_single_index rfl
     calc 1 = (Finsupp.single i 1 : σ →₀ ℕ).sum (fun _ n => n) := hsum.symm
-      _ ≤ (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).totalDegree := 
+      _ ≤ (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).totalDegree :=
         MvPolynomial.le_totalDegree hmem
   omega
 
@@ -6610,12 +6610,12 @@ omit [IsDomain R] in
 /-- The polynomial X_i - X_j is primitive (only units divide all coefficients).
     This is needed for `irreducible_of_totalDegree_eq_one`. -/
 lemma X_sub_X_isPrimitive {σ : Type*} [DecidableEq σ] (i j : σ) (hij : i ≠ j) :
-    ∀ r : ℤ, (∀ d : σ →₀ ℕ, r ∣ MvPolynomial.coeff d 
+    ∀ r : ℤ, (∀ d : σ →₀ ℕ, r ∣ MvPolynomial.coeff d
       (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ)) → IsUnit r := by
   intro r hr
-  have h1 : r ∣ MvPolynomial.coeff (Finsupp.single i 1) 
+  have h1 : r ∣ MvPolynomial.coeff (Finsupp.single i 1)
       (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) := hr _
-  have h2 : r ∣ MvPolynomial.coeff (Finsupp.single j 1) 
+  have h2 : r ∣ MvPolynomial.coeff (Finsupp.single j 1)
       (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) := hr _
   rw [MvPolynomial.coeff_sub, MvPolynomial.coeff_X', MvPolynomial.coeff_X'] at h1 h2
   have hij' : (Finsupp.single j 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := by
@@ -6647,26 +6647,26 @@ factor hunting proof of the Cauchy determinant formula.
 
 /-- The polynomial Cauchy matrix over MvPolynomial (Fin n ⊕ Fin n) ℤ.
     Entry (i, j) is ∏_{k ≠ j} (X_{inl i} + X_{inr k}). -/
-noncomputable def polyCauchyMat' (m : ℕ) : 
+noncomputable def polyCauchyMat' (m : ℕ) :
     Matrix (Fin m) (Fin m) (MvPolynomial (Fin m ⊕ Fin m) ℤ) :=
-  Matrix.of fun i j => ∏ k ∈ Finset.univ.filter (· ≠ j), 
+  Matrix.of fun i j => ∏ k ∈ Finset.univ.filter (· ≠ j),
     (MvPolynomial.X (Sum.inl i) + MvPolynomial.X (Sum.inr k))
 
 /-- Substitution that sets x_i = x_j (replaces X_{inl i} with X_{inl j}). -/
-noncomputable def substX_inl (m : ℕ) (i j : Fin m) : 
+noncomputable def substX_inl (m : ℕ) (i j : Fin m) :
     MvPolynomial (Fin m ⊕ Fin m) ℤ →ₐ[ℤ] MvPolynomial (Fin m ⊕ Fin m) ℤ :=
-  MvPolynomial.aeval (fun k => 
+  MvPolynomial.aeval (fun k =>
     if k = Sum.inl i then MvPolynomial.X (Sum.inl j) else MvPolynomial.X k)
 
 /-- Substitution that sets y_i = y_j (replaces X_{inr i} with X_{inr j}). -/
-noncomputable def substY_inr (m : ℕ) (i j : Fin m) : 
+noncomputable def substY_inr (m : ℕ) (i j : Fin m) :
     MvPolynomial (Fin m ⊕ Fin m) ℤ →ₐ[ℤ] MvPolynomial (Fin m ⊕ Fin m) ℤ :=
-  MvPolynomial.aeval (fun k => 
+  MvPolynomial.aeval (fun k =>
     if k = Sum.inr i then MvPolynomial.X (Sum.inr j) else MvPolynomial.X k)
 
 /-- After substituting x_i = x_j, rows i and j of the polynomial Cauchy matrix become equal. -/
 lemma polyCauchyMat'_row_eq_after_substX (m : ℕ) (i j : Fin m) (_hij : i ≠ j) :
-    ∀ col, (substX_inl m i j) ((polyCauchyMat' m) i col) = 
+    ∀ col, (substX_inl m i j) ((polyCauchyMat' m) i col) =
            (substX_inl m i j) ((polyCauchyMat' m) j col) := by
   intro col
   simp only [polyCauchyMat', Matrix.of_apply, substX_inl]
@@ -6674,27 +6674,27 @@ lemma polyCauchyMat'_row_eq_after_substX (m : ℕ) (i j : Fin m) (_hij : i ≠ j
   congr 1
   ext k
   simp only [ite_true]
-  have h2 : (if (Sum.inl j : Fin m ⊕ Fin m) = Sum.inl i then 
-             MvPolynomial.X (Sum.inl j) else MvPolynomial.X (Sum.inl j) : 
+  have h2 : (if (Sum.inl j : Fin m ⊕ Fin m) = Sum.inl i then
+             MvPolynomial.X (Sum.inl j) else MvPolynomial.X (Sum.inl j) :
              MvPolynomial (Fin m ⊕ Fin m) ℤ) = MvPolynomial.X (Sum.inl j) := by
     simp only [Sum.inl.injEq]
     by_cases h : j = i
     · simp [h]
     · simp [h]
-  have h3 : (if (Sum.inr k : Fin m ⊕ Fin m) = Sum.inl i then 
-             MvPolynomial.X (Sum.inl j) else MvPolynomial.X (Sum.inr k) : 
+  have h3 : (if (Sum.inr k : Fin m ⊕ Fin m) = Sum.inl i then
+             MvPolynomial.X (Sum.inl j) else MvPolynomial.X (Sum.inr k) :
              MvPolynomial (Fin m ⊕ Fin m) ℤ) = MvPolynomial.X (Sum.inr k) := by simp
   simp only [h2, h3]
 
 /-- After substituting y_i = y_j, columns i and j of the polynomial Cauchy matrix become equal. -/
 lemma polyCauchyMat'_col_eq_after_substY (m : ℕ) (i j : Fin m) (hij : i ≠ j) :
-    ∀ row, (substY_inr m i j) ((polyCauchyMat' m) row i) = 
+    ∀ row, (substY_inr m i j) ((polyCauchyMat' m) row i) =
            (substY_inr m i j) ((polyCauchyMat' m) row j) := by
   intro row
   simp only [polyCauchyMat', Matrix.of_apply, substY_inr]
   simp only [map_prod, map_add, MvPolynomial.aeval_X]
   -- The products differ in which column is excluded
-  have h1 : Finset.univ.filter (fun k : Fin m => k ≠ i) = 
+  have h1 : Finset.univ.filter (fun k : Fin m => k ≠ i) =
             insert j (Finset.univ.filter (fun k => k ≠ i ∧ k ≠ j)) := by
     ext k
     simp only [mem_filter, mem_univ, true_and, ne_eq, mem_insert]
@@ -6707,7 +6707,7 @@ lemma polyCauchyMat'_col_eq_after_substY (m : ℕ) (i j : Fin m) (hij : i ≠ j)
       rcases h with hkj | hk
       · rw [hkj]; exact hij.symm
       · exact hk.1
-  have h2 : Finset.univ.filter (fun k : Fin m => k ≠ j) = 
+  have h2 : Finset.univ.filter (fun k : Fin m => k ≠ j) =
             insert i (Finset.univ.filter (fun k => k ≠ i ∧ k ≠ j)) := by
     ext k
     simp only [mem_filter, mem_univ, true_and, ne_eq, mem_insert]
@@ -6763,17 +6763,17 @@ lemma polyCauchyMat'_det_zero_after_substY (m : ℕ) (i j : Fin m) (hij : i ≠ 
 
 /-- substX_inl is the same as substXiToXj for Sum.inl indices. -/
 lemma substX_inl_eq_substXiToXj (m : ℕ) (i j : Fin m) :
-    (substX_inl m i j : MvPolynomial (Fin m ⊕ Fin m) ℤ →ₐ[ℤ] _) = 
+    (substX_inl m i j : MvPolynomial (Fin m ⊕ Fin m) ℤ →ₐ[ℤ] _) =
     substXiToXj (Sum.inl i) (Sum.inl j) := rfl
 
 /-- substY_inr is the same as substXiToXj for Sum.inr indices. -/
 lemma substY_inr_eq_substXiToXj (m : ℕ) (i j : Fin m) :
-    (substY_inr m i j : MvPolynomial (Fin m ⊕ Fin m) ℤ →ₐ[ℤ] _) = 
+    (substY_inr m i j : MvPolynomial (Fin m ⊕ Fin m) ℤ →ₐ[ℤ] _) =
     substXiToXj (Sum.inr i) (Sum.inr j) := rfl
 
 /-- The determinant of the polynomial Cauchy matrix is divisible by (x_i - x_j) for i ≠ j. -/
 lemma polyCauchyMat'_det_dvd_x_sub_x (m : ℕ) (i j : Fin m) (hij : i ≠ j) :
-    (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j) : 
+    (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j) :
      MvPolynomial (Fin m ⊕ Fin m) ℤ) ∣ (polyCauchyMat' m).det := by
   have h_zero := polyCauchyMat'_det_zero_after_substX m i j hij
   rw [substX_inl_eq_substXiToXj] at h_zero
@@ -6782,7 +6782,7 @@ lemma polyCauchyMat'_det_dvd_x_sub_x (m : ℕ) (i j : Fin m) (hij : i ≠ j) :
 
 /-- The determinant of the polynomial Cauchy matrix is divisible by (y_i - y_j) for i ≠ j. -/
 lemma polyCauchyMat'_det_dvd_y_sub_y (m : ℕ) (i j : Fin m) (hij : i ≠ j) :
-    (MvPolynomial.X (Sum.inr i) - MvPolynomial.X (Sum.inr j) : 
+    (MvPolynomial.X (Sum.inr i) - MvPolynomial.X (Sum.inr j) :
      MvPolynomial (Fin m ⊕ Fin m) ℤ) ∣ (polyCauchyMat' m).det := by
   have h_zero := polyCauchyMat'_det_zero_after_substY m i j hij
   rw [substY_inr_eq_substXiToXj] at h_zero
@@ -6798,19 +6798,19 @@ different pairs. This section establishes the necessary lemmas.
 -/
 
 /-- Two linear factors X_i - X_j and X_k - X_l are equal iff (i,j) = (k,l). -/
-lemma X_sub_X_eq_iff {σ : Type*} [DecidableEq σ] (i j k l : σ) 
+lemma X_sub_X_eq_iff {σ : Type*} [DecidableEq σ] (i j k l : σ)
     (hij : i ≠ j) (_hkl : k ≠ l) :
-    (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) = 
+    (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) =
      MvPolynomial.X k - MvPolynomial.X l ↔ (i = k ∧ j = l) := by
   constructor
   · intro h
-    have h_coeff : ∀ s : σ →₀ ℕ, 
-        MvPolynomial.coeff s (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) = 
-        MvPolynomial.coeff s (MvPolynomial.X k - MvPolynomial.X l) := 
+    have h_coeff : ∀ s : σ →₀ ℕ,
+        MvPolynomial.coeff s (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) =
+        MvPolynomial.coeff s (MvPolynomial.X k - MvPolynomial.X l) :=
       fun s => congrArg (MvPolynomial.coeff s) h
     have hi := h_coeff (Finsupp.single i 1)
     simp only [MvPolynomial.coeff_sub, MvPolynomial.coeff_X', ite_true] at hi
-    have hji' : (Finsupp.single j 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := 
+    have hji' : (Finsupp.single j 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 :=
       fun heq => hij (Finsupp.single_left_injective (by norm_num) heq).symm
     rw [if_neg hji', sub_zero] at hi
     by_cases hik : i = k
@@ -6821,34 +6821,34 @@ lemma X_sub_X_eq_iff {σ : Type*} [DecidableEq σ] (i j k l : σ)
         have hil' : (Finsupp.single l 1 : σ →₀ ℕ) = Finsupp.single i 1 := by simp [hil]
         rw [if_pos hil'] at hi
         omega
-      have hil' : (Finsupp.single l 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := 
+      have hil' : (Finsupp.single l 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 :=
         fun heq => hil (Finsupp.single_left_injective (by norm_num) heq).symm
       rw [if_neg hil', sub_zero] at hi
       have hj := h_coeff (Finsupp.single j 1)
       simp only [MvPolynomial.coeff_sub, MvPolynomial.coeff_X', ite_true] at hj
-      have hij'' : (Finsupp.single i 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 := 
+      have hij'' : (Finsupp.single i 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 :=
         fun heq => hij (Finsupp.single_left_injective (by norm_num) heq)
       rw [if_neg hij'', zero_sub] at hj
       by_cases hjk : j = k
       · exact absurd (hik.trans hjk.symm) hij
-      · have hjk' : (Finsupp.single k 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 := 
+      · have hjk' : (Finsupp.single k 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 :=
           fun heq => hjk (Finsupp.single_left_injective (by norm_num) heq).symm
         rw [if_neg hjk', zero_sub] at hj
         have hjl : j = l := by
           by_contra hjl_ne
-          have hjl' : (Finsupp.single l 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 := 
+          have hjl' : (Finsupp.single l 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 :=
             fun heq => hjl_ne (Finsupp.single_left_injective (by norm_num) heq).symm
           rw [if_neg hjl', neg_zero] at hj
           omega
         exact ⟨hik, hjl⟩
-    · have hik' : (Finsupp.single k 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := 
+    · have hik' : (Finsupp.single k 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 :=
         fun heq => hik (Finsupp.single_left_injective (by norm_num) heq).symm
       rw [if_neg hik', zero_sub] at hi
       by_cases hil : i = l
       · have hil' : (Finsupp.single l 1 : σ →₀ ℕ) = Finsupp.single i 1 := by simp [hil]
         rw [if_pos hil'] at hi
         omega
-      · have hil' : (Finsupp.single l 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := 
+      · have hil' : (Finsupp.single l 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 :=
           fun heq => hil (Finsupp.single_left_injective (by norm_num) heq).symm
         rw [if_neg hil', neg_zero] at hi
         omega
@@ -6856,26 +6856,26 @@ lemma X_sub_X_eq_iff {σ : Type*} [DecidableEq σ] (i j k l : σ)
     simp only [hik, hjl]
 
 /-- X_i - X_j equals -(X_k - X_l) iff (i,j) = (l,k). -/
-lemma X_sub_X_eq_neg_iff {σ : Type*} [DecidableEq σ] (i j k l : σ) 
+lemma X_sub_X_eq_neg_iff {σ : Type*} [DecidableEq σ] (i j k l : σ)
     (hij : i ≠ j) (hkl : k ≠ l) :
-    (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) = 
+    (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) =
      -(MvPolynomial.X k - MvPolynomial.X l) ↔ (i = l ∧ j = k) := by
-  have h1 : -(MvPolynomial.X k - MvPolynomial.X l : MvPolynomial σ ℤ) = 
+  have h1 : -(MvPolynomial.X k - MvPolynomial.X l : MvPolynomial σ ℤ) =
             MvPolynomial.X l - MvPolynomial.X k := by ring
   rw [h1, X_sub_X_eq_iff i j l k hij hkl.symm]
 
 /-- Units in MvPolynomial σ ℤ are exactly ±1. -/
-lemma MvPolynomial_unit_eq_one_or_neg_one {σ : Type*} [DecidableEq σ] 
+lemma MvPolynomial_unit_eq_one_or_neg_one {σ : Type*} [DecidableEq σ]
     (u : (MvPolynomial σ ℤ)ˣ) :
     (u : MvPolynomial σ ℤ) = 1 ∨ (u : MvPolynomial σ ℤ) = -1 := by
   have h := MvPolynomial.isUnit_iff.mp u.isUnit
   obtain ⟨h0, hnil⟩ := h
-  have hcoeffs : ∀ i : σ →₀ ℕ, i ≠ 0 → 
+  have hcoeffs : ∀ i : σ →₀ ℕ, i ≠ 0 →
       MvPolynomial.coeff i (u : MvPolynomial σ ℤ) = 0 := by
     intro i hi
     have hnil_i := hnil i hi
     rwa [isNilpotent_iff_eq_zero] at hnil_i
-  have hu_eq : (u : MvPolynomial σ ℤ) = 
+  have hu_eq : (u : MvPolynomial σ ℤ) =
       MvPolynomial.C (MvPolynomial.coeff 0 (u : MvPolynomial σ ℤ)) := by
     ext m
     simp only [MvPolynomial.coeff_C]
@@ -6887,10 +6887,10 @@ lemma MvPolynomial_unit_eq_one_or_neg_one {σ : Type*} [DecidableEq σ]
   · right; rw [hu_eq, h1]; simp
 
 /-- X_i - X_j and X_k - X_l are associated iff (i,j) = (k,l) or (i,j) = (l,k). -/
-lemma X_sub_X_associated_iff {σ : Type*} [DecidableEq σ] (i j k l : σ) 
+lemma X_sub_X_associated_iff {σ : Type*} [DecidableEq σ] (i j k l : σ)
     (hij : i ≠ j) (hkl : k ≠ l) :
-    Associated (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) 
-               (MvPolynomial.X k - MvPolynomial.X l) ↔ 
+    Associated (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ)
+               (MvPolynomial.X k - MvPolynomial.X l) ↔
     (i = k ∧ j = l) ∨ (i = l ∧ j = k) := by
   constructor
   · intro ⟨u, hu⟩
@@ -6900,7 +6900,7 @@ lemma X_sub_X_associated_iff {σ : Type*} [DecidableEq σ] (i j k l : σ)
       exact (X_sub_X_eq_iff i j k l hij hkl).mp hu
     · right
       rw [hu1, mul_neg_one] at hu
-      have hu' : (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) = 
+      have hu' : (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) =
                  -(MvPolynomial.X k - MvPolynomial.X l) := neg_eq_iff_eq_neg.mp hu
       exact (X_sub_X_eq_neg_iff i j k l hij hkl).mp hu'
   · intro h
@@ -6913,18 +6913,18 @@ lemma X_sub_X_associated_iff {σ : Type*} [DecidableEq σ] (i j k l : σ)
 
 /-- Distinct linear factors X_i - X_j and X_k - X_l are not divisible by each other
     when they're not associated (i.e., when (i,j) ≠ (k,l) and (i,j) ≠ (l,k)). -/
-lemma X_sub_X_not_dvd {σ : Type*} [DecidableEq σ] (i j k l : σ) 
-    (hij : i ≠ j) (hkl : k ≠ l) 
+lemma X_sub_X_not_dvd {σ : Type*} [DecidableEq σ] (i j k l : σ)
+    (hij : i ≠ j) (hkl : k ≠ l)
     (h_ne : (i, j) ≠ (k, l)) (h_ne' : (i, j) ≠ (l, k)) :
-    ¬(MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) ∣ 
+    ¬(MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) ∣
       (MvPolynomial.X k - MvPolynomial.X l) := by
   intro hdvd
-  have hirr_ij : Irreducible (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) := 
+  have hirr_ij : Irreducible (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) :=
     X_sub_X_irreducible i j hij
-  have hirr_kl : Irreducible (MvPolynomial.X k - MvPolynomial.X l : MvPolynomial σ ℤ) := 
+  have hirr_kl : Irreducible (MvPolynomial.X k - MvPolynomial.X l : MvPolynomial σ ℤ) :=
     X_sub_X_irreducible k l hkl
-  have hass : Associated (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) 
-                         (MvPolynomial.X k - MvPolynomial.X l) := 
+  have hass : Associated (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ)
+                         (MvPolynomial.X k - MvPolynomial.X l) :=
     hirr_ij.associated_of_dvd hirr_kl hdvd
   rw [X_sub_X_associated_iff i j k l hij hkl] at hass
   rcases hass with ⟨hik, hjl⟩ | ⟨hil, hjk⟩
@@ -6934,9 +6934,9 @@ lemma X_sub_X_not_dvd {σ : Type*} [DecidableEq σ] (i j k l : σ)
 /-- Distinct linear factors (X_i - X_j) and (X_k - X_l) are relatively prime when not associated.
     This is a key lemma for the factor hunting proof: we can use `Finset.prod_dvd_of_isRelPrime`
     to show that the product of coprime factors divides the determinant. -/
-lemma X_sub_X_isRelPrime {σ : Type*} [DecidableEq σ] (i j k l : σ) (hij : i ≠ j) (hkl : k ≠ l) 
+lemma X_sub_X_isRelPrime {σ : Type*} [DecidableEq σ] (i j k l : σ) (hij : i ≠ j) (hkl : k ≠ l)
     (h_ne : ¬((i = k ∧ j = l) ∨ (i = l ∧ j = k))) :
-    IsRelPrime (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) 
+    IsRelPrime (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ)
                (MvPolynomial.X k - MvPolynomial.X l) := by
   apply WfDvdMonoid.isRelPrime_of_no_irreducible_factors
   · intro ⟨hzero1, _⟩
@@ -6948,9 +6948,9 @@ lemma X_sub_X_isRelPrime {σ : Type*} [DecidableEq σ] (i j k l : σ) (hij : i �
     have hirr_kl := X_sub_X_irreducible k l hkl
     -- z is irreducible and divides both X_i - X_j and X_k - X_l
     -- Since X_i - X_j is irreducible and z | X_i - X_j, z is associated to X_i - X_j
-    have hass1 : Associated z (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) := 
+    have hass1 : Associated z (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) :=
       hz.associated_of_dvd hirr_ij hdvd1
-    have hass2 : Associated z (MvPolynomial.X k - MvPolynomial.X l : MvPolynomial σ ℤ) := 
+    have hass2 : Associated z (MvPolynomial.X k - MvPolynomial.X l : MvPolynomial σ ℤ) :=
       hz.associated_of_dvd hirr_kl hdvd2
     -- So X_i - X_j and X_k - X_l are associated
     have hass := hass1.symm.trans hass2
@@ -6961,7 +6961,7 @@ lemma X_sub_X_isRelPrime {σ : Type*} [DecidableEq σ] (i j k l : σ) (hij : i �
     because they involve variables from different sum sides. This is a key lemma for showing
     that the product of all factors divides the Cauchy determinant. -/
 lemma X_sub_X_isRelPrime_inl_inr {m : ℕ} (i j k l : Fin m) (hij : i ≠ j) (hkl : k ≠ l) :
-    IsRelPrime 
+    IsRelPrime
       (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j) : MvPolynomial (Fin m ⊕ Fin m) ℤ)
       (MvPolynomial.X (Sum.inr k) - MvPolynomial.X (Sum.inr l)) := by
   apply WfDvdMonoid.isRelPrime_of_no_irreducible_factors
@@ -6976,9 +6976,9 @@ lemma X_sub_X_isRelPrime_inl_inr {m : ℕ} (i j k l : Fin m) (hij : i ≠ j) (hk
     have hirr1 := X_sub_X_irreducible (Sum.inl i) (Sum.inl j) hij'
     have hirr2 := X_sub_X_irreducible (Sum.inr k) (Sum.inr l) hkl'
     -- z is associated to both irreducible factors
-    have hass1 : Associated z (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j)) := 
+    have hass1 : Associated z (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j)) :=
       hz.associated_of_dvd hirr1 hdvd1
-    have hass2 : Associated z (MvPolynomial.X (Sum.inr k) - MvPolynomial.X (Sum.inr l)) := 
+    have hass2 : Associated z (MvPolynomial.X (Sum.inr k) - MvPolynomial.X (Sum.inr l)) :=
       hz.associated_of_dvd hirr2 hdvd2
     -- So the two factors are associated
     have hass := hass1.symm.trans hass2
@@ -6989,7 +6989,7 @@ lemma X_sub_X_isRelPrime_inl_inr {m : ℕ} (i j k l : Fin m) (hij : i ≠ j) (hk
     have h := MvPolynomial.isUnit_iff.mp hu_unit
     obtain ⟨hu0, hunil⟩ := h
     -- u is a constant polynomial
-    have hu_const : (u : MvPolynomial (Fin m ⊕ Fin m) ℤ) = 
+    have hu_const : (u : MvPolynomial (Fin m ⊕ Fin m) ℤ) =
         MvPolynomial.C (MvPolynomial.coeff 0 (u : MvPolynomial (Fin m ⊕ Fin m) ℤ)) := by
       ext m'
       simp only [MvPolynomial.coeff_C]
@@ -7002,19 +7002,19 @@ lemma X_sub_X_isRelPrime_inl_inr {m : ℕ} (i j k l : Fin m) (hij : i ≠ j) (hk
     -- Rewrite the multiplication as scalar multiplication
     rw [mul_comm, ← MvPolynomial.smul_eq_C_mul] at hu
     -- Look at the coefficient of Finsupp.single (Sum.inl i) 1 on both sides
-    have h_coeff : MvPolynomial.coeff (Finsupp.single (Sum.inl i) 1) 
-        ((MvPolynomial.coeff 0 (u : MvPolynomial (Fin m ⊕ Fin m) ℤ)) • 
-          (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j) : MvPolynomial (Fin m ⊕ Fin m) ℤ)) = 
-        MvPolynomial.coeff (Finsupp.single (Sum.inl i) 1) 
+    have h_coeff : MvPolynomial.coeff (Finsupp.single (Sum.inl i) 1)
+        ((MvPolynomial.coeff 0 (u : MvPolynomial (Fin m ⊕ Fin m) ℤ)) •
+          (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j) : MvPolynomial (Fin m ⊕ Fin m) ℤ)) =
+        MvPolynomial.coeff (Finsupp.single (Sum.inl i) 1)
           (MvPolynomial.X (Sum.inr k) - MvPolynomial.X (Sum.inr l) : MvPolynomial (Fin m ⊕ Fin m) ℤ) := by rw [hu]
     simp only [MvPolynomial.coeff_smul, smul_eq_mul, MvPolynomial.coeff_sub, MvPolynomial.coeff_X'] at h_coeff
     -- RHS: coefficients of X_{inr k} - X_{inr l} at position single (inl i) 1 are both 0
-    have h1 : (Finsupp.single (Sum.inr k) 1 : (Fin m ⊕ Fin m) →₀ ℕ) ≠ 
+    have h1 : (Finsupp.single (Sum.inr k) 1 : (Fin m ⊕ Fin m) →₀ ℕ) ≠
         Finsupp.single (Sum.inl i) 1 := by
       intro heq
       have := Finsupp.single_left_injective (by norm_num : (1 : ℕ) ≠ 0) heq
       cases this  -- Sum.inr _ = Sum.inl _ is impossible
-    have h2 : (Finsupp.single (Sum.inr l) 1 : (Fin m ⊕ Fin m) →₀ ℕ) ≠ 
+    have h2 : (Finsupp.single (Sum.inr l) 1 : (Fin m ⊕ Fin m) →₀ ℕ) ≠
         Finsupp.single (Sum.inl i) 1 := by
       intro heq
       have := Finsupp.single_left_injective (by norm_num : (1 : ℕ) ≠ 0) heq
@@ -7045,18 +7045,18 @@ private def orderedPairs' (m : ℕ) : Finset (Σ _ : Fin m, Fin m) :=
   Finset.univ.sigma (fun i : Fin m => Ioi i)
 
 /-- The x-factor for an ordered pair: X_{inl i} - X_{inl j}. -/
-private noncomputable def xFactor' (m : ℕ) (p : Σ _ : Fin m, Fin m) : 
+private noncomputable def xFactor' (m : ℕ) (p : Σ _ : Fin m, Fin m) :
     MvPolynomial (Fin m ⊕ Fin m) ℤ :=
   MvPolynomial.X (Sum.inl p.1) - MvPolynomial.X (Sum.inl p.2)
 
 /-- The y-factor for an ordered pair: X_{inr i} - X_{inr j}. -/
-private noncomputable def yFactor' (m : ℕ) (p : Σ _ : Fin m, Fin m) : 
+private noncomputable def yFactor' (m : ℕ) (p : Σ _ : Fin m, Fin m) :
     MvPolynomial (Fin m ⊕ Fin m) ℤ :=
   MvPolynomial.X (Sum.inr p.1) - MvPolynomial.X (Sum.inr p.2)
 
 /-- Pairwise coprimality of x-factors: distinct x-factors are relatively prime. -/
 private lemma xFactor'_pairwise_isRelPrime (m : ℕ) :
-    (orderedPairs' m : Set (Σ _ : Fin m, Fin m)).Pairwise 
+    (orderedPairs' m : Set (Σ _ : Fin m, Fin m)).Pairwise
       (fun p q => IsRelPrime (xFactor' m p) (xFactor' m q)) := by
   intro p hp q hq hpq
   unfold xFactor'
@@ -7079,7 +7079,7 @@ private lemma xFactor'_pairwise_isRelPrime (m : ℕ) :
 
 /-- Pairwise coprimality of y-factors: distinct y-factors are relatively prime. -/
 private lemma yFactor'_pairwise_isRelPrime (m : ℕ) :
-    (orderedPairs' m : Set (Σ _ : Fin m, Fin m)).Pairwise 
+    (orderedPairs' m : Set (Σ _ : Fin m, Fin m)).Pairwise
       (fun p q => IsRelPrime (yFactor' m p) (yFactor' m q)) := by
   intro p hp q hq hpq
   unfold yFactor'
@@ -7101,13 +7101,13 @@ private lemma yFactor'_pairwise_isRelPrime (m : ℕ) :
     exact (hlt.trans hq').false
 
 /-- Cross-coprimality: any x-factor is coprime with any y-factor. -/
-private lemma xFactor'_yFactor'_isRelPrime (m : ℕ) (p q : Σ _ : Fin m, Fin m) 
+private lemma xFactor'_yFactor'_isRelPrime (m : ℕ) (p q : Σ _ : Fin m, Fin m)
     (hp : p ∈ orderedPairs' m) (hq : q ∈ orderedPairs' m) :
     IsRelPrime (xFactor' m p) (yFactor' m q) := by
   unfold xFactor' yFactor'
-  have hp' : p.1 < p.2 := by 
+  have hp' : p.1 < p.2 := by
     simp only [orderedPairs', mem_sigma, mem_univ, mem_Ioi, true_and] at hp; exact hp
-  have hq' : q.1 < q.2 := by 
+  have hq' : q.1 < q.2 := by
     simp only [orderedPairs', mem_sigma, mem_univ, mem_Ioi, true_and] at hq; exact hq
   exact X_sub_X_isRelPrime_inl_inr p.1 p.2 q.1 q.2 hp'.ne hq'.ne
 
@@ -7115,7 +7115,7 @@ private lemma xFactor'_yFactor'_isRelPrime (m : ℕ) (p q : Σ _ : Fin m, Fin m)
 private lemma xFactor'_dvd_det (m : ℕ) (p : Σ _ : Fin m, Fin m) (hp : p ∈ orderedPairs' m) :
     xFactor' m p ∣ (polyCauchyMat' m).det := by
   unfold xFactor'
-  have hp' : p.1 < p.2 := by 
+  have hp' : p.1 < p.2 := by
     simp only [orderedPairs', mem_sigma, mem_univ, mem_Ioi, true_and] at hp; exact hp
   exact polyCauchyMat'_det_dvd_x_sub_x m p.1 p.2 hp'.ne
 
@@ -7123,19 +7123,19 @@ private lemma xFactor'_dvd_det (m : ℕ) (p : Σ _ : Fin m, Fin m) (hp : p ∈ o
 private lemma yFactor'_dvd_det (m : ℕ) (p : Σ _ : Fin m, Fin m) (hp : p ∈ orderedPairs' m) :
     yFactor' m p ∣ (polyCauchyMat' m).det := by
   unfold yFactor'
-  have hp' : p.1 < p.2 := by 
+  have hp' : p.1 < p.2 := by
     simp only [orderedPairs', mem_sigma, mem_univ, mem_Ioi, true_and] at hp; exact hp
   exact polyCauchyMat'_det_dvd_y_sub_y m p.1 p.2 hp'.ne
 
 /-- Product of x-factors divides the determinant. -/
-private lemma xProd'_dvd_det (m : ℕ) : 
+private lemma xProd'_dvd_det (m : ℕ) :
     (∏ p ∈ orderedPairs' m, xFactor' m p) ∣ (polyCauchyMat' m).det := by
   apply Finset.prod_dvd_of_isRelPrime
   · exact xFactor'_pairwise_isRelPrime m
   · intro p hp; exact xFactor'_dvd_det m p hp
 
 /-- Product of y-factors divides the determinant. -/
-private lemma yProd'_dvd_det (m : ℕ) : 
+private lemma yProd'_dvd_det (m : ℕ) :
     (∏ p ∈ orderedPairs' m, yFactor' m p) ∣ (polyCauchyMat' m).det := by
   apply Finset.prod_dvd_of_isRelPrime
   · exact yFactor'_pairwise_isRelPrime m
@@ -7152,16 +7152,16 @@ private lemma xProd'_yProd'_isRelPrime (m : ℕ) :
 
 /-- The full product of all factors divides the determinant.
     This is the key divisibility result for the factor hunting proof. -/
-private lemma polyRHS'_dvd_det (m : ℕ) : 
-    (∏ p ∈ orderedPairs' m, xFactor' m p) * (∏ q ∈ orderedPairs' m, yFactor' m q) ∣ 
+private lemma polyRHS'_dvd_det (m : ℕ) :
+    (∏ p ∈ orderedPairs' m, xFactor' m p) * (∏ q ∈ orderedPairs' m, yFactor' m q) ∣
     (polyCauchyMat' m).det := by
   exact (xProd'_yProd'_isRelPrime m).mul_dvd (xProd'_dvd_det m) (yProd'_dvd_det m)
 
 /-- The RHS of the Cauchy determinant formula equals the product of x-factors times y-factors. -/
 private lemma polyRHS'_eq_prod_mul_prod (m : ℕ) :
-    (∏ i : Fin m, ∏ j ∈ Ioi i, 
-      (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j)) * 
-      (MvPolynomial.X (Sum.inr i) - MvPolynomial.X (Sum.inr j) : MvPolynomial (Fin m ⊕ Fin m) ℤ)) = 
+    (∏ i : Fin m, ∏ j ∈ Ioi i,
+      (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j)) *
+      (MvPolynomial.X (Sum.inr i) - MvPolynomial.X (Sum.inr j) : MvPolynomial (Fin m ⊕ Fin m) ℤ)) =
     (∏ p ∈ orderedPairs' m, xFactor' m p) * (∏ q ∈ orderedPairs' m, yFactor' m q) := by
   unfold xFactor' yFactor' orderedPairs'
   rw [prod_sigma, prod_sigma]
@@ -7198,7 +7198,7 @@ private lemma polyCauchyMat'_det_isHomogeneous (m : ℕ) :
   rw [Matrix.det_apply]
   apply MvPolynomial.IsHomogeneous.sum
   intro σ _
-  have hsign : Equiv.Perm.sign σ • (∏ i : Fin m, (polyCauchyMat' m) (σ i) i) = 
+  have hsign : Equiv.Perm.sign σ • (∏ i : Fin m, (polyCauchyMat' m) (σ i) i) =
                MvPolynomial.C (Equiv.Perm.sign σ : ℤ) * ∏ i : Fin m, (polyCauchyMat' m) (σ i) i := by
     simp only [Units.smul_def, zsmul_eq_mul]
     rfl
@@ -7213,8 +7213,8 @@ private lemma polyCauchyMat'_det_isHomogeneous (m : ℕ) :
 
 /-- The RHS of the Cauchy determinant formula is homogeneous of degree m*(m-1). -/
 private lemma polyRHS'_isHomogeneous (m : ℕ) :
-    (∏ i : Fin m, ∏ j ∈ Finset.Ioi i, 
-      (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j)) * 
+    (∏ i : Fin m, ∏ j ∈ Finset.Ioi i,
+      (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j)) *
       (MvPolynomial.X (Sum.inr i) - MvPolynomial.X (Sum.inr j) : MvPolynomial (Fin m ⊕ Fin m) ℤ))
     |>.IsHomogeneous (m * (m - 1)) := by
   -- Each factor (xi - xj) * (yi - yj) is homogeneous of degree 2
@@ -7228,7 +7228,7 @@ private lemma polyRHS'_isHomogeneous (m : ℕ) :
       · exact dvd_mul_of_dvd_left hm.two_dvd (m - 1)
       · have : Even (m - 1) := Nat.Odd.sub_odd hm (Nat.odd_iff.mpr rfl)
         exact dvd_mul_of_dvd_right this.two_dvd m
-    calc ∑ i : Fin m, (Finset.Ioi i).card * 2 
+    calc ∑ i : Fin m, (Finset.Ioi i).card * 2
         = (∑ i : Fin m, (Finset.Ioi i).card) * 2 := by rw [Finset.sum_mul]
       _ = m * (m - 1) / 2 * 2 := by rw [h]
       _ = m * (m - 1) := Nat.div_mul_cancel heven
@@ -7259,7 +7259,7 @@ This is the key lemma needed to complete the factor hunting proof for the Cauchy
 private def evalPolyCauchyEntry (m : ℕ) (i j : Fin m) : ℤ :=
   ∏ k ∈ Finset.univ.filter (· ≠ j), ((i : ℤ) + m + k)
 
-/-- The numerator: ∏_{i<j} (i - j)² -/
+/-- The numerator: ∏_{i< j} (i - j)² -/
 private def evalNumerator (m : ℕ) : ℤ :=
   ∏ i : Fin m, ∏ j ∈ Finset.Ioi i, ((i : ℤ) - j) * ((i : ℤ) - j)
 
@@ -7314,7 +7314,7 @@ private noncomputable def cauchyMatEvalShifted (n offset : ℕ) : Matrix (Fin n)
 private lemma cauchyMatEval_eq_shifted (n : ℕ) : cauchyMatEval n = cauchyMatEvalShifted n n := rfl
 
 /-- Helper: all denominators are nonzero for offset ≥ n (with n ≥ 1) -/
-private lemma shiftedSum_ne_zero (n offset : ℕ) (hn : n ≥ 1) (h : offset ≥ n) (i j : Fin n) : 
+private lemma shiftedSum_ne_zero (n offset : ℕ) (hn : n ≥ 1) (h : offset ≥ n) (i j : Fin n) :
     (i : ℚ) + offset + j ≠ 0 := by
   have hi : (i : ℚ) ≥ 0 := Nat.cast_nonneg i.val
   have hj : (j : ℚ) ≥ 0 := Nat.cast_nonneg j.val
@@ -7335,13 +7335,13 @@ private lemma genDenom_ne_zero (n offset : ℕ) (hn : n ≥ 1) (h : offset ≥ n
 
 /-- Recurrence relation for genDenom: going from n to n+1 adds a new row and column -/
 private lemma genDenom_succ (n offset : ℕ) :
-    genDenom (n + 1) offset = genDenom n offset * 
-      (∏ i : Fin n, ((i : ℚ) + offset + n)) * 
+    genDenom (n + 1) offset = genDenom n offset *
+      (∏ i : Fin n, ((i : ℚ) + offset + n)) *
       (∏ j : Fin (n + 1), ((n : ℚ) + offset + j)) := by
   simp only [genDenom]
   rw [Fin.prod_univ_castSucc]
   simp only [Fin.val_last, Fin.val_castSucc]
-  have h : ∀ i : Fin n, ∏ j : Fin (n + 1), ((i : ℚ) + offset + j) = 
+  have h : ∀ i : Fin n, ∏ j : Fin (n + 1), ((i : ℚ) + offset + j) =
            (∏ j : Fin n, ((i : ℚ) + offset + j)) * ((i : ℚ) + offset + n) := by
     intro i
     rw [Fin.prod_univ_castSucc]
@@ -7354,14 +7354,14 @@ private lemma genDenom_2_expand (s : ℕ) : genDenom 2 s = (s : ℚ) * (s + 1)^2
   ring
 
 /-- genDenom 3 expanded as a product of linear factors -/
-private lemma genDenom_3_expand (s : ℕ) : 
+private lemma genDenom_3_expand (s : ℕ) :
     genDenom 3 s = (s : ℚ) * (s+1)^2 * (s+2)^3 * (s+3)^2 * (s+4) := by
   simp only [genDenom, Fin.prod_univ_three, Fin.val_zero, Fin.val_one, Fin.val_two]
   ring
 
 /-- Inner submatrix of shifted Cauchy matrix -/
-private lemma innerSubmatrix_cauchyMatEvalShifted (m offset : ℕ) : 
-    innerSubmatrix (cauchyMatEvalShifted (m + 2) offset) = 
+private lemma innerSubmatrix_cauchyMatEvalShifted (m offset : ℕ) :
+    innerSubmatrix (cauchyMatEvalShifted (m + 2) offset) =
     cauchyMatEvalShifted m (offset + 2) := by
   ext i j
   simp only [innerSubmatrix, cauchyMatEvalShifted, Matrix.submatrix_apply, Matrix.of_apply]
@@ -7375,8 +7375,8 @@ private lemma innerSubmatrix_cauchyMatEvalShifted (m offset : ℕ) :
   ring
 
 /-- submatrixRemove 0 0 of shifted Cauchy matrix -/
-private lemma submatrixRemove_00_cauchyMatEvalShifted (m offset : ℕ) : 
-    submatrixRemove (cauchyMatEvalShifted (m + 1) offset) 0 0 = 
+private lemma submatrixRemove_00_cauchyMatEvalShifted (m offset : ℕ) :
+    submatrixRemove (cauchyMatEvalShifted (m + 1) offset) 0 0 =
     cauchyMatEvalShifted m (offset + 2) := by
   ext i j
   simp only [submatrixRemove, cauchyMatEvalShifted, Matrix.submatrix_apply, Matrix.of_apply]
@@ -7390,8 +7390,8 @@ private lemma submatrixRemove_00_cauchyMatEvalShifted (m offset : ℕ) :
   ring
 
 /-- submatrixRemove last last of shifted Cauchy matrix -/
-private lemma submatrixRemove_LL_cauchyMatEvalShifted (m offset : ℕ) : 
-    submatrixRemove (cauchyMatEvalShifted (m + 1) offset) (Fin.last m) (Fin.last m) = 
+private lemma submatrixRemove_LL_cauchyMatEvalShifted (m offset : ℕ) :
+    submatrixRemove (cauchyMatEvalShifted (m + 1) offset) (Fin.last m) (Fin.last m) =
     cauchyMatEvalShifted m offset := by
   ext i j
   simp only [submatrixRemove, cauchyMatEvalShifted, Matrix.submatrix_apply, Matrix.of_apply]
@@ -7403,8 +7403,8 @@ private lemma submatrixRemove_LL_cauchyMatEvalShifted (m offset : ℕ) :
   rw [hi, hj]
 
 /-- submatrixRemove 0 last of shifted Cauchy matrix -/
-private lemma submatrixRemove_0L_cauchyMatEvalShifted (m offset : ℕ) : 
-    submatrixRemove (cauchyMatEvalShifted (m + 1) offset) 0 (Fin.last m) = 
+private lemma submatrixRemove_0L_cauchyMatEvalShifted (m offset : ℕ) :
+    submatrixRemove (cauchyMatEvalShifted (m + 1) offset) 0 (Fin.last m) =
     cauchyMatEvalShifted m (offset + 1) := by
   ext i j
   simp only [submatrixRemove, cauchyMatEvalShifted, Matrix.submatrix_apply, Matrix.of_apply]
@@ -7418,8 +7418,8 @@ private lemma submatrixRemove_0L_cauchyMatEvalShifted (m offset : ℕ) :
   ring
 
 /-- submatrixRemove last 0 of shifted Cauchy matrix -/
-private lemma submatrixRemove_L0_cauchyMatEvalShifted (m offset : ℕ) : 
-    submatrixRemove (cauchyMatEvalShifted (m + 1) offset) (Fin.last m) 0 = 
+private lemma submatrixRemove_L0_cauchyMatEvalShifted (m offset : ℕ) :
+    submatrixRemove (cauchyMatEvalShifted (m + 1) offset) (Fin.last m) 0 =
     cauchyMatEvalShifted m (offset + 1) := by
   ext i j
   simp only [submatrixRemove, cauchyMatEvalShifted, Matrix.submatrix_apply, Matrix.of_apply]
@@ -7433,10 +7433,10 @@ private lemma submatrixRemove_L0_cauchyMatEvalShifted (m offset : ℕ) :
   ring
 
 /-- The Cauchy numerator for shifted matrices is offset-independent.
-    For x_i = i and y_j = offset + j, the numerator ∏_{i<j}((x_i - x_j)(y_i - y_j))
-    equals ∏_{i<j}((i - j)²) = evalNumeratorQ n, regardless of offset. -/
+    For x_i = i and y_j = offset + j, the numerator ∏_{i< j}((x_i - x_j)(y_i - y_j))
+    equals ∏_{i< j}((i - j)²) = evalNumeratorQ n, regardless of offset. -/
 private lemma shifted_cauchy_numerator_offset_indep (n offset : ℕ) :
-    ∏ i : Fin n, ∏ j ∈ Ioi i, ((i : ℚ) - j) * (((offset : ℚ) + i) - ((offset : ℚ) + j)) = 
+    ∏ i : Fin n, ∏ j ∈ Ioi i, ((i : ℚ) - j) * (((offset : ℚ) + i) - ((offset : ℚ) + j)) =
     ∏ i : Fin n, ∏ j ∈ Ioi i, ((i : ℚ) - j) * ((i : ℚ) - j) := by
   congr 1
   ext i
@@ -7446,7 +7446,7 @@ private lemma shifted_cauchy_numerator_offset_indep (n offset : ℕ) :
 
 /-- The shifted Cauchy numerator equals evalNumeratorQ n (offset-independent). -/
 private lemma shifted_cauchy_numerator_eq_evalNumeratorQ (n offset : ℕ) :
-    ∏ i : Fin n, ∏ j ∈ Ioi i, ((i : ℚ) - j) * (((offset : ℚ) + i) - ((offset : ℚ) + j)) = 
+    ∏ i : Fin n, ∏ j ∈ Ioi i, ((i : ℚ) - j) * (((offset : ℚ) + i) - ((offset : ℚ) + j)) =
     evalNumeratorQ n := by
   rw [shifted_cauchy_numerator_offset_indep]
   simp only [evalNumeratorQ]
@@ -7462,7 +7462,7 @@ private lemma shifted_cauchy_denom_eq_genDenom (n offset : ℕ) :
   ring
 
 /-- Variant of shiftedSum_ne_zero with different parenthesization -/
-private lemma shiftedSum_ne_zero' (n offset : ℕ) (hn : n ≥ 1) (h : offset ≥ n) (i j : Fin n) : 
+private lemma shiftedSum_ne_zero' (n offset : ℕ) (hn : n ≥ 1) (h : offset ≥ n) (i j : Fin n) :
     (i : ℚ) + ((offset : ℚ) + j) ≠ 0 := by
   have := shiftedSum_ne_zero n offset hn h i j
   convert this using 1
@@ -7470,8 +7470,8 @@ private lemma shiftedSum_ne_zero' (n offset : ℕ) (hn : n ≥ 1) (h : offset �
 
 /-- cauchyMatEvalShifted equals cauchyMat with x_i = i, y_j = offset + j -/
 private lemma cauchyMatEvalShifted_eq_cauchyMat (n offset : ℕ) (hn : n ≥ 1) (h : offset ≥ n) :
-    cauchyMatEvalShifted n offset = 
-    cauchyMat (fun i => (i : ℚ)) (fun j => (offset : ℚ) + j) 
+    cauchyMatEvalShifted n offset =
+    cauchyMat (fun i => (i : ℚ)) (fun j => (offset : ℚ) + j)
       (fun i j => shiftedSum_ne_zero' n offset hn h i j) := by
   ext i j
   simp only [cauchyMatEvalShifted, cauchyMat_apply, Matrix.of_apply]
@@ -7509,14 +7509,14 @@ They are used in the inductive proof of the general Cauchy determinant formula.
 -/
 
 /-- The shifted Cauchy formula for n = 0 (empty matrix) -/
-private lemma cauchyMatEvalShifted_det_zero (offset : ℕ) : 
+private lemma cauchyMatEvalShifted_det_zero (offset : ℕ) :
     (cauchyMatEvalShifted 0 offset).det = evalNumeratorQ 0 / genDenom 0 offset := by
   simp [cauchyMatEvalShifted, evalNumeratorQ, genDenom, det_fin_zero]
 
 /-- The shifted Cauchy formula for n = 1 (1×1 matrix) -/
-private lemma cauchyMatEvalShifted_det_one (offset : ℕ) (h : offset ≥ 1) : 
+private lemma cauchyMatEvalShifted_det_one (offset : ℕ) (h : offset ≥ 1) :
     (cauchyMatEvalShifted 1 offset).det = evalNumeratorQ 1 / genDenom 1 offset := by
-  simp only [cauchyMatEvalShifted, evalNumeratorQ, genDenom, det_unique, 
+  simp only [cauchyMatEvalShifted, evalNumeratorQ, genDenom, det_unique,
              Fin.default_eq_zero, Matrix.of_apply, Fin.prod_univ_one]
   have hIoi : Finset.Ioi (0 : Fin 1) = ∅ := by decide
   simp only [hIoi, Finset.prod_empty]
@@ -7527,7 +7527,7 @@ private lemma cauchyMatEvalShifted_det_one (offset : ℕ) (h : offset ≥ 1) :
   field_simp
 
 /-- The shifted Cauchy formula for n = 2 (2×2 matrix) -/
-private lemma cauchyMatEvalShifted_det_two (offset : ℕ) (h : offset ≥ 2) : 
+private lemma cauchyMatEvalShifted_det_two (offset : ℕ) (h : offset ≥ 2) :
     (cauchyMatEvalShifted 2 offset).det = evalNumeratorQ 2 / genDenom 2 offset := by
   simp only [cauchyMatEvalShifted, evalNumeratorQ, genDenom, det_fin_two, Matrix.of_apply]
   have hIoi0 : Finset.Ioi (0 : Fin 2) = {1} := by decide
@@ -7555,14 +7555,14 @@ private lemma cauchyMatEvalShifted_det_two (offset : ℕ) (h : offset ≥ 2) :
   ring
 
 /-- The shifted Cauchy formula for n = 3 (3×3 matrix) -/
-private lemma cauchyMatEvalShifted_det_three (offset : ℕ) (h : offset ≥ 3) : 
+private lemma cauchyMatEvalShifted_det_three (offset : ℕ) (h : offset ≥ 3) :
     (cauchyMatEvalShifted 3 offset).det = evalNumeratorQ 3 / genDenom 3 offset := by
   simp only [cauchyMatEvalShifted, evalNumeratorQ, genDenom, det_fin_three, Matrix.of_apply]
   -- The 3×3 determinant formula
   have hIoi0 : Ioi (0 : Fin 3) = {1, 2} := by decide
   have hIoi1 : Ioi (1 : Fin 3) = {2} := by decide
   have hIoi2 : Ioi (2 : Fin 3) = ∅ := by decide
-  simp only [Fin.prod_univ_three, hIoi0, hIoi1, hIoi2, 
+  simp only [Fin.prod_univ_three, hIoi0, hIoi1, hIoi2,
              Finset.prod_singleton, Finset.prod_empty, mul_one]
   -- Simplify the numerator: (0-1)² * (0-2)² * (1-2)² = 1 * 4 * 1 = 4
   norm_num
@@ -7586,7 +7586,7 @@ private lemma cauchyMatEval_det_zero : (cauchyMatEval 0).det = evalNumeratorQ 0 
 
 /-- The Cauchy formula for n = 1 -/
 private lemma cauchyMatEval_det_one : (cauchyMatEval 1).det = evalNumeratorQ 1 / evalDenominatorQ 1 := by
-  simp only [cauchyMatEval, evalNumeratorQ, evalDenominatorQ, det_unique, 
+  simp only [cauchyMatEval, evalNumeratorQ, evalDenominatorQ, det_unique,
              Fin.default_eq_zero, Matrix.of_apply, Fin.prod_univ_one]
   have hIoi : Finset.Ioi (0 : Fin 1) = ∅ := by decide
   simp
@@ -7665,7 +7665,7 @@ private def desnanot_jacobi_cauchy_gen_lhs (n offset : ℕ) : ℚ :=
 /-- Helper to compute the RHS of the generalized Desnanot-Jacobi Cauchy identity.
     For n ≥ 0 and offset ≥ n + 4:
     RHS = (N_{n+3}² / (D_{n+3,off+2} * D_{n+3,off}) - N_{n+3}² / D_{n+3,off+1}²) * D_{n+2,off+2} / N_{n+2}
-    
+
     This is derived from Desnanot-Jacobi:
       det(A) · det(inner) = det(A₀₀) · det(A_LL) - det(A₀L)²
     where:
@@ -7684,19 +7684,19 @@ private def desnanot_jacobi_cauchy_gen_rhs (n offset : ℕ) : ℚ :=
   (N_sub^2 / (D₀₀ * D_LL) - N_sub^2 / D₀L^2) * D_inner / N_inner
 
 /-- Key algebraic lemma: solving for det(A) from Desnanot-Jacobi.
-    
+
     Given the Desnanot-Jacobi identity:
       det(A) · det(inner) = det(A₀₀) · det(A_LL) - det(A₀L)²
-    
+
     If we substitute the Cauchy determinant formulas:
       det(inner) = N₆/D_inner
       det(A₀₀) = N₇/D₀₀
-      det(A_LL) = N₇/D_LL  
+      det(A_LL) = N₇/D_LL
       det(A₀L) = N₇/D₀L
-    
+
     Then solving for det(A) gives exactly the RHS of desnanot_jacobi_cauchy_identity. -/
-private lemma detA_from_desnanot_jacobi_cauchy (N₆ N₇ D_inner D₀₀ D_LL D₀L : ℚ) 
-    (hN6 : N₆ ≠ 0) (hD_inner : D_inner ≠ 0) 
+private lemma detA_from_desnanot_jacobi_cauchy (N₆ N₇ D_inner D₀₀ D_LL D₀L : ℚ)
+    (hN6 : N₆ ≠ 0) (hD_inner : D_inner ≠ 0)
     (hD00 : D₀₀ ≠ 0) (hD_LL : D_LL ≠ 0) (hD0L : D₀L ≠ 0)
     (detA : ℚ)
     (h_dj : detA * (N₆ / D_inner) = (N₇ / D₀₀) * (N₇ / D_LL) - (N₇ / D₀L)^2) :
@@ -8107,20 +8107,20 @@ private def genDenomPoly3 (x : ℚ) : ℚ := x * (x + 1)^2 * (x + 2)^3 * (x + 3)
 private def genDenomPoly4 (x : ℚ) : ℚ := x * (x + 1)^2 * (x + 2)^3 * (x + 3)^4 * (x + 4)^3 * (x + 5)^2 * (x + 6)
 
 /-- Explicit polynomial formula for genDenom 5 offset -/
-private def genDenomPoly5 (x : ℚ) : ℚ := 
+private def genDenomPoly5 (x : ℚ) : ℚ :=
   x * (x + 1)^2 * (x + 2)^3 * (x + 3)^4 * (x + 4)^5 * (x + 5)^4 * (x + 6)^3 * (x + 7)^2 * (x + 8)
 
 /-- Explicit polynomial formula for genDenom 6 offset -/
-private def genDenomPoly6 (x : ℚ) : ℚ := 
+private def genDenomPoly6 (x : ℚ) : ℚ :=
   x * (x + 1)^2 * (x + 2)^3 * (x + 3)^4 * (x + 4)^5 * (x + 5)^6 * (x + 6)^5 * (x + 7)^4 * (x + 8)^3 * (x + 9)^2 * (x + 10)
 
 /-- Explicit polynomial formula for genDenom 7 offset -/
-private def genDenomPoly7 (x : ℚ) : ℚ := 
-  x * (x + 1)^2 * (x + 2)^3 * (x + 3)^4 * (x + 4)^5 * (x + 5)^6 * (x + 6)^7 * 
+private def genDenomPoly7 (x : ℚ) : ℚ :=
+  x * (x + 1)^2 * (x + 2)^3 * (x + 3)^4 * (x + 4)^5 * (x + 5)^6 * (x + 6)^7 *
   (x + 7)^6 * (x + 8)^5 * (x + 9)^4 * (x + 10)^3 * (x + 11)^2 * (x + 12)
 
 /-- Explicit polynomial formula for genDenom 8 offset -/
-private def genDenomPoly8 (x : ℚ) : ℚ := 
+private def genDenomPoly8 (x : ℚ) : ℚ :=
   x * (x + 1)^2 * (x + 2)^3 * (x + 3)^4 * (x + 4)^5 * (x + 5)^6 * (x + 6)^7 * (x + 7)^8 *
   (x + 8)^7 * (x + 9)^6 * (x + 10)^5 * (x + 11)^4 * (x + 12)^3 * (x + 13)^2 * (x + 14)
 
@@ -8142,72 +8142,72 @@ private lemma genDenom_eq_poly4 (off : ℕ) : genDenom 4 off = genDenomPoly4 off
 
 /-- genDenom 5 equals the polynomial formula -/
 private lemma genDenom_eq_poly5 (off : ℕ) : genDenom 5 off = genDenomPoly5 off := by
-  simp only [genDenom, genDenomPoly5, Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, 
+  simp only [genDenom, genDenomPoly5, Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one,
              Fin.val_zero, Fin.val_succ]
   push_cast; ring
 
 /-- genDenom 6 equals the polynomial formula -/
 private lemma genDenom_eq_poly6 (off : ℕ) : genDenom 6 off = genDenomPoly6 off := by
-  simp only [genDenom, genDenomPoly6, Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, 
+  simp only [genDenom, genDenomPoly6, Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one,
              Fin.val_zero, Fin.val_succ]
   push_cast; ring
 
 /-- genDenom 7 equals the polynomial formula -/
 private lemma genDenom_eq_poly7 (off : ℕ) : genDenom 7 off = genDenomPoly7 off := by
-  simp only [genDenom, genDenomPoly7, Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, 
+  simp only [genDenom, genDenomPoly7, Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one,
              Fin.val_zero, Fin.val_succ]
   push_cast; ring
 
 /-- genDenom 8 equals the polynomial formula -/
 private lemma genDenom_eq_poly8 (off : ℕ) : genDenom 8 off = genDenomPoly8 off := by
-  simp only [genDenom, genDenomPoly8, Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one, 
+  simp only [genDenom, genDenomPoly8, Fin.prod_univ_succ, Fin.prod_univ_zero, mul_one,
              Fin.val_zero, Fin.val_succ]
   push_cast; ring
 
 
 /-- The polynomial identity for n=0: after cross-multiplying and simplifying,
     the Desnanot-Jacobi Cauchy identity becomes this polynomial equation.
-    
+
     The factor 9 comes from 144/16 = 9, where 144 = evalNumeratorQ 4 and 16 = (evalNumeratorQ 3)². -/
-private lemma desnanot_jacobi_cauchy_poly_identity_n0 (off : ℚ) : 
-    9 * genDenomPoly3 (off+2) * genDenomPoly3 off * (genDenomPoly3 (off+1))^2 = 
+private lemma desnanot_jacobi_cauchy_poly_identity_n0 (off : ℚ) :
+    9 * genDenomPoly3 (off+2) * genDenomPoly3 off * (genDenomPoly3 (off+1))^2 =
     genDenomPoly4 off * ((genDenomPoly3 (off+1))^2 - genDenomPoly3 (off+2) * genDenomPoly3 off) * genDenomPoly2 (off+2) := by
   simp only [genDenomPoly2, genDenomPoly3, genDenomPoly4]; ring
 
 /-- The polynomial identity for n=1: after cross-multiplying and simplifying,
     the Desnanot-Jacobi Cauchy identity becomes this polynomial equation.
-    
-    The factor 16 comes from N5²/N4/N3 = 82944²/144/4 = 82944²/576 = 11943936, 
+
+    The factor 16 comes from N5²/N4/N3 = 82944²/144/4 = 82944²/576 = 11943936,
     and N5*N3/N4² = 82944*4/144² = 331776/20736 = 16. -/
 private lemma desnanot_jacobi_cauchy_poly_identity_n1 (off : ℚ) :
-    16 * genDenomPoly4 (off+2) * genDenomPoly4 off * (genDenomPoly4 (off+1))^2 = 
+    16 * genDenomPoly4 (off+2) * genDenomPoly4 off * (genDenomPoly4 (off+1))^2 =
     genDenomPoly5 off * ((genDenomPoly4 (off+1))^2 - genDenomPoly4 (off+2) * genDenomPoly4 off) * genDenomPoly3 (off+2) := by
   simp only [genDenomPoly3, genDenomPoly4, genDenomPoly5]; ring
 
 /-- The polynomial identity for n=2: after cross-multiplying and simplifying,
     the Desnanot-Jacobi Cauchy identity becomes this polynomial equation.
-    
+
     The factor 25 comes from N6*N4/N5² = 1194393600*144/82944² = 171992678400/6879707136 = 25. -/
 private lemma desnanot_jacobi_cauchy_poly_identity_n2 (off : ℚ) :
-    25 * genDenomPoly5 (off+2) * genDenomPoly5 off * (genDenomPoly5 (off+1))^2 = 
+    25 * genDenomPoly5 (off+2) * genDenomPoly5 off * (genDenomPoly5 (off+1))^2 =
     genDenomPoly6 off * ((genDenomPoly5 (off+1))^2 - genDenomPoly5 (off+2) * genDenomPoly5 off) * genDenomPoly4 (off+2) := by
   simp only [genDenomPoly4, genDenomPoly5, genDenomPoly6]; ring
 
 /-- The polynomial identity for n=3: after cross-multiplying and simplifying,
     the Desnanot-Jacobi Cauchy identity becomes this polynomial equation.
-    
+
     The factor 36 = 6² follows the pattern (n+3)² for the factor in the n-th identity. -/
 private lemma desnanot_jacobi_cauchy_poly_identity_n3 (off : ℚ) :
-    36 * genDenomPoly6 (off+2) * genDenomPoly6 off * (genDenomPoly6 (off+1))^2 = 
+    36 * genDenomPoly6 (off+2) * genDenomPoly6 off * (genDenomPoly6 (off+1))^2 =
     genDenomPoly7 off * ((genDenomPoly6 (off+1))^2 - genDenomPoly6 (off+2) * genDenomPoly6 off) * genDenomPoly5 (off+2) := by
   simp only [genDenomPoly5, genDenomPoly6, genDenomPoly7]; ring
 
 /-- The polynomial identity for n=4: after cross-multiplying and simplifying,
     the Desnanot-Jacobi Cauchy identity becomes this polynomial equation.
-    
+
     The factor 49 = 7² follows the pattern (n+3)² for the factor in the n-th identity. -/
 private lemma desnanot_jacobi_cauchy_poly_identity_n4 (off : ℚ) :
-    49 * genDenomPoly7 (off+2) * genDenomPoly7 off * (genDenomPoly7 (off+1))^2 = 
+    49 * genDenomPoly7 (off+2) * genDenomPoly7 off * (genDenomPoly7 (off+1))^2 =
     genDenomPoly8 off * ((genDenomPoly7 (off+1))^2 - genDenomPoly7 (off+2) * genDenomPoly7 off) * genDenomPoly6 (off+2) := by
   simp only [genDenomPoly6, genDenomPoly7, genDenomPoly8]; ring
 
@@ -8320,7 +8320,7 @@ private lemma desnanot_jacobi_cauchy_identity_gen_n0 (offset : ℕ) (h : offset 
   have hN2 : evalNumeratorQ 2 = 1 := by native_decide
   rw [hN4, hN3, hN2]
   conv_lhs => rw [genDenom_eq_poly4]
-  conv_rhs => 
+  conv_rhs =>
     rw [show genDenom 3 (offset + 2) = genDenomPoly3 (↑(offset + 2)) from genDenom_eq_poly3 (offset + 2)]
     rw [show genDenom 3 offset = genDenomPoly3 (↑offset) from genDenom_eq_poly3 offset]
     rw [show genDenom 3 (offset + 1) = genDenomPoly3 (↑(offset + 1)) from genDenom_eq_poly3 (offset + 1)]
@@ -8344,7 +8344,7 @@ private lemma desnanot_jacobi_cauchy_identity_gen_n1 (offset : ℕ) (h : offset 
   have hN3 : evalNumeratorQ 3 = 4 := by native_decide
   rw [hN5, hN4, hN3]
   conv_lhs => rw [genDenom_eq_poly5]
-  conv_rhs => 
+  conv_rhs =>
     rw [show genDenom 4 (offset + 2) = genDenomPoly4 (↑(offset + 2)) from genDenom_eq_poly4 (offset + 2)]
     rw [show genDenom 4 offset = genDenomPoly4 (↑offset) from genDenom_eq_poly4 offset]
     rw [show genDenom 4 (offset + 1) = genDenomPoly4 (↑(offset + 1)) from genDenom_eq_poly4 (offset + 1)]
@@ -8368,7 +8368,7 @@ private lemma desnanot_jacobi_cauchy_identity_gen_n2 (offset : ℕ) (h : offset 
   have hN4 : evalNumeratorQ 4 = 144 := by native_decide
   rw [hN6, hN5, hN4]
   conv_lhs => rw [genDenom_eq_poly6]
-  conv_rhs => 
+  conv_rhs =>
     rw [show genDenom 5 (offset + 2) = genDenomPoly5 (↑(offset + 2)) from genDenom_eq_poly5 (offset + 2)]
     rw [show genDenom 5 offset = genDenomPoly5 (↑offset) from genDenom_eq_poly5 offset]
     rw [show genDenom 5 (offset + 1) = genDenomPoly5 (↑(offset + 1)) from genDenom_eq_poly5 (offset + 1)]
@@ -8392,7 +8392,7 @@ private lemma desnanot_jacobi_cauchy_identity_gen_n3 (offset : ℕ) (h : offset 
   have hN5 : evalNumeratorQ 5 = 82944 := by native_decide
   rw [hN7, hN6, hN5]
   conv_lhs => rw [genDenom_eq_poly7]
-  conv_rhs => 
+  conv_rhs =>
     rw [show genDenom 6 (offset + 2) = genDenomPoly6 (↑(offset + 2)) from genDenom_eq_poly6 (offset + 2)]
     rw [show genDenom 6 offset = genDenomPoly6 (↑offset) from genDenom_eq_poly6 offset]
     rw [show genDenom 6 (offset + 1) = genDenomPoly6 (↑(offset + 1)) from genDenom_eq_poly6 (offset + 1)]
@@ -8416,7 +8416,7 @@ private lemma desnanot_jacobi_cauchy_identity_gen_n4 (offset : ℕ) (h : offset 
   have hN6 : evalNumeratorQ 6 = 1194393600 := by native_decide
   rw [hN8, hN7, hN6]
   conv_lhs => rw [genDenom_eq_poly8]
-  conv_rhs => 
+  conv_rhs =>
     rw [show genDenom 7 (offset + 2) = genDenomPoly7 (↑(offset + 2)) from genDenom_eq_poly7 (offset + 2)]
     rw [show genDenom 7 offset = genDenomPoly7 (↑offset) from genDenom_eq_poly7 offset]
     rw [show genDenom 7 (offset + 1) = genDenomPoly7 (↑(offset + 1)) from genDenom_eq_poly7 (offset + 1)]
@@ -8432,21 +8432,21 @@ private lemma desnanot_jacobi_cauchy_identity_gen_n4 (offset : ℕ) (h : offset 
   linarith [h_poly]
 
 /-- The generalized Desnanot-Jacobi Cauchy identity.
-    
-    For n ≥ 0 and offset ≥ n + 4, the Cauchy determinant formula combined with 
+
+    For n ≥ 0 and offset ≥ n + 4, the Cauchy determinant formula combined with
     Desnanot-Jacobi gives:
-    
+
     N_{n+4} / D_{n+4,off} = (N_{n+3}² / (D_{n+3,off+2} · D_{n+3,off}) - N_{n+3}² / D_{n+3,off+1}²) · D_{n+2,off+2} / N_{n+2}
-    
+
     where:
-    - N_k = evalNumeratorQ k = ∏_{i<j in Fin k} (i-j)² = (∏_{j=1}^{k-1} j!)² (Barnes G-function squared)
+    - N_k = evalNumeratorQ k = ∏_{i< j ∈ Fin k} (i-j)² = (∏_{j=1}^{k-1} j!)² (Barnes G-function squared)
     - D_k(s) = genDenom k s = ∏_{i,j in Fin k} (i + s + j)
-    
-    This identity is the algebraic consequence of Desnanot-Jacobi applied to the 
+
+    This identity is the algebraic consequence of Desnanot-Jacobi applied to the
     shifted Cauchy matrix, with the Cauchy determinant formula substituted for all submatrices.
-    
+
     **Proven cases:** n=0,1,2,3,4 are proven using the polynomial approach.
-    
+
     **Verified instances (computational):** The identity has been verified for:
     - n=0: offset=4,5,6,7,8,9,10,11,12,15,20,25,30,40
     - n=1: offset=5,6,7,8,9,10
@@ -8465,14 +8465,165 @@ private lemma desnanot_jacobi_cauchy_identity_gen_n4 (offset : ℕ) (h : offset 
     because that lemma depends on `cauchy_det_of_poly`, which depends on `cauchy_det_poly`,
     which depends on `polyCauchyMat'_eval_det_eq_numerator`, which depends on `cauchyMatEval_det`,
     which depends on `cauchyMatEvalShifted_det_inductive`, which uses this identity.
-    
+
     **Proof approach:** After clearing denominators, this becomes a polynomial identity.
     The cross-multiplied form is:
-      N_{n+4} · N_{n+2} · D_{n+3,off+2} · D_{n+3,off} · D_{n+3,off+1}² = 
+      N_{n+4} · N_{n+2} · D_{n+3,off+2} · D_{n+3,off} · D_{n+3,off+1}² =
       N_{n+3}² · (D_{n+3,off+1}² - D_{n+3,off+2} · D_{n+3,off}) · D_{n+2,off+2} · D_{n+4,off}
-    
+
     Note that N_k are constants (independent of offset), so this is a polynomial identity
-    in offset where all terms are products of linear factors (i + offset + j). -/
+    in offset where all terms are products of linear factors (i + offset + j).
+
+    **Proof (for n ≥ 5):** Uses structural identities for genDenom and evalNumeratorQ
+    (Steps A, B, C below) to derive the identity algebraically. -/
+
+private lemma telescoping_prod (u : ℚ) (n : ℕ) :
+    (u + n) * (u + 1) * ∏ j : Fin n, ((u + ↑↑j) * (u + ↑↑j + 2)) =
+    u * (u + ↑n + 1) * ∏ j : Fin n, (u + ↑↑j + 1) ^ 2 := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [Fin.prod_univ_castSucc, Fin.prod_univ_castSucc]
+    simp only [Fin.val_castSucc, Fin.val_last]; push_cast
+    set P := ∏ j : Fin n, ((u + ↑↑j) * (u + ↑↑j + 2))
+    set Q := ∏ j : Fin n, (u + ↑↑j + 1) ^ 2
+    calc (u + (↑n + 1)) * (u + 1) * (P * ((u + ↑n) * (u + ↑n + 2)))
+        = (u + ↑n + 1) * (u + ↑n + 2) * ((u + ↑n) * (u + 1) * P) := by ring
+      _ = (u + ↑n + 1) * (u + ↑n + 2) * (u * (u + ↑n + 1) * Q) := by rw [ih]
+      _ = u * (u + (↑n + 1) + 1) * (Q * (u + ↑n + 1) ^ 2) := by ring
+
+/-- Rising factorial shift. -/
+private lemma rising_factorial_shift (a : ℚ) (k : ℕ) :
+    (∏ i : Fin k, (a + ↑↑i)) * (a + k) = a * ∏ i : Fin k, (a + 1 + ↑↑i) := by
+  have h1 : ∏ i : Fin (k + 1), (a + ↑↑i) = (∏ i : Fin k, (a + ↑↑i)) * (a + k) := by
+    rw [Fin.prod_univ_castSucc]; simp [Fin.val_castSucc, Fin.val_last]
+  have h2 : ∏ i : Fin (k + 1), (a + ↑↑i) = a * ∏ i : Fin k, (a + 1 + ↑↑i) := by
+    rw [Fin.prod_univ_succ]; congr 1; simp
+    apply Finset.prod_congr rfl; intro i _; simp [Fin.val_succ]; push_cast; ring
+  linarith [h1, h2]
+
+/-- Per-row telescoping assembled. -/
+private lemma genDenom_coeff_identity (k : ℕ) (offset : ℕ) :
+    (∏ i : Fin k, (((i : ℚ) + offset + k) * ((i : ℚ) + offset + 1))) *
+    (genDenom k offset * genDenom k (offset + 2)) =
+    (∏ i : Fin k, (((i : ℚ) + offset) * ((i : ℚ) + offset + k + 1))) *
+    genDenom k (offset + 1) ^ 2 := by
+  simp only [genDenom]
+  rw [← Finset.prod_mul_distrib, ← Finset.prod_mul_distrib,
+      Eq.symm (Finset.prod_pow Finset.univ 2 _), ← Finset.prod_mul_distrib]
+  apply Finset.prod_congr rfl; intro i _
+  have eq1 : (∏ j : Fin k, ((i : ℚ) + ↑offset + ↑↑j)) * (∏ j : Fin k, ((i : ℚ) + ↑(offset + 2) + ↑↑j)) =
+             ∏ j : Fin k, (((i : ℚ) + ↑offset + ↑↑j) * ((i : ℚ) + ↑offset + ↑↑j + 2)) := by
+    rw [← Finset.prod_mul_distrib]; apply Finset.prod_congr rfl; intro j _; push_cast; ring
+  have eq2 : (∏ j : Fin k, ((i : ℚ) + ↑(offset + 1) + ↑↑j)) ^ 2 =
+             ∏ j : Fin k, ((i : ℚ) + ↑offset + ↑↑j + 1) ^ 2 := by
+    rw [Eq.symm (Finset.prod_pow Finset.univ 2 _)]
+    congr 1; ext j; push_cast; ring
+  rw [eq1, eq2]; exact telescoping_prod ((i : ℚ) + ↑offset) k
+
+/-- Outer coefficient identity. -/
+private lemma outer_coeff_identity (u : ℚ) (k : ℕ) :
+    (∏ i : Fin k, ((↑↑i + u + ↑k) * (↑↑i + u + 1))) * (u * (u + 2 * ↑k)) =
+    (∏ i : Fin k, ((↑↑i + u) * (↑↑i + u + ↑k + 1))) * (u + ↑k) ^ 2 := by
+  have conv1 : ∏ i : Fin k, ((↑↑i + u + ↑k) * (↑↑i + u + 1)) =
+               (∏ i : Fin k, (u + ↑k + ↑↑i)) * (∏ i : Fin k, (u + 1 + ↑↑i)) := by
+    rw [← Finset.prod_mul_distrib]; apply Finset.prod_congr rfl; intro i _; ring
+  have conv2 : ∏ i : Fin k, ((↑↑i + u) * (↑↑i + u + ↑k + 1)) =
+               (∏ i : Fin k, (u + ↑↑i)) * (∏ i : Fin k, (u + ↑k + 1 + ↑↑i)) := by
+    rw [← Finset.prod_mul_distrib]; apply Finset.prod_congr rfl; intro i _; ring
+  rw [conv1, conv2]
+  set A := ∏ i : Fin k, (u + ↑k + ↑↑i)
+  set B := ∏ i : Fin k, (u + 1 + ↑↑i)
+  set C := ∏ i : Fin k, (u + ↑↑i)
+  set D := ∏ i : Fin k, (u + ↑k + 1 + ↑↑i)
+  suffices shift1 : A * (u + 2 * ↑k) = (u + ↑k) * D by
+    have shift2 : C * (u + ↑k) = u * B := rising_factorial_shift u k
+    calc A * B * (u * (u + 2 * ↑k))
+        = B * (A * (u + 2 * ↑k)) * u := by ring
+      _ = B * ((u + ↑k) * D) * u := by rw [shift1]
+      _ = (u * B) * (u + ↑k) * D := by ring
+      _ = (C * (u + ↑k)) * (u + ↑k) * D := by rw [← shift2]
+      _ = C * D * (u + ↑k) ^ 2 := by ring
+  convert rising_factorial_shift (u + ↑k) k using 1 <;> push_cast <;> ring
+
+/-- Step B: (off+k)² · D_k(off+2) · D_k(off) = off · (off+2k) · D_k(off+1)² -/
+private lemma genDenom_shift_sq (k : ℕ) (offset : ℕ) :
+    ((offset : ℚ) + k) ^ 2 * genDenom k (offset + 2) * genDenom k offset =
+    (offset : ℚ) * ((offset : ℚ) + 2 * k) * genDenom k (offset + 1) ^ 2 := by
+  set CL := ∏ i : Fin k, (((i : ℚ) + offset + k) * ((i : ℚ) + offset + 1))
+  set CR := ∏ i : Fin k, (((i : ℚ) + offset) * ((i : ℚ) + offset + k + 1))
+  have hcoeff := genDenom_coeff_identity k offset
+  have hcoeff2 := outer_coeff_identity (offset : ℚ) k
+  have hCL_ne : CL ≠ 0 := by
+    apply Finset.prod_ne_zero_iff.mpr; intro i _; apply mul_ne_zero
+    · have : (k : ℚ) > 0 := by exact_mod_cast i.pos
+      have : (i : ℚ) ≥ 0 := Nat.cast_nonneg _
+      have : (offset : ℚ) ≥ 0 := Nat.cast_nonneg _; linarith
+    · have : (i : ℚ) ≥ 0 := Nat.cast_nonneg _
+      have : (offset : ℚ) ≥ 0 := Nat.cast_nonneg _; linarith
+  exact mul_left_cancel₀ hCL_ne (by
+    calc CL * (((offset : ℚ) + k) ^ 2 * genDenom k (offset + 2) * genDenom k offset)
+        = ((offset : ℚ) + k) ^ 2 * (CL * (genDenom k offset * genDenom k (offset + 2))) := by ring
+      _ = ((offset : ℚ) + k) ^ 2 * (CR * genDenom k (offset + 1) ^ 2) := by rw [hcoeff]
+      _ = (CR * ((offset : ℚ) + k) ^ 2) * genDenom k (offset + 1) ^ 2 := by ring
+      _ = (CL * ((offset : ℚ) * ((offset : ℚ) + 2 * k))) * genDenom k (offset + 1) ^ 2 := by rw [← hcoeff2]
+      _ = CL * ((offset : ℚ) * ((offset : ℚ) + 2 * k) * genDenom k (offset + 1) ^ 2) := by ring)
+
+/-
+Step A: D_{k+2}(off) · D_k(off+2) = D_{k+1}(off) · D_{k+1}(off+2) · (off+k+1)²
+-/
+private lemma genDenom_adjacent_sq (k : ℕ) (offset : ℕ) :
+    genDenom (k + 2) offset * genDenom k (offset + 2) =
+    genDenom (k + 1) offset * genDenom (k + 1) (offset + 2) * ((offset : ℚ) + k + 1) ^ 2 := by
+  -- Factor genDenom (k+1) offset = genDenom k offset * R_k * C_k where R_k = ∏_{i:Fin(k+1)} (k + offset + i) is the last row product and C_k = ∏_{i:Fin k} (i + offset + k) is the last column product (without corner).
+  have h_factor : ∀ k offset, genDenom (k + 1) offset = genDenom k offset * (∏ i : Fin (k + 1), (k + offset + i)) * (∏ i : Fin k, (i + offset + k)) := by
+    intros k offset
+    simp [genDenom];
+    simp +decide [ mul_assoc, mul_comm, mul_left_comm, Fin.prod_univ_castSucc ];
+    exact Or.inl <| Or.inl <| Finset.prod_mul_distrib;
+  have := Fin.prod_univ_castSucc ( fun i : Fin ( k + 1 ) => ( k + offset + 1 + i : ℚ ) ) ; have := Fin.prod_univ_succ ( fun i : Fin ( k + 1 ) => ( k + offset + 1 + i : ℚ ) ) ; ( have := Fin.prod_univ_castSucc ( fun i : Fin ( k + 1 ) => ( k + offset + i : ℚ ) ) ; have := Fin.prod_univ_succ ( fun i : Fin ( k + 1 ) => ( k + offset + i : ℚ ) ) ; simp_all +decide [ Fin.prod_univ_succ ] ; );
+  ring_nf at *
+
+/-
+Step C: N_{k+2} · N_k = (k+1)² · N_{k+1}²
+-/
+private lemma evalNumeratorQ_recurrence (k : ℕ) :
+    evalNumeratorQ (k + 2) * evalNumeratorQ k =
+    ((k + 1 : ℚ)) ^ 2 * evalNumeratorQ (k + 1) ^ 2 := by
+  unfold evalNumeratorQ;
+  norm_num [ Fin.prod_univ_succ ];
+  simp +decide [ ← mul_assoc, Finset.prod_mul_distrib, sq ];
+  exact Or.inl ( by rw [ show ( ∏ x : Fin k, ( x + 1 + 1 : ℚ ) ) = ( k + 1 ) * ( ∏ x : Fin k, ( x + 1 : ℚ ) ) by exact Nat.recOn k ( by norm_num ) fun n ih ↦ by simp +decide [ Fin.prod_univ_castSucc ] at * ; nlinarith ] ; ring )
+
+/-
+Main combination: derive the Cauchy identity from Steps A, B, C
+-/
+private lemma desnanot_jacobi_cauchy_gen_from_structural (n : ℕ) (offset : ℕ)
+    (h : offset ≥ n + 9) :
+    evalNumeratorQ (n + 9) / genDenom (n + 9) offset =
+    (evalNumeratorQ (n + 8) ^ 2 / (genDenom (n + 8) (offset + 2) * genDenom (n + 8) offset) -
+     evalNumeratorQ (n + 8) ^ 2 / genDenom (n + 8) (offset + 1) ^ 2) *
+    genDenom (n + 7) (offset + 2) / evalNumeratorQ (n + 7) := by
+  nontriviality;
+  rw [ div_sub_div, div_mul_eq_mul_div, div_div, div_eq_div_iff ];
+  · -- Use the results from Steps A, B, and C to simplify the expression.
+    have h_simp : evalNumeratorQ (n + 9) * evalNumeratorQ (n + 7) =
+        ((n + 8) : ℚ) ^ 2 * evalNumeratorQ (n + 8) ^ 2 := by
+          convert evalNumeratorQ_recurrence ( n + 7 ) using 1 ; push_cast ; ring;
+    have h_simp2 := genDenom_adjacent_sq ( n + 7 ) offset;
+    have h_simp3 := genDenom_shift_sq ( n + 8 ) offset;
+    grind;
+  · exact genDenom_ne_zero _ _ ( by linarith ) ( by linarith );
+  · apply_rules [ mul_ne_zero, genDenom_ne_zero, evalNumeratorQ_ne_zero ];
+    · grind;
+    · bv_omega;
+    · grind;
+    · linarith;
+    · exact pow_ne_zero 2 ( genDenom_ne_zero _ _ ( by linarith ) ( by linarith ) );
+  · exact mul_ne_zero ( genDenom_ne_zero _ _ ( by linarith ) ( by linarith ) ) ( genDenom_ne_zero _ _ ( by linarith ) ( by linarith ) );
+  · exact pow_ne_zero 2 ( genDenom_ne_zero _ _ ( by linarith ) ( by linarith ) )
+
+/-- The generalized Desnanot-Jacobi Cauchy identity. -/
 private lemma desnanot_jacobi_cauchy_identity_gen (n offset : ℕ) (h : offset ≥ n + 4) :
     desnanot_jacobi_cauchy_gen_lhs n offset = desnanot_jacobi_cauchy_gen_rhs n offset := by
   -- This is a polynomial identity in n and offset.
@@ -8480,7 +8631,7 @@ private lemma desnanot_jacobi_cauchy_identity_gen (n offset : ℕ) (h : offset �
   -- genDenom into explicit polynomial formulas and using ring.
   -- For n≥5, the same approach works but requires larger polynomial formulas.
   match n with
-  | 0 => 
+  | 0 =>
     -- Use the polynomial approach for n=0
     simp only [desnanot_jacobi_cauchy_gen_lhs, desnanot_jacobi_cauchy_gen_rhs] at *
     exact desnanot_jacobi_cauchy_identity_gen_n0 offset h
@@ -8502,8 +8653,8 @@ private lemma desnanot_jacobi_cauchy_identity_gen (n offset : ℕ) (h : offset �
     exact desnanot_jacobi_cauchy_identity_gen_n4 offset h
   | n + 5 =>
     -- For n ≥ 5, the polynomial approach would require defining genDenomPoly9, etc.
-    -- and proving similar polynomial identities. 
-    -- 
+    -- and proving similar polynomial identities.
+    --
     -- KEY LIMITATION: The `ring` tactic times out (>5 minutes) for n=5 due to polynomial size.
     -- Degree calculations:
     --   genDenomPoly8 has degree 64 (= 1+2+...+8+7+...+1)
@@ -8521,19 +8672,19 @@ private lemma desnanot_jacobi_cauchy_identity_gen (n offset : ℕ) (h : offset �
     -- 2. Verifying enough points to use polynomial interpolation (requires ~259 points for n=5)
     -- 3. A structural proof using properties of genDenom as products of linear factors
     simp only [desnanot_jacobi_cauchy_gen_lhs, desnanot_jacobi_cauchy_gen_rhs]
-    sorry -- [exercise] For thm.det.cauchy (Cauchy determinant identity)
+    exact desnanot_jacobi_cauchy_gen_from_structural n offset (by omega)
 
 
 /-- The key algebraic identity for the Desnanot-Jacobi inductive step.
-    
+
     For the Cauchy matrix of size m+8, the Desnanot-Jacobi identity gives:
       det(A) · det(inner) = det(A_{0,0}) · det(A_{L,L}) - det(A_{0,L})²
-    
+
     Using the Cauchy determinant formula for each submatrix:
       (N₈/D₈) · (N₆/D_inner) = (N₇/D₀₀) · (N₇/D_LL) - (N₇/D₀L)²
-    
+
     Solving for N₈/D₈ gives this identity.
-    
+
     This identity has been verified for m = 0, 1, ..., 20 using native_decide
     (see `desnanot_jacobi_cauchy_identity_0` through `desnanot_jacobi_cauchy_identity_20`).
     For the general case, both sides are rational functions of m that agree
@@ -8599,16 +8750,16 @@ private lemma desnanot_jacobi_cauchy_identity (m : ℕ) :
   | 20 => exact desnanot_jacobi_cauchy_identity_20
   | m + 21 =>
     -- For m ≥ 21, we use the generalized identity.
-    -- desnanot_jacobi_cauchy_identity (m + 21) is a special case of 
+    -- desnanot_jacobi_cauchy_identity (m + 21) is a special case of
     -- desnanot_jacobi_cauchy_identity_gen (m + 21 + 4) (m + 21 + 8)
     -- = desnanot_jacobi_cauchy_identity_gen (m + 25) (m + 29)
     -- where n = m + 25 and offset = m + 29 = n + 4.
-    -- 
+    --
     -- Actually, the relationship is:
     -- For desnanot_jacobi_cauchy_identity k (any k):
     --   LHS = evalNumeratorQ (k + 8) / genDenom (k + 8) (k + 8)
     --   RHS involves evalNumeratorQ (k + 6), (k + 7), genDenom (k + 6) (k + 10), etc.
-    -- 
+    --
     -- For desnanot_jacobi_cauchy_identity_gen n offset:
     --   LHS = evalNumeratorQ (n + 4) / genDenom (n + 4) offset
     --   RHS involves evalNumeratorQ (n + 2), (n + 3), genDenom (n + 2) (offset + 2), etc.
@@ -8623,16 +8774,16 @@ private lemma desnanot_jacobi_cauchy_identity (m : ℕ) :
 
 /-- The shifted Cauchy formula for all n and offset ≥ n.
     This is proven by strong induction on n, using Desnanot-Jacobi for the inductive step.
-    
+
     Base cases (n=0,1,2,3) are proven directly in cauchyMatEvalShifted_det_zero through
     cauchyMatEvalShifted_det_three.
-    
+
     For n ≥ 4, we use Desnanot-Jacobi:
       det(A) · det(inner) = det(A₀₀) · det(A_LL) - det(A₀L)²
-    
+
     The submatrices are shifted Cauchy matrices of sizes n-2 and n-1, so we can use
     the induction hypothesis to get their determinant formulas.
-    
+
     The algebraic identity that ensures the formula is consistent with Desnanot-Jacobi
     is a generalization of desnanot_jacobi_cauchy_identity. -/
 private lemma cauchyMatEvalShifted_det_inductive (n offset : ℕ) (h : offset ≥ n) :
@@ -8678,46 +8829,46 @@ private lemma cauchyMatEvalShifted_det_inductive (n offset : ℕ) (h : offset �
       -- Apply Desnanot-Jacobi
       have hDJ := desnanot_jacobi (cauchyMatEvalShifted (n + 4) offset)
       -- Rewrite submatrices using the submatrix lemmas
-      have h_inner : innerSubmatrix (cauchyMatEvalShifted (n + 4) offset) = 
+      have h_inner : innerSubmatrix (cauchyMatEvalShifted (n + 4) offset) =
           cauchyMatEvalShifted (n + 2) (offset + 2) := by
         have := innerSubmatrix_cauchyMatEvalShifted (n + 2) offset
         convert this using 2
-      have h_00 : submatrixRemove (cauchyMatEvalShifted (n + 4) offset) 0 0 = 
+      have h_00 : submatrixRemove (cauchyMatEvalShifted (n + 4) offset) 0 0 =
           cauchyMatEvalShifted (n + 3) (offset + 2) := by
         have := submatrixRemove_00_cauchyMatEvalShifted (n + 3) offset
         convert this using 2
-      have h_LL : submatrixRemove (cauchyMatEvalShifted (n + 4) offset) (Fin.last (n + 3)) (Fin.last (n + 3)) = 
+      have h_LL : submatrixRemove (cauchyMatEvalShifted (n + 4) offset) (Fin.last (n + 3)) (Fin.last (n + 3)) =
           cauchyMatEvalShifted (n + 3) offset := by
         have := submatrixRemove_LL_cauchyMatEvalShifted (n + 3) offset
         convert this using 2
-      have h_0L : submatrixRemove (cauchyMatEvalShifted (n + 4) offset) 0 (Fin.last (n + 3)) = 
+      have h_0L : submatrixRemove (cauchyMatEvalShifted (n + 4) offset) 0 (Fin.last (n + 3)) =
           cauchyMatEvalShifted (n + 3) (offset + 1) := by
         have := submatrixRemove_0L_cauchyMatEvalShifted (n + 3) offset
         convert this using 2
-      have h_L0 : submatrixRemove (cauchyMatEvalShifted (n + 4) offset) (Fin.last (n + 3)) 0 = 
+      have h_L0 : submatrixRemove (cauchyMatEvalShifted (n + 4) offset) (Fin.last (n + 3)) 0 =
           cauchyMatEvalShifted (n + 3) (offset + 1) := by
         have := submatrixRemove_L0_cauchyMatEvalShifted (n + 3) offset
         convert this using 2
       -- Use induction hypothesis for submatrix determinants
-      have h_inner_det : (cauchyMatEvalShifted (n + 2) (offset + 2)).det = 
-          evalNumeratorQ (n + 2) / genDenom (n + 2) (offset + 2) := 
+      have h_inner_det : (cauchyMatEvalShifted (n + 2) (offset + 2)).det =
+          evalNumeratorQ (n + 2) / genDenom (n + 2) (offset + 2) :=
         ih (n + 2) (by omega) (offset + 2) (by omega)
-      have h_00_det : (cauchyMatEvalShifted (n + 3) (offset + 2)).det = 
-          evalNumeratorQ (n + 3) / genDenom (n + 3) (offset + 2) := 
+      have h_00_det : (cauchyMatEvalShifted (n + 3) (offset + 2)).det =
+          evalNumeratorQ (n + 3) / genDenom (n + 3) (offset + 2) :=
         ih (n + 3) (by omega) (offset + 2) (by omega)
-      have h_LL_det : (cauchyMatEvalShifted (n + 3) offset).det = 
-          evalNumeratorQ (n + 3) / genDenom (n + 3) offset := 
+      have h_LL_det : (cauchyMatEvalShifted (n + 3) offset).det =
+          evalNumeratorQ (n + 3) / genDenom (n + 3) offset :=
         ih (n + 3) (by omega) offset (by omega)
-      have h_0L_det : (cauchyMatEvalShifted (n + 3) (offset + 1)).det = 
-          evalNumeratorQ (n + 3) / genDenom (n + 3) (offset + 1) := 
+      have h_0L_det : (cauchyMatEvalShifted (n + 3) (offset + 1)).det =
+          evalNumeratorQ (n + 3) / genDenom (n + 3) (offset + 1) :=
         ih (n + 3) (by omega) (offset + 1) (by omega)
       -- Rewrite Desnanot-Jacobi with the submatrix formulas
       rw [h_inner, h_00, h_LL, h_0L, h_L0, h_inner_det, h_00_det, h_LL_det, h_0L_det] at hDJ
       -- Now hDJ says:
-      -- det(A) * (evalNumeratorQ (n+2) / genDenom (n+2) (offset+2)) = 
+      -- det(A) * (evalNumeratorQ (n+2) / genDenom (n+2) (offset+2)) =
       --   (evalNumeratorQ (n+3) / genDenom (n+3) (offset+2)) * (evalNumeratorQ (n+3) / genDenom (n+3) offset) -
       --   (evalNumeratorQ (n+3) / genDenom (n+3) (offset+1)) * (evalNumeratorQ (n+3) / genDenom (n+3) (offset+1))
-      -- 
+      --
       -- Convert a * a to a ^ 2 for use with detA_from_desnanot_jacobi_cauchy
       have hDJ' : (cauchyMatEvalShifted (n + 4) offset).det * (evalNumeratorQ (n + 2) / genDenom (n + 2) (offset + 2)) =
           evalNumeratorQ (n + 3) / genDenom (n + 3) (offset + 2) * (evalNumeratorQ (n + 3) / genDenom (n + 3) offset) -
@@ -8730,7 +8881,7 @@ private lemma cauchyMatEvalShifted_det_inductive (n offset : ℕ) (h : offset �
       have hD00 : genDenom (n + 3) (offset + 2) ≠ 0 := genDenom_ne_zero _ _ (by omega) (by omega)
       have hD_LL : genDenom (n + 3) offset ≠ 0 := genDenom_ne_zero _ _ (by omega) (by omega)
       have hD0L : genDenom (n + 3) (offset + 1) ≠ 0 := genDenom_ne_zero _ _ (by omega) (by omega)
-      have h_detA := detA_from_desnanot_jacobi_cauchy 
+      have h_detA := detA_from_desnanot_jacobi_cauchy
         (evalNumeratorQ (n + 2)) (evalNumeratorQ (n + 3))
         (genDenom (n + 2) (offset + 2)) (genDenom (n + 3) (offset + 2))
         (genDenom (n + 3) offset) (genDenom (n + 3) (offset + 1))
@@ -8740,7 +8891,7 @@ private lemma cauchyMatEvalShifted_det_inductive (n offset : ℕ) (h : offset �
       -- h_detA says: det(A) = (N_{n+3}^2 / (D00 * D_LL) - N_{n+3}^2 / D0L^2) * D_inner / N_inner
       -- This is exactly desnanot_jacobi_cauchy_gen_rhs n offset
       rw [h_detA]
-      -- Now we need: (N_{n+3}^2 / (D00 * D_LL) - N_{n+3}^2 / D0L^2) * D_inner / N_inner 
+      -- Now we need: (N_{n+3}^2 / (D00 * D_LL) - N_{n+3}^2 / D0L^2) * D_inner / N_inner
       --            = evalNumeratorQ (n+4) / genDenom (n+4) offset
       -- This is exactly: desnanot_jacobi_cauchy_gen_rhs n offset = desnanot_jacobi_cauchy_gen_lhs n offset
       -- Which follows from desnanot_jacobi_cauchy_identity_gen
@@ -8752,7 +8903,7 @@ private lemma cauchyMatEvalShifted_det_inductive (n offset : ℕ) (h : offset �
     Base cases (n=0,1,2,3) are proven directly above.
     Cases (n=4,5,6,7) are verified by native_decide.
     For n ≥ 8, the Desnanot-Jacobi identity reduces to smaller cases. -/
-private lemma cauchyMatEval_det (m : ℕ) : 
+private lemma cauchyMatEval_det (m : ℕ) :
     (cauchyMatEval m).det = evalNumeratorQ m / evalDenominatorQ m := by
   induction m using Nat.strong_induction_on with
   | _ m ih =>
@@ -8767,7 +8918,7 @@ private lemma cauchyMatEval_det (m : ℕ) :
     | 7 => exact cauchyMatEval_det_seven
     | m + 8 =>
       -- For m + 8, we use the Desnanot-Jacobi identity and the algebraic identity.
-      -- 
+      --
       -- The goal is: det(cauchyMatEval (m+8)) = evalNumeratorQ (m+8) / evalDenominatorQ (m+8)
       --
       -- Step 1: Use cauchyMatEval_eq_shifted to rewrite as shifted Cauchy matrix
@@ -8800,7 +8951,7 @@ private lemma cauchyMatEval_det (m : ℕ) :
       --
       -- And the Desnanot-Jacobi identity (after substituting submatrix determinants) gives:
       -- det(A) · (N₆/D_inner) = (N₇/D₀₀) · (N₇/D_LL) - (N₇/D₀L)²
-      -- 
+      --
       -- Solving for det(A):
       -- det(A) = [(N₇/D₀₀) · (N₇/D_LL) - (N₇/D₀L)²] · (D_inner/N₆)
       --        = [N₇²/(D₀₀·D_LL) - N₇²/D₀L²] · D_inner/N₆
@@ -8830,19 +8981,19 @@ private lemma evalPolyCauchy_eq_diag_mul_cauchy (m : ℕ) :
     (Matrix.of fun i j => evalPolyCauchyEntry m i j : Matrix (Fin m) (Fin m) ℤ).map (↑· : ℤ → ℚ) =
     evalDiagMat m * cauchyMatEval m := by
   ext i j
-  simp only [Matrix.map_apply, Matrix.mul_apply, Matrix.diagonal_apply, evalPolyCauchyEntry, 
+  simp only [Matrix.map_apply, Matrix.mul_apply, Matrix.diagonal_apply, evalPolyCauchyEntry,
              evalDiagMat, cauchyMatEval, Matrix.of_apply]
   rw [Finset.sum_eq_single i]
   · simp only [↓reduceIte]
     have hne : (i : ℚ) + m + j ≠ 0 := eval_sum_ne_zero m i j
     field_simp
-    have h : (∏ k ∈ Finset.univ.filter (· ≠ j), ((i : ℚ) + m + k)) * ((i : ℚ) + m + j) = 
+    have h : (∏ k ∈ Finset.univ.filter (· ≠ j), ((i : ℚ) + m + k)) * ((i : ℚ) + m + j) =
              ∏ k : Fin m, ((i : ℚ) + m + k) := by
       rw [← Finset.prod_filter_mul_prod_filter_not (s := Finset.univ) (p := (· ≠ j))]
       congr 1
-      simp only [ne_eq, Decidable.not_not, Finset.filter_eq', Finset.mem_univ, ↓reduceIte, 
+      simp only [ne_eq, Decidable.not_not, Finset.filter_eq', Finset.mem_univ, ↓reduceIte,
                  Finset.prod_singleton]
-    have h2 : (↑(∏ k ∈ Finset.univ.filter (· ≠ j), ((i : ℤ) + m + k)) : ℚ) = 
+    have h2 : (↑(∏ k ∈ Finset.univ.filter (· ≠ j), ((i : ℤ) + m + k)) : ℚ) =
               ∏ k ∈ Finset.univ.filter (· ≠ j), ((i : ℚ) + m + k) := by
       push_cast
       rfl
@@ -8873,7 +9024,7 @@ private lemma evalDenominatorQ_ne_zero (m : ℕ) : evalDenominatorQ m ≠ 0 := b
   exact eval_sum_ne_zero m i j hj
 
 /-- Helper: mapping an integer matrix to ℚ preserves determinant -/
-private lemma map_det_int_rat {m : ℕ} (M : Matrix (Fin m) (Fin m) ℤ) : 
+private lemma map_det_int_rat {m : ℕ} (M : Matrix (Fin m) (Fin m) ℤ) :
     (M.map (↑· : ℤ → ℚ)).det = (M.det : ℚ) := by
   have h : M.map (↑· : ℤ → ℚ) = (Int.castRingHom ℚ).mapMatrix M := by
     ext i j
@@ -8883,28 +9034,28 @@ private lemma map_det_int_rat {m : ℕ} (M : Matrix (Fin m) (Fin m) ℤ) :
 
 
 /-- The key evaluation equality: det(evalPolyCauchyMat) = evalNumerator.
-    
+
     This follows from the matrix factorization:
     evalPolyCauchyMat = evalDiagMat * cauchyMatEval
-    
+
     Therefore:
     det(evalPolyCauchyMat) = det(evalDiagMat) * det(cauchyMatEval)
                            = evalDenominatorQ * (evalNumeratorQ / evalDenominatorQ)
                            = evalNumeratorQ
-    
+
     Since both sides are integers, this proves the integer equality.
-    
+
     The proof uses:
     1. evalPolyCauchy_eq_diag_mul_cauchy: factorization over ℚ
     2. cauchyMatEval_det: Cauchy formula for specific evaluation values
     3. evalDiagMat_det: diagonal determinant equals denominator -/
 private lemma polyCauchyMat'_eval_det_eq_numerator (m : ℕ) :
-    (Matrix.of fun i j => evalPolyCauchyEntry m i j : Matrix (Fin m) (Fin m) ℤ).det = 
+    (Matrix.of fun i j => evalPolyCauchyEntry m i j : Matrix (Fin m) (Fin m) ℤ).det =
     evalNumerator m := by
   -- The proof embeds into ℚ, uses the factorization and Cauchy formula,
   -- then extracts the integer equality.
   -- Step 1: Convert to ℚ and compute the determinant
-  have hdet_Q : ((Matrix.of fun i j => evalPolyCauchyEntry m i j : Matrix (Fin m) (Fin m) ℤ).map (↑· : ℤ → ℚ)).det = 
+  have hdet_Q : ((Matrix.of fun i j => evalPolyCauchyEntry m i j : Matrix (Fin m) (Fin m) ℤ).map (↑· : ℤ → ℚ)).det =
                 (evalNumerator m : ℚ) := by
     -- Use the factorization
     rw [evalPolyCauchy_eq_diag_mul_cauchy]
@@ -8926,9 +9077,9 @@ private lemma polyCauchyMat'_eval_det_eq_numerator (m : ℕ) :
     push_cast
     rfl
   -- Step 2: Extract the integer equality using the RingHom.map_det lemma
-  have h_map_det : ((Matrix.of fun i j => evalPolyCauchyEntry m i j : Matrix (Fin m) (Fin m) ℤ).map (↑· : ℤ → ℚ)).det = 
+  have h_map_det : ((Matrix.of fun i j => evalPolyCauchyEntry m i j : Matrix (Fin m) (Fin m) ℤ).map (↑· : ℤ → ℚ)).det =
                    ((Matrix.of fun i j => evalPolyCauchyEntry m i j : Matrix (Fin m) (Fin m) ℤ).det : ℚ) := by
-    have h : (Matrix.of fun i j => evalPolyCauchyEntry m i j : Matrix (Fin m) (Fin m) ℤ).map (↑· : ℤ → ℚ) = 
+    have h : (Matrix.of fun i j => evalPolyCauchyEntry m i j : Matrix (Fin m) (Fin m) ℤ).map (↑· : ℤ → ℚ) =
              (Int.castRingHom ℚ).mapMatrix (Matrix.of fun i j => evalPolyCauchyEntry m i j) := by
       ext i j
       simp [RingHom.mapMatrix_apply]
@@ -8938,10 +9089,10 @@ private lemma polyCauchyMat'_eval_det_eq_numerator (m : ℕ) :
   exact_mod_cast hdet_Q
 
 /-- The RHS evaluated at x_i = i, y_j = m + j is nonzero. -/
-private lemma polyRHS'_eval_ne_zero (m : ℕ) : 
+private lemma polyRHS'_eval_ne_zero (m : ℕ) :
     let f : Fin m ⊕ Fin m → ℤ := Sum.elim (fun i => i.val) (fun j => m + j.val)
-    MvPolynomial.eval f (∏ i : Fin m, ∏ j ∈ Finset.Ioi i, 
-      (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j)) * 
+    MvPolynomial.eval f (∏ i : Fin m, ∏ j ∈ Finset.Ioi i,
+      (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j)) *
       (MvPolynomial.X (Sum.inr i) - MvPolynomial.X (Sum.inr j) : MvPolynomial (Fin m ⊕ Fin m) ℤ)) ≠ 0 := by
   simp only [map_prod, map_mul, map_sub, MvPolynomial.eval_X, Sum.elim_inl, Sum.elim_inr]
   apply Finset.prod_ne_zero_iff.mpr
@@ -9012,20 +9163,20 @@ private lemma exists_pos_degree_component {σ : Type*} [DecidableEq σ] [Finite 
   exact h c (hr.trans hc)
 
 /-- When p is homogeneous of degree n, the (n+d) component of p*r equals p * (d-component of r). -/
-private lemma homogeneousComponent_mul_of_isHomogeneous {σ : Type*} [DecidableEq σ] [Finite σ] 
+private lemma homogeneousComponent_mul_of_isHomogeneous {σ : Type*} [DecidableEq σ] [Finite σ]
     {n d : ℕ} {p r : MvPolynomial σ ℤ} (hp : p.IsHomogeneous n) :
-    p * MvPolynomial.homogeneousComponent d r = 
+    p * MvPolynomial.homogeneousComponent d r =
     MvPolynomial.homogeneousComponent (n + d) (p * r) := by
-  conv_rhs => 
+  conv_rhs =>
     rw [← MvPolynomial.sum_homogeneousComponent r]
     rw [mul_sum]
   rw [map_sum]
   rw [Finset.sum_eq_single d]
-  · rw [MvPolynomial.homogeneousComponent_of_mem 
+  · rw [MvPolynomial.homogeneousComponent_of_mem
         (hp.mul (MvPolynomial.homogeneousComponent_isHomogeneous d r))]
     simp
   · intro i hi hid
-    have hmem : (p * MvPolynomial.homogeneousComponent i r).IsHomogeneous (n + i) := 
+    have hmem : (p * MvPolynomial.homogeneousComponent i r).IsHomogeneous (n + i) :=
       hp.mul (MvPolynomial.homogeneousComponent_isHomogeneous i r)
     rw [MvPolynomial.homogeneousComponent_of_mem hmem]
     simp only [ite_eq_right_iff]
@@ -9040,22 +9191,22 @@ private lemma homogeneousComponent_mul_of_isHomogeneous {σ : Type*} [DecidableE
 /-- If p * r is homogeneous of degree n, p is homogeneous of degree n, and p ≠ 0,
     then r must be a constant. This is key for the factor hunting proof. -/
 private lemma homogeneous_mul_eq_const {σ : Type*} [DecidableEq σ] [Finite σ]
-    {n : ℕ} {p r : MvPolynomial σ ℤ} 
+    {n : ℕ} {p r : MvPolynomial σ ℤ}
     (hp : p.IsHomogeneous n) (hpr : (p * r).IsHomogeneous n)
-    (hp0 : p ≠ 0) : 
+    (hp0 : p ≠ 0) :
     ∃ c : ℤ, r = MvPolynomial.C c := by
   by_contra h
   push_neg at h
   obtain ⟨d, hd_pos, hd_ne⟩ := exists_pos_degree_component h
-  have h1 : (p * MvPolynomial.homogeneousComponent d r).IsHomogeneous (n + d) := 
+  have h1 : (p * MvPolynomial.homogeneousComponent d r).IsHomogeneous (n + d) :=
     hp.mul (MvPolynomial.homogeneousComponent_isHomogeneous d r)
   have h3 : MvPolynomial.homogeneousComponent (n + d) (p * r) = 0 := by
     have hmem : p * r ∈ MvPolynomial.homogeneousSubmodule σ ℤ n := hpr
     rw [MvPolynomial.homogeneousComponent_of_mem hmem]
     have hne : n + d ≠ n := by omega
     rw [if_neg hne]
-  have h2 : p * MvPolynomial.homogeneousComponent d r = 
-            MvPolynomial.homogeneousComponent (n + d) (p * r) := 
+  have h2 : p * MvPolynomial.homogeneousComponent d r =
+            MvPolynomial.homogeneousComponent (n + d) (p * r) :=
     homogeneousComponent_mul_of_isHomogeneous hp
   have h4 : MvPolynomial.homogeneousComponent d r = 0 := by
     have : p * MvPolynomial.homogeneousComponent d r = 0 := by rw [h2, h3]
@@ -9066,11 +9217,11 @@ private lemma homogeneous_mul_eq_const {σ : Type*} [DecidableEq σ] [Finite σ]
     and they agree at one evaluation point where p ≠ 0, then p = q.
     This is the key lemma for completing the factor hunting proof. -/
 private lemma eq_of_dvd_of_eval_eq {σ : Type*} [DecidableEq σ] [Finite σ]
-    {n : ℕ} {p q : MvPolynomial σ ℤ} 
+    {n : ℕ} {p q : MvPolynomial σ ℤ}
     (hp : p.IsHomogeneous n) (hq : q.IsHomogeneous n)
     (hdvd : p ∣ q) (hp0 : p ≠ 0)
     (f : σ → ℤ) (hf : MvPolynomial.eval f p ≠ 0)
-    (heq : MvPolynomial.eval f p = MvPolynomial.eval f q) : 
+    (heq : MvPolynomial.eval f p = MvPolynomial.eval f q) :
     p = q := by
   obtain ⟨r, hr⟩ := hdvd
   have hr_const : ∃ c : ℤ, r = MvPolynomial.C c := by
@@ -9088,7 +9239,7 @@ private lemma eq_of_dvd_of_eval_eq {σ : Type*} [DecidableEq σ] [Finite σ]
   simp only [hc1, map_one, one_mul]
 
 /-- Alternative form of Cauchy determinant without division:
-    det(∏_{k≠j}(xᵢ + yₖ)) = ∏_{i<j}((xᵢ - xⱼ)(yᵢ - yⱼ))
+    det(∏_{k≠j}(xᵢ + yₖ)) = ∏_{i< j}((xᵢ - xⱼ)(yᵢ - yⱼ))
 
     This form is useful when working over polynomial rings.
 
@@ -9209,7 +9360,7 @@ theorem cauchy_det_poly (x y : Fin n → R) :
         rw [hmat, hrhs] at h2
         exact h2
       -- The polynomial identity polyCauchyMat.det = polyRHS
-      -- 
+      --
       -- We use eq_of_dvd_of_eval_eq: if p | q, both are homogeneous of the same degree,
       -- p ≠ 0, and eval f p = eval f q for some f where eval f p ≠ 0, then p = q.
       --
@@ -9223,51 +9374,51 @@ theorem cauchy_det_poly (x y : Fin n → R) :
       -- - eval f polyRHS = eval f polyCauchyMat.det (key step: evaluation equality)
       --
       -- The evaluation point is f(inl i) = i, f(inr j) = (n+4) + j.
-      -- At this point, both sides evaluate to ∏_{i<j} (i - j)².
-      
+      -- At this point, both sides evaluate to ∏_{i< j} (i - j)².
+
       -- First, show polyCauchyMat = polyCauchyMat' (n+4)
       have hmat_eq : polyCauchyMat = polyCauchyMat' (n + 4) := by
         ext i j
         simp only [polyCauchyMat', Matrix.of_apply]
         rfl
-      
+
       -- Show polyRHS matches the form in polyRHS'_eq_prod_mul_prod
-      have hrhs_eq : polyRHS = ∏ i : Fin (n + 4), ∏ j ∈ Ioi i, 
-          (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j)) * 
-          (MvPolynomial.X (Sum.inr i) - MvPolynomial.X (Sum.inr j) : 
+      have hrhs_eq : polyRHS = ∏ i : Fin (n + 4), ∏ j ∈ Ioi i,
+          (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j)) *
+          (MvPolynomial.X (Sum.inr i) - MvPolynomial.X (Sum.inr j) :
            MvPolynomial (Fin (n + 4) ⊕ Fin (n + 4)) ℤ) := by
         rfl
-      
+
       -- The divisibility: polyRHS | polyCauchyMat.det
       have hdvd : polyRHS ∣ polyCauchyMat.det := by
         rw [hmat_eq, hrhs_eq, polyRHS'_eq_prod_mul_prod]
         exact polyRHS'_dvd_det (n + 4)
-      
+
       -- Both are homogeneous of degree (n+4)*(n+3)
       have hp_hom : polyRHS.IsHomogeneous ((n + 4) * (n + 4 - 1)) := by
         rw [hrhs_eq]
         exact polyRHS'_isHomogeneous (n + 4)
-      
+
       have hq_hom : polyCauchyMat.det.IsHomogeneous ((n + 4) * (n + 4 - 1)) := by
         rw [hmat_eq]
         exact polyCauchyMat'_det_isHomogeneous (n + 4)
-      
+
       -- polyRHS ≠ 0 (follows from having nonzero evaluation)
       have hp_ne : polyRHS ≠ 0 := by
         rw [hrhs_eq]
         intro h
         have := polyRHS'_eval_ne_zero (n + 4)
         simp only [h, map_zero, ne_eq, not_true] at this
-      
+
       -- Define the evaluation point
-      let f : Fin (n + 4) ⊕ Fin (n + 4) → ℤ := 
+      let f : Fin (n + 4) ⊕ Fin (n + 4) → ℤ :=
         Sum.elim (fun i => i.val) (fun j => (n + 4) + j.val)
-      
+
       -- eval f polyRHS ≠ 0
       have hf_ne : MvPolynomial.eval f polyRHS ≠ 0 := by
         rw [hrhs_eq]
         exact polyRHS'_eval_ne_zero (n + 4)
-      
+
       -- The key step: evaluation equality
       -- Both sides evaluate to the same integer at the point f.
       -- This follows from the fact that at f, the determinant of the integer matrix
@@ -9283,13 +9434,13 @@ theorem cauchy_det_poly (x y : Fin n → R) :
           simp only [f, Sum.elim_inl, Sum.elim_inr]
           ring
         -- Step 2: Evaluate polyCauchyMat.det to get (evalPolyCauchyEntry matrix).det
-        have h_det_eval : MvPolynomial.eval f polyCauchyMat.det = 
+        have h_det_eval : MvPolynomial.eval f polyCauchyMat.det =
             (Matrix.of fun i j => evalPolyCauchyEntry (n + 4) i j).det := by
           rw [RingHom.map_det]
           congr 1
           ext i j
-          simp only [RingHom.mapMatrix_apply, Matrix.map_apply, Matrix.of_apply, 
-                     map_prod, map_add, MvPolynomial.eval_X, 
+          simp only [RingHom.mapMatrix_apply, Matrix.map_apply, Matrix.of_apply,
+                     map_prod, map_add, MvPolynomial.eval_X,
                      evalPolyCauchyEntry, polyCauchyMat, xP, yP]
           congr 1
           ext k
@@ -9298,18 +9449,18 @@ theorem cauchy_det_poly (x y : Fin n → R) :
           ring
         -- Step 3: Use polyCauchyMat'_eval_det_eq_numerator
         rw [h_rhs_eval, h_det_eval, polyCauchyMat'_eval_det_eq_numerator]
-      
+
       -- Apply eq_of_dvd_of_eval_eq
       exact (eq_of_dvd_of_eval_eq hp_hom hq_hom hdvd hp_ne f hf_ne heval_eq).symm
 
 /-- Cauchy determinant follows from the polynomial version.
     This lemma shows how `cauchy_det` can be derived from `cauchy_det_poly`.
-    
+
     The key insight is that:
-    - `cauchy_det_poly` proves: det(∏_{k≠j}(xᵢ + yₖ)) = ∏_{i<j}((xᵢ - xⱼ)(yᵢ - yⱼ))
+    - `cauchy_det_poly` proves: det(∏_{k≠j}(xᵢ + yₖ)) = ∏_{i< j}((xᵢ - xⱼ)(yᵢ - yⱼ))
     - The LHS equals (∏ᵢ∏ⱼ(xᵢ + yⱼ)) · det(cauchyMat)
     - Dividing both sides by ∏ᵢ∏ⱼ(xᵢ + yⱼ) gives the Cauchy determinant formula
-    
+
     Label: thm.det.cauchy -/
 theorem cauchy_det_of_poly {K : Type*} [Field K] {m : ℕ} (x y : Fin m → K)
     (h : ∀ i j, x i + y j ≠ 0) :
@@ -9329,18 +9480,17 @@ theorem cauchy_det_of_poly {K : Type*} [Field K] {m : ℕ} (x y : Fin m → K)
   exact hpoly
 
 /-- Cauchy determinant (Theorem thm.det.cauchy):
-    det(1/(xᵢ + yⱼ)) = ∏_{i<j}((xᵢ - xⱼ)(yᵢ - yⱼ)) / ∏_{i,j}(xᵢ + yⱼ)
+    det(1/(xᵢ + yⱼ)) = ∏_{i< j}((xᵢ - xⱼ)(yᵢ - yⱼ)) / ∏_{i,j}(xᵢ + yⱼ)
 
     This is the main Cauchy determinant formula. The proof uses `cauchy_det_of_poly`,
     which derives the formula from the polynomial version `cauchy_det_poly`.
 
     **Proof strategy** (from the textbook):
-    1. Work with the "cleared" polynomial version: det(∏_{k≠j}(xᵢ + yₖ)) = ∏_{i<j}((xᵢ - xⱼ)(yᵢ - yⱼ))
+    1. Work with the "cleared" polynomial version: det(∏_{k≠j}(xᵢ + yₖ)) = ∏_{i< j}((xᵢ - xⱼ)(yᵢ - yⱼ))
     2. Use factor hunting: both sides are polynomials, show divisibility + degree matching + evaluation
     3. Divide both sides by ∏_{i,j}(xᵢ + yⱼ) to recover the Cauchy formula
 
-    Note: The proof is complete for n = 0-7. For n ≥ 8, there is a sorry in `cauchyMatEval_det`
-    which is used to verify the evaluation equality in the factor hunting proof.
+    Note: The proof uses `cauchy_det_of_poly` which derives the formula from `cauchy_det_poly`.
 
     Label: thm.det.cauchy -/
 theorem cauchy_det {K : Type*} [Field K] (x y : Fin n → K)
@@ -9453,7 +9603,7 @@ theorem jacobi_complementary_minor {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
   let A'' := A'.map ι
   -- A''.det ≠ 0 in K
   have hdet' : A''.det ≠ 0 := by
-    have hmap : A''.det = ι A'.det := by 
+    have hmap : A''.det = ι A'.det := by
       show (A'.map ι).det = ι A'.det
       rw [← RingHom.mapMatrix_apply, RingHom.map_det]
     rw [hmap]
@@ -9463,9 +9613,9 @@ theorem jacobi_complementary_minor {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     rw [← map_zero ι] at h
     exact hinj h
   -- Helper: submatrixDet equals explicit submatrix det
-  have submatrixDet_eq_explicit : ∀ (B : Matrix (Fin m) (Fin m) (MvPolynomial (Fin m × Fin m) ℤ)) 
+  have submatrixDet_eq_explicit : ∀ (B : Matrix (Fin m) (Fin m) (MvPolynomial (Fin m × Fin m) ℤ))
       (S T : Finset (Fin m)) (hST : S.card = T.card),
-      submatrixDet B S T = 
+      submatrixDet B S T =
       (B.submatrix (finsetOrderEmb S) (fun i => finsetOrderEmb T (finCongr hST i))).det := by
     intro B S T hST
     unfold submatrixDet submatrixOfFinsets'
@@ -9473,11 +9623,11 @@ theorem jacobi_complementary_minor {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
     have heq : B.submatrix (finsetToFin S rfl) (finsetToFin T hST.symm) =
                B.submatrix (finsetOrderEmb S) (fun i => finsetOrderEmb T (finCongr hST i)) := by
       ext i j
-      simp only [Matrix.submatrix_apply, finsetToFin, finsetOrderEmb, 
+      simp only [Matrix.submatrix_apply, finsetToFin, finsetOrderEmb,
                  Function.Embedding.trans_apply, finCongr, Function.Embedding.subtype_apply]
-      have hcast : (T.orderIsoOfFin hST.symm).toEmbedding j = 
+      have hcast : (T.orderIsoOfFin hST.symm).toEmbedding j =
                    (T.orderIsoOfFin rfl).toEmbedding (Fin.cast hST.symm.symm j) := by
-        have h1 : ∀ (k : ℕ) (hk : T.card = k) (i : Fin k), 
+        have h1 : ∀ (k : ℕ) (hk : T.card = k) (i : Fin k),
             (T.orderIsoOfFin hk).toEmbedding i = (T.orderIsoOfFin rfl).toEmbedding (Fin.cast hk.symm i) := by
           intro k hk i
           cases hk
@@ -9512,7 +9662,7 @@ theorem jacobi_complementary_minor {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
   -- RHS: ι ((-1)^... * A'.det^... * (A'.submatrix ...).det)
   simp only [map_mul, map_pow, RingHom.map_neg, map_one]
   -- A''.det = ι A'.det
-  have hdet_eq : A''.det = ι A'.det := by 
+  have hdet_eq : A''.det = ι A'.det := by
     show (A'.map ι).det = ι A'.det
     rw [← RingHom.mapMatrix_apply, RingHom.map_det]
   rw [hdet_eq]
@@ -9520,11 +9670,11 @@ theorem jacobi_complementary_minor {m : ℕ} (A : Matrix (Fin m) (Fin m) R)
   rw [← submatrix_det_map]
 
 /-- Desnanot-Jacobi is a special case of Jacobi's complementary minor theorem
-    with P = {u, v} and Q = {p, q}. 
-    
+    with P = {u, v} and Q = {p, q}.
+
     This theorem provides a DIRECT proof using jacobi_complementary_minor, which is
     proved independently of desnanot_jacobi_direct.
-    
+
     The proof combines:
     1. jacobi_complementary_minor with P = {u, v}, Q = {p, q} (2×2 case)
     2. adjugate_2x2_eq to express adjugate products as submatrix determinants
@@ -9533,9 +9683,8 @@ theorem desnanot_jacobi_from_jacobi_complement {m : ℕ} (A : Matrix (Fin (m + 2
     (p q u v : Fin (m + 2)) (hpq : p < q) (huv : u < v) :
     A.det * (submatrixRemove2 A p q u v hpq huv).det =
       (submatrixRemove A p u).det * (submatrixRemove A q v).det -
-      (submatrixRemove A p v).det * (submatrixRemove A q u).det := by
-  -- Use desnanot_jacobi_general which is sorry-free.
-  exact desnanot_jacobi_general A p q u v hpq huv
+      (submatrixRemove A p v).det * (submatrixRemove A q u).det :=
+  desnanot_jacobi_general A p q u v hpq huv
 
 end Determinants
 
