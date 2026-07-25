@@ -80,7 +80,7 @@ open Finset BigOperators Matrix MvPolynomial
 
 namespace SymmetricFunctions
 
-variable {N : ℕ} {R : Type*} [CommRing R]
+variable {M N : ℕ} {R : Type*} [CommRing R]
 
 /-!
 ## N-Partitions
@@ -2886,6 +2886,53 @@ structure Nipat (lam mu : Fin N → ℕ)
     mu i + k = mu j + k' →
     (paths i).eastStepHeights[k] < (paths j).eastStepHeights[k']
 
+/-- A rectangular Jacobi--Trudi path tuple: `M` paths whose east-step heights
+lie in the alphabet `Fin N`.  This separates the determinant size from the
+number of variables while retaining the path representation used below. -/
+structure RectNipat (N : ℕ) (lam mu : Fin M → ℕ)
+    (hlam : ∀ i j : Fin M, i ≤ j → lam j ≤ lam i)
+    (hmu : ∀ i j : Fin M, i ≤ j → mu j ≤ mu i)
+    (hcontained : ∀ i, mu i ≤ lam i) where
+  paths : (i : Fin M) → LatticePath (N := N)
+    ((mu i : ℤ) - (i.val : ℤ)) ((lam i : ℤ) - (i.val : ℤ))
+  colStrictPaths : ∀ i j : Fin M, i < j →
+    ∀ k : ℕ, ∀ hk : k < (paths i).eastStepHeights.length,
+    ∀ k' : ℕ, ∀ hk' : k' < (paths j).eastStepHeights.length,
+    mu i + k = mu j + k' →
+    (paths i).eastStepHeights[k] < (paths j).eastStepHeights[k']
+
+/-- Weight of a rectangular path tuple. -/
+noncomputable def RectNipat.weight {lam mu : Fin M → ℕ}
+    {hlam : ∀ i j : Fin M, i ≤ j → lam j ≤ lam i}
+    {hmu : ∀ i j : Fin M, i ≤ j → mu j ≤ mu i}
+    {hcontained : ∀ i, mu i ≤ lam i}
+    (np : RectNipat N lam mu hlam hmu hcontained) :
+    MvPolynomial (Fin N) R :=
+  ∏ i : Fin M, (np.paths i).weight
+
+/-- Rectangular path tuples are finite because each component path is finite and
+the column condition cuts out a subtype of their finite product. -/
+noncomputable instance RectNipat.fintype (N : ℕ) (lam mu : Fin M → ℕ)
+    (hlam : ∀ i j : Fin M, i ≤ j → lam j ≤ lam i)
+    (hmu : ∀ i j : Fin M, i ≤ j → mu j ≤ mu i)
+    (hcontained : ∀ i, mu i ≤ lam i) :
+    Fintype (RectNipat N lam mu hlam hmu hcontained) := by
+  let Paths :=
+    (i : Fin M) → LatticePath (N := N)
+      ((mu i : ℤ) - (i.val : ℤ)) ((lam i : ℤ) - (i.val : ℤ))
+  let Good (paths : Paths) : Prop :=
+    ∀ i j : Fin M, i < j →
+      ∀ k : ℕ, ∀ hk : k < (paths i).eastStepHeights.length,
+      ∀ k' : ℕ, ∀ hk' : k' < (paths j).eastStepHeights.length,
+      mu i + k = mu j + k' →
+      (paths i).eastStepHeights[k] < (paths j).eastStepHeights[k']
+  let e : RectNipat N lam mu hlam hmu hcontained ≃ {p : Paths // Good p} :=
+    { toFun := fun p => ⟨p.paths, p.colStrictPaths⟩
+      invFun := fun p => ⟨p.1, p.2⟩
+      left_inv := fun p => by cases p; rfl
+      right_inv := fun p => by cases p; rfl }
+  exact Fintype.ofEquiv _ e.symm
+
 /-- The weight of a nipat is the product of the weights of its component paths. -/
 noncomputable def Nipat.weight {lam mu : Fin N → ℕ}
     {hlam : ∀ i j : Fin N, i ≤ j → lam j ≤ lam i}
@@ -3257,6 +3304,15 @@ def jacobiTrudiSourceVertex (mu : Fin N → ℕ) : LGV.kVertex (ℤ × ℤ) N :=
     The y-coordinate N represents the ending height in the lattice. -/
 def jacobiTrudiTargetVertex (lam : Fin N → ℕ) : LGV.kVertex (ℤ × ℤ) N :=
   fun j => (jacobiTrudiTargetX lam j, N)
+
+/-- Rectangular source tuple: `M` sources, independently of alphabet height `N`. -/
+def jacobiTrudiSourceVertexRect (mu : Fin M → ℕ) : LGV.kVertex (ℤ × ℤ) M :=
+  fun i => ((mu i : ℤ) - (i.val : ℤ), 1)
+
+/-- Rectangular target tuple: `M` targets at alphabet height `N`. -/
+def jacobiTrudiTargetVertexRect (N : ℕ) (lam : Fin M → ℕ) :
+    LGV.kVertex (ℤ × ℤ) M :=
+  fun i => ((lam i : ℤ) - (i.val : ℤ), N)
 
 /-- The source vertices have x-coordinates that are weakly decreasing. -/
 theorem jacobiTrudiSourceVertex_xDecreasing (mu : Fin N → ℕ)
@@ -6283,17 +6339,17 @@ private lemma path_above_stays_above (p p' : LGV.SimpleDigraph.Path LGV.integerL
 
 /-- Convert an LGV PathTuple to a tuple of LatticePaths.
     Each path is converted using lgvPathToLatticePath. -/
-private noncomputable def pathTupleToLatticePaths (lam mu : Fin N → ℕ)
-    (pt : LGV.PathTuple LGV.integerLattice N
-      (jacobiTrudiSourceVertex mu) (jacobiTrudiTargetVertex lam)) :
-    (i : Fin N) → LatticePath (N := N)
+private noncomputable def pathTupleToLatticePaths (N : ℕ) (lam mu : Fin M → ℕ)
+    (pt : LGV.PathTuple LGV.integerLattice M
+      (jacobiTrudiSourceVertexRect mu) (jacobiTrudiTargetVertexRect N lam)) :
+    (i : Fin M) → LatticePath (N := N)
       ((mu i : ℤ) - (i.val : ℤ)) ((lam i : ℤ) - (i.val : ℤ)) :=
   fun i => lgvPathToLatticePath
     ((mu i : ℤ) - (i.val : ℤ))
     ((lam i : ℤ) - (i.val : ℤ))
     (pt.paths i)
-    (by unfold jacobiTrudiSourceVertex jacobiTrudiSourceX at pt; exact pt.starts i)
-    (by unfold jacobiTrudiTargetVertex jacobiTrudiTargetX at pt; exact pt.finishes i)
+    (by unfold jacobiTrudiSourceVertexRect at pt; exact pt.starts i)
+    (by unfold jacobiTrudiTargetVertexRect at pt; exact pt.finishes i)
 
 /-- Key lemma: Non-intersection of LGV paths implies column-strictness of the converted paths.
 
@@ -6314,19 +6370,19 @@ private noncomputable def pathTupleToLatticePaths (lam mu : Fin N → ℕ)
     - The east-step at column k' in path j (where μⱼ - j + k' = x) has height y
     - If μᵢ + k = μⱼ + k' (same tableau column), then heights should be strictly ordered
     - But both have height y, contradiction -/
-private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
-    (hlam : ∀ i j : Fin N, i ≤ j → lam j ≤ lam i)
-    (hmu : ∀ i j : Fin N, i ≤ j → mu j ≤ mu i)
+private lemma isNonIntersecting_implies_colStrictPaths (N : ℕ) (lam mu : Fin M → ℕ)
+    (hlam : ∀ i j : Fin M, i ≤ j → lam j ≤ lam i)
+    (hmu : ∀ i j : Fin M, i ≤ j → mu j ≤ mu i)
     (hcontained : ∀ i, mu i ≤ lam i)
-    (pt : LGV.PathTuple LGV.integerLattice N
-      (jacobiTrudiSourceVertex mu) (jacobiTrudiTargetVertex lam))
+    (pt : LGV.PathTuple LGV.integerLattice M
+      (jacobiTrudiSourceVertexRect mu) (jacobiTrudiTargetVertexRect N lam))
     (hni : pt.isNonIntersecting) :
-    ∀ i j : Fin N, i < j →
-      ∀ k : ℕ, ∀ hk : k < ((pathTupleToLatticePaths lam mu pt) i).eastStepHeights.length,
-      ∀ k' : ℕ, ∀ hk' : k' < ((pathTupleToLatticePaths lam mu pt) j).eastStepHeights.length,
+    ∀ i j : Fin M, i < j →
+      ∀ k : ℕ, ∀ hk : k < ((pathTupleToLatticePaths N lam mu pt) i).eastStepHeights.length,
+      ∀ k' : ℕ, ∀ hk' : k' < ((pathTupleToLatticePaths N lam mu pt) j).eastStepHeights.length,
       mu i + k = mu j + k' →
-      ((pathTupleToLatticePaths lam mu pt) i).eastStepHeights[k] <
-        ((pathTupleToLatticePaths lam mu pt) j).eastStepHeights[k'] := by
+      ((pathTupleToLatticePaths N lam mu pt) i).eastStepHeights[k] <
+        ((pathTupleToLatticePaths N lam mu pt) j).eastStepHeights[k'] := by
   -- The proof uses strong induction on j - i.
   -- For any i < j, we show h_i[k] < h_j[k'] when mu i + k = mu j + k'.
   --
@@ -6360,7 +6416,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
       constructor
       · -- (μ_i - i, 1) is the start of path i
         have hstart := pt.starts i
-        unfold jacobiTrudiSourceVertex jacobiTrudiSourceX at hstart
+        unfold jacobiTrudiSourceVertexRect at hstart
         rw [← hstart]
         exact List.head_mem (pt.paths i).nonempty
       · -- Path j visits (μ_i - i, 1)
@@ -6386,8 +6442,8 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
         -- Path j's start and end
         have hstart_j := pt.starts j
         have hfinish_j := pt.finishes j
-        unfold jacobiTrudiSourceVertex jacobiTrudiSourceX at hstart_j
-        unfold jacobiTrudiTargetVertex jacobiTrudiTargetX at hfinish_j
+        unfold jacobiTrudiSourceVertexRect at hstart_j
+        unfold jacobiTrudiTargetVertexRect at hfinish_j
         -- Path j starts at (μ_j - j, 1) which is strictly left of (μ_i - i, 1)
         have hmu_j_lt : (mu j : ℤ) - (j.val : ℤ) < (mu i : ℤ) - (i.val : ℤ) := by
           have hmu_ij : mu j ≤ mu i := hmu i j (Fin.le_of_lt hij)
@@ -6395,8 +6451,8 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
         -- Path j ends at x = λ_j - j. We need this to be ≥ μ_i - i + k.
         -- From hcol: mu i + k = mu j + k', and k' < lam j - mu j
         -- So mu i + k < lam j, hence μ_i - i + k < λ_j - j + 1
-        have hlen_j : ((pathTupleToLatticePaths lam mu pt) j).eastStepHeights.length = lam j - mu j := by
-          have h := ((pathTupleToLatticePaths lam mu pt) j).length_eq
+        have hlen_j : ((pathTupleToLatticePaths N lam mu pt) j).eastStepHeights.length = lam j - mu j := by
+          have h := ((pathTupleToLatticePaths N lam mu pt) j).length_eq
           have hcont_j : mu j ≤ lam j := hcontained j
           simp only [sub_sub_sub_cancel_right] at h
           omega
@@ -6417,8 +6473,8 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
         -- path j stays above path i. So at x = μ_i - i + k, y_j > y_i.
         -- This means h_j[k'].val + 1 > h_i[k].val + 1, so h_j[k'] > h_i[k].
         -- But h_not_lt says h_i[k] ≥ h_j[k'], contradiction.
-        have h_heights : ((pathTupleToLatticePaths lam mu pt) j).eastStepHeights[k'] >
-            ((pathTupleToLatticePaths lam mu pt) i).eastStepHeights[k] := by
+        have h_heights : ((pathTupleToLatticePaths N lam mu pt) j).eastStepHeights[k'] >
+            ((pathTupleToLatticePaths N lam mu pt) i).eastStepHeights[k] := by
           -- The proof uses path_above_stays_above (the sum-based version) and
           -- lgvPathEastStepYCoords_at_x to connect eastStepHeights to actual y-coordinates.
           --
@@ -6439,7 +6495,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
           let p_j := pt.paths j
           -- Path i starts at (μ_i - i, 1)
           have hstart_i := pt.starts i
-          unfold jacobiTrudiSourceVertex jacobiTrudiSourceX at hstart_i
+          unfold jacobiTrudiSourceVertexRect at hstart_i
           -- At x = μ_i - i, path i is at y = 1 (sum = μ_i - i + 1)
           -- At x = μ_i - i, path j is at y > 1 (since it doesn't visit (μ_i - i, 1))
           -- The sum for path j at x = μ_i - i is s_j = μ_i - i + y_j where y_j > 1
@@ -6458,8 +6514,8 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
               · exact hmu_j_lt
               · have h1 : mu i + k < lam j := h_col_bound
                 have h2 : k < lam i - mu i := by
-                  have hlen_i : ((pathTupleToLatticePaths lam mu pt) i).eastStepHeights.length = lam i - mu i := by
-                    have h := ((pathTupleToLatticePaths lam mu pt) i).length_eq
+                  have hlen_i : ((pathTupleToLatticePaths N lam mu pt) i).eastStepHeights.length = lam i - mu i := by
+                    have h := ((pathTupleToLatticePaths N lam mu pt) i).length_eq
                     have hcont_i : mu i ≤ lam i := hcontained i
                     simp only [sub_sub_sub_cancel_right] at h
                     omega
@@ -6697,7 +6753,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
           -- For path i: the k-th east step is at x = start_x + k = μ_i - i + k = x₁
           have hk_lt_ycoords_i : k < (lgvPathEastStepYCoords p_i.vertices).length := by
             have hlen_eq : (lgvPathEastStepYCoords p_i.vertices).length = 
-                ((pathTupleToLatticePaths lam mu pt) i).eastStepHeights.length := by
+                ((pathTupleToLatticePaths N lam mu pt) i).eastStepHeights.length := by
               simp only [pathTupleToLatticePaths, lgvPathToLatticePath, p_i]
               simp only [lgvYCoordsToFinN, List.length_pmap]
             rw [hlen_eq]; exact hk
@@ -6718,7 +6774,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
           -- So path j's k'-th east step is at x = x₁ - 1, and AFTER the east step, path j is at x₁
           have hk'_lt_ycoords_j : k' < (lgvPathEastStepYCoords p_j.vertices).length := by
             have hlen_eq : (lgvPathEastStepYCoords p_j.vertices).length = 
-                ((pathTupleToLatticePaths lam mu pt) j).eastStepHeights.length := by
+                ((pathTupleToLatticePaths N lam mu pt) j).eastStepHeights.length := by
               simp only [pathTupleToLatticePaths, lgvPathToLatticePath, p_j]
               simp only [lgvYCoordsToFinN, List.length_pmap]
             rw [hlen_eq]; exact hk'
@@ -6815,7 +6871,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
           -- h_y_comparison : (lgvPathEastStepYCoords p_j.vertices)[k'] > (lgvPathEastStepYCoords p_i.vertices)[k]
           -- Convert to Fin comparison
           have hfinish_i := pt.finishes i
-          unfold jacobiTrudiTargetVertex jacobiTrudiTargetX at hfinish_i
+          unfold jacobiTrudiTargetVertexRect at hfinish_i
           have hbnd_i : ∀ y ∈ lgvPathEastStepYCoords p_i.vertices, 1 ≤ y ∧ y ≤ N := by
             intro y hy
             have hbnd := lgvPathEastStepYCoords_bounded p_i.vertices p_i.nonempty p_i.arcs_valid y hy
@@ -6857,10 +6913,10 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
     · -- Inductive case: j > i + 1
       -- Use the intermediate row l = i + 1
       have h_j_gt : j.val > i.val + 1 := by omega
-      have hl_lt_N : i.val + 1 < N := by
+      have hl_lt_N : i.val + 1 < M := by
         have := j.is_lt
         omega
-      let l : Fin N := ⟨i.val + 1, hl_lt_N⟩
+      let l : Fin M := ⟨i.val + 1, hl_lt_N⟩
       -- k_l = μ_i + k - μ_l is the index for row l at the same tableau column
       have hmu_l : mu l ≤ mu i := hmu i l (Fin.le_of_lt (by simp only [l, Fin.lt_def]; omega : i < l))
       have hlam_l : lam j ≤ lam l := hlam l j (by simp only [l, Fin.le_iff_val_le_val]; omega)
@@ -6869,12 +6925,12 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
         show mu l + (mu i + k - mu l) = mu i + k
         omega
       -- Verify k_l is a valid index
-      have hk_l_lt : k_l < ((pathTupleToLatticePaths lam mu pt) l).eastStepHeights.length := by
+      have hk_l_lt : k_l < ((pathTupleToLatticePaths N lam mu pt) l).eastStepHeights.length := by
         -- k_l = mu i + k - mu l < lam l - mu l
         -- This follows from mu i + k = mu j + k' < lam j ≤ lam l
         -- First establish that length = lam l - mu l
-        have hlen_l : ((pathTupleToLatticePaths lam mu pt) l).eastStepHeights.length = lam l - mu l := by
-          have h := ((pathTupleToLatticePaths lam mu pt) l).length_eq
+        have hlen_l : ((pathTupleToLatticePaths N lam mu pt) l).eastStepHeights.length = lam l - mu l := by
+          have h := ((pathTupleToLatticePaths N lam mu pt) l).length_eq
           -- h : length = ((lam l : ℤ) - l.val - ((mu l : ℤ) - l.val)).toNat
           have hcont_l : mu l ≤ lam l := hcontained l
           simp only [sub_sub_sub_cancel_right] at h
@@ -6882,8 +6938,8 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
         rw [hlen_l]
         -- Now goal is k_l < lam l - mu l
         -- From hk' : k' < length_j = lam j - mu j
-        have hlen_j : ((pathTupleToLatticePaths lam mu pt) j).eastStepHeights.length = lam j - mu j := by
-          have h := ((pathTupleToLatticePaths lam mu pt) j).length_eq
+        have hlen_j : ((pathTupleToLatticePaths N lam mu pt) j).eastStepHeights.length = lam j - mu j := by
+          have h := ((pathTupleToLatticePaths N lam mu pt) j).length_eq
           have hcont_j : mu j ≤ lam j := hcontained j
           simp only [sub_sub_sub_cancel_right] at h
           omega
@@ -6900,8 +6956,8 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
         omega
       have h_d1_pos : 0 < l.val - i.val := by simp [l]
       have h_d1_eq : l.val - i.val = 0 + 1 := by simp [l]
-      have h1 : ((pathTupleToLatticePaths lam mu pt) i).eastStepHeights[k] <
-          ((pathTupleToLatticePaths lam mu pt) l).eastStepHeights[k_l] := by
+      have h1 : ((pathTupleToLatticePaths N lam mu pt) i).eastStepHeights[k] <
+          ((pathTupleToLatticePaths N lam mu pt) l).eastStepHeights[k_l] := by
         have h_d1_lt : 0 < d := by omega
         exact ih 0 h_d1_lt i l h_i_lt_l k hk k_l hk_l_lt hk_l_eq.symm h_d1_pos h_d1_eq
       -- Apply IH for (l, j) with d' = j - l - 1 < d
@@ -6910,38 +6966,40 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
       have h_d2_eq : j.val - l.val = (d - 1) + 1 := by simp [l]; omega
       have h_d2_lt : d - 1 < d := Nat.sub_lt (by omega : 0 < d) Nat.one_pos
       have hcol_l : mu l + k_l = mu j + k' := by rw [hk_l_eq, hcol]
-      have h2 : ((pathTupleToLatticePaths lam mu pt) l).eastStepHeights[k_l] <
-          ((pathTupleToLatticePaths lam mu pt) j).eastStepHeights[k'] := by
+      have h2 : ((pathTupleToLatticePaths N lam mu pt) l).eastStepHeights[k_l] <
+          ((pathTupleToLatticePaths N lam mu pt) j).eastStepHeights[k'] := by
         exact ih (d - 1) h_d2_lt l j h_l_lt_j k_l hk_l_lt k' hk' hcol_l h_d2_pos h_d2_eq
       -- Combine by transitivity
       exact Fin.lt_trans h1 h2
 
 /-- Convert a non-intersecting PathTuple to a Nipat. -/
-private noncomputable def pathTupleToNipat (lam mu : Fin N → ℕ)
-    (hlam : ∀ i j : Fin N, i ≤ j → lam j ≤ lam i)
-    (hmu : ∀ i j : Fin N, i ≤ j → mu j ≤ mu i)
+private noncomputable def pathTupleToRectNipat (N : ℕ) (lam mu : Fin M → ℕ)
+    (hlam : ∀ i j : Fin M, i ≤ j → lam j ≤ lam i)
+    (hmu : ∀ i j : Fin M, i ≤ j → mu j ≤ mu i)
     (hcontained : ∀ i, mu i ≤ lam i)
-    (pt : LGV.PathTuple LGV.integerLattice N
-      (jacobiTrudiSourceVertex mu) (jacobiTrudiTargetVertex lam))
+    (pt : LGV.PathTuple LGV.integerLattice M
+      (jacobiTrudiSourceVertexRect mu) (jacobiTrudiTargetVertexRect N lam))
     (hni : pt.isNonIntersecting) :
-    Nipat lam mu hlam hmu hcontained where
-  paths := pathTupleToLatticePaths lam mu pt
-  colStrictPaths := isNonIntersecting_implies_colStrictPaths lam mu hlam hmu hcontained pt hni
+    RectNipat N lam mu hlam hmu hcontained where
+  paths := pathTupleToLatticePaths N lam mu pt
+  colStrictPaths :=
+    isNonIntersecting_implies_colStrictPaths N lam mu hlam hmu hcontained pt hni
 
 /-- Weight preservation: The LGV pathTupleWeight equals the Nipat weight under conversion. -/
-private lemma pathTupleToNipat_weight (lam mu : Fin N → ℕ)
-    (hlam : ∀ i j : Fin N, i ≤ j → lam j ≤ lam i)
-    (hmu : ∀ i j : Fin N, i ≤ j → mu j ≤ mu i)
+private lemma pathTupleToRectNipat_weight (N : ℕ) (lam mu : Fin M → ℕ)
+    (hlam : ∀ i j : Fin M, i ≤ j → lam j ≤ lam i)
+    (hmu : ∀ i j : Fin M, i ≤ j → mu j ≤ mu i)
     (hcontained : ∀ i, mu i ≤ lam i)
-    (pt : LGV.PathTuple LGV.integerLattice N
-      (jacobiTrudiSourceVertex mu) (jacobiTrudiTargetVertex lam))
+    (pt : LGV.PathTuple LGV.integerLattice M
+      (jacobiTrudiSourceVertexRect mu) (jacobiTrudiTargetVertexRect N lam))
     (hni : pt.isNonIntersecting) :
     LGV.pathTupleWeight (jacobiTrudiArcWeight (N := N) (R := R)) pt.paths =
-      (pathTupleToNipat lam mu hlam hmu hcontained pt hni).weight (R := R) := by
+      (pathTupleToRectNipat N lam mu hlam hmu hcontained pt hni).weight (R := R) := by
   -- The weight of a PathTuple is ∏ᵢ pathWeight(pᵢ)
   -- The weight of a Nipat is ∏ᵢ (paths i).weight
   -- By lgvPathToLatticePath_weight_eq, these are equal for each path
-  unfold LGV.pathTupleWeight Nipat.weight pathTupleToNipat pathTupleToLatticePaths
+  unfold LGV.pathTupleWeight RectNipat.weight pathTupleToRectNipat
+    pathTupleToLatticePaths
   simp only
   apply Finset.prod_congr rfl
   intro i _
@@ -6949,8 +7007,8 @@ private lemma pathTupleToNipat_weight (lam mu : Fin N → ℕ)
     ((mu i : ℤ) - (i.val : ℤ))
     ((lam i : ℤ) - (i.val : ℤ))
     (pt.paths i)
-    (by unfold jacobiTrudiSourceVertex jacobiTrudiSourceX at pt; exact pt.starts i)
-    (by unfold jacobiTrudiTargetVertex jacobiTrudiTargetX at pt; exact pt.finishes i)
+    (by unfold jacobiTrudiSourceVertexRect at pt; exact pt.starts i)
+    (by unfold jacobiTrudiTargetVertexRect at pt; exact pt.finishes i)
 
 /-- The LGV nipat weight sum equals our Nipat weight sum.
 
@@ -6965,14 +7023,16 @@ private lemma pathTupleToNipat_weight (lam mu : Fin N → ℕ)
 
     The proof uses `pathTupleToNipat` to convert LGV nipats to our Nipat type,
     with weight preservation via `pathTupleToNipat_weight`. -/
-theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
-    (hlam : ∀ i j : Fin N, i ≤ j → lam j ≤ lam i)
-    (hmu : ∀ i j : Fin N, i ≤ j → mu j ≤ mu i)
+theorem lgv_nipatWeightSum_eq_rectNipatSum (N : ℕ) (lam mu : Fin M → ℕ)
+    (hheight : M ≠ 0 → 0 < N)
+    (hlam : ∀ i j : Fin M, i ≤ j → lam j ≤ lam i)
+    (hmu : ∀ i j : Fin M, i ≤ j → mu j ≤ mu i)
     (hcontained : ∀ i, mu i ≤ lam i) :
     LGV.nipatWeightSum LGV.integerLattice_pathFinite
       (jacobiTrudiArcWeight (N := N) (R := R))
-      (jacobiTrudiSourceVertex mu) (jacobiTrudiTargetVertex lam) (Equiv.refl (Fin N)) =
-    ∑ np : Nipat lam mu hlam hmu hcontained, np.weight (R := R) := by
+      (jacobiTrudiSourceVertexRect mu) (jacobiTrudiTargetVertexRect N lam)
+      (Equiv.refl (Fin M)) =
+    ∑ np : RectNipat N lam mu hlam hmu hcontained, np.weight (R := R) := by
   -- The proof establishes a weight-preserving bijection between:
   -- 1. LGV nipats: elements of nipatFinset with isNonIntersecting
   -- 2. Our Nipat: tuples of LatticePaths with colStrictPaths
@@ -6987,7 +7047,7 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
   unfold LGV.nipatWeightSum
   -- Use sum_bij to establish the equality
   refine Finset.sum_bij
-    (fun pt hpt => pathTupleToNipat lam mu hlam hmu hcontained pt
+    (fun pt hpt => pathTupleToRectNipat N lam mu hlam hmu hcontained pt
       ((LGV.mem_nipatFinset_iff LGV.integerLattice_pathFinite pt).mp hpt))
     ?_ ?_ ?_ ?_
   -- 1. The function maps into Finset.univ
@@ -6998,12 +7058,12 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
     -- pathTupleToNipat extracts paths via pathTupleToLatticePaths, which uses lgvPathToLatticePath
     -- lgvPathToLatticePath extracts east-step heights, which uniquely determine the path
     -- Therefore, equal Nipats imply equal PathTuples
-    have hpaths : (pathTupleToNipat lam mu hlam hmu hcontained pt₁
+    have hpaths : (pathTupleToRectNipat N lam mu hlam hmu hcontained pt₁
         ((LGV.mem_nipatFinset_iff LGV.integerLattice_pathFinite pt₁).mp hpt₁)).paths =
-        (pathTupleToNipat lam mu hlam hmu hcontained pt₂
+        (pathTupleToRectNipat N lam mu hlam hmu hcontained pt₂
         ((LGV.mem_nipatFinset_iff LGV.integerLattice_pathFinite pt₂).mp hpt₂)).paths :=
-      congr_arg Nipat.paths heq
-    simp only [pathTupleToNipat] at hpaths
+      congr_arg RectNipat.paths heq
+    simp only [pathTupleToRectNipat] at hpaths
     -- hpaths : pathTupleToLatticePaths ... pt₁ = pathTupleToLatticePaths ... pt₂
     -- Need to show pt₁ = pt₂, i.e., pt₁.paths = pt₂.paths (as functions)
     ext i
@@ -7018,10 +7078,10 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
       ((mu i : ℤ) - (i.val : ℤ))
       ((lam i : ℤ) - (i.val : ℤ))
       (pt₁.paths i) (pt₂.paths i)
-      (by unfold jacobiTrudiSourceVertex jacobiTrudiSourceX at pt₁; exact pt₁.starts i)
-      (by unfold jacobiTrudiTargetVertex jacobiTrudiTargetX at pt₁; exact pt₁.finishes i)
-      (by unfold jacobiTrudiSourceVertex jacobiTrudiSourceX at pt₂; exact pt₂.starts i)
-      (by unfold jacobiTrudiTargetVertex jacobiTrudiTargetX at pt₂; exact pt₂.finishes i)
+      (by unfold jacobiTrudiSourceVertexRect at pt₁; exact pt₁.starts i)
+      (by unfold jacobiTrudiTargetVertexRect at pt₁; exact pt₁.finishes i)
+      (by unfold jacobiTrudiSourceVertexRect at pt₂; exact pt₂.starts i)
+      (by unfold jacobiTrudiTargetVertexRect at pt₂; exact pt₂.finishes i)
       hi
   -- 3. Surjectivity: for every np : Nipat, there exists pt ∈ nipatFinset with pathTupleToNipat pt = np
   · intro np _
@@ -7029,12 +7089,12 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
     -- For each path np.paths i : LatticePath, we build an LGV path using buildVertices.
     --
     -- First, we need N ≥ 1 for the buildVertices lemmas
-    by_cases hN : N = 0
-    · -- If N = 0, there are no Fin N elements
-      subst hN
+    by_cases hM : M = 0
+    · -- If M = 0, there are no path indices.
+      subst hM
       -- Construct the trivial PathTuple (no paths)
       let pt : LGV.PathTuple LGV.integerLattice 0
-          (jacobiTrudiSourceVertex mu) (jacobiTrudiTargetVertex lam) :=
+          (jacobiTrudiSourceVertexRect mu) (jacobiTrudiTargetVertexRect N lam) :=
         ⟨fun i => Fin.elim0 i, fun i => Fin.elim0 i, fun i => Fin.elim0 i⟩
       use pt
       refine ⟨?_, ?_⟩
@@ -7042,17 +7102,17 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
         simp only [LGV.mem_nipatFinset_iff, LGV.PathTuple.isNonIntersecting]
         exact fun i => Fin.elim0 i
       · -- pathTupleToNipat pt = np
-        simp only [pathTupleToNipat]
+        simp only [pathTupleToRectNipat]
         cases np with | mk paths colStrict =>
         congr 1
         funext i
         exact Fin.elim0 i
     · -- N ≥ 1
-      have hN_pos : 0 < N := Nat.pos_of_ne_zero hN
+      have hN_pos : 0 < N := hheight hM
       have hN_ge : N ≥ 1 := hN_pos
       -- For each i, construct the LGV path from np.paths i
       -- Define the path function
-      let pathFn : (i : Fin N) → LGV.SimpleDigraph.Path LGV.integerLattice := fun i =>
+      let pathFn : (i : Fin M) → LGV.SimpleDigraph.Path LGV.integerLattice := fun i =>
         let lp := np.paths i
         let a := (mu i : ℤ) - (i.val : ℤ)
         let c := (lam i : ℤ) - (i.val : ℤ)
@@ -7066,16 +7126,16 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
         let harcs := buildVertices_arcs_valid a c N lp.eastStepHeights hN_pos lp.length_eq h_ca
         ⟨vertices, hne, harcs⟩
       -- Verify start conditions
-      have hstarts : ∀ i, (pathFn i).start = jacobiTrudiSourceVertex mu i := fun i => by
+      have hstarts : ∀ i, (pathFn i).start = jacobiTrudiSourceVertexRect mu i := fun i => by
         simp only [pathFn, LGV.SimpleDigraph.Path.start]
         have hne := buildVertices_nonempty ((mu i : ℤ) - (i.val : ℤ)) ((lam i : ℤ) - (i.val : ℤ))
             N (np.paths i).eastStepHeights
         have h := buildVertices_head ((mu i : ℤ) - (i.val : ℤ)) ((lam i : ℤ) - (i.val : ℤ))
             N (np.paths i).eastStepHeights hN_ge
-        simp only [jacobiTrudiSourceVertex, jacobiTrudiSourceX]
+        simp only [jacobiTrudiSourceVertexRect]
         rw [← h]
       -- Verify finish conditions
-      have hfinishes : ∀ i, (pathFn i).finish = jacobiTrudiTargetVertex lam i := fun i => by
+      have hfinishes : ∀ i, (pathFn i).finish = jacobiTrudiTargetVertexRect N lam i := fun i => by
         simp only [pathFn, LGV.SimpleDigraph.Path.finish]
         have h_ca : 0 ≤ ((lam i : ℤ) - (i.val : ℤ)) - ((mu i : ℤ) - (i.val : ℤ)) := by
           have hcont := hcontained i
@@ -7085,11 +7145,11 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
         have h := buildVertices_getLast ((mu i : ℤ) - (i.val : ℤ)) ((lam i : ℤ) - (i.val : ℤ))
             N (np.paths i).eastStepHeights hN_pos (np.paths i).length_eq h_ca
             (np.paths i).weaklyIncreasing
-        simp only [jacobiTrudiTargetVertex, jacobiTrudiTargetX]
+        simp only [jacobiTrudiTargetVertexRect]
         rw [← h]
       -- Construct the PathTuple
-      let pt : LGV.PathTuple LGV.integerLattice N
-          (jacobiTrudiSourceVertex mu) (jacobiTrudiTargetVertex lam) :=
+      let pt : LGV.PathTuple LGV.integerLattice M
+          (jacobiTrudiSourceVertexRect mu) (jacobiTrudiTargetVertexRect N lam) :=
         ⟨pathFn, hstarts, hfinishes⟩
       -- Show pt is non-intersecting
       have hni : pt.isNonIntersecting := by
@@ -7952,7 +8012,7 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
       · -- Show pathTupleToNipat pt = np
         -- Need to show the two Nipat structures are equal
         -- This follows from the fact that lgvPathToLatticePath ∘ buildVertices = id
-        simp only [pathTupleToNipat]
+        simp only [pathTupleToRectNipat]
         congr 1
         funext i
         simp only [pathTupleToLatticePaths, pt, pathFn]
@@ -7970,8 +8030,45 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
         exact lgvYCoordsToFinN_map_val_add_one_eq (np.paths i).eastStepHeights heq _
   -- 4. Weight preservation
   · intro pt hpt
-    exact pathTupleToNipat_weight lam mu hlam hmu hcontained pt
+    exact pathTupleToRectNipat_weight N lam mu hlam hmu hcontained pt
       ((LGV.mem_nipatFinset_iff LGV.integerLattice_pathFinite pt).mp hpt)
+
+/-- At equal path-count and alphabet sizes, rectangular path tuples are the
+original `Nipat` objects. -/
+private noncomputable def rectNipatSelfEquiv (lam mu : Fin N → ℕ)
+    (hlam : ∀ i j : Fin N, i ≤ j → lam j ≤ lam i)
+    (hmu : ∀ i j : Fin N, i ≤ j → mu j ≤ mu i)
+    (hcontained : ∀ i, mu i ≤ lam i) :
+    RectNipat N lam mu hlam hmu hcontained ≃
+      Nipat lam mu hlam hmu hcontained where
+  toFun p := ⟨p.paths, p.colStrictPaths⟩
+  invFun p := ⟨p.paths, p.colStrictPaths⟩
+  left_inv p := by cases p; rfl
+  right_inv p := by cases p; rfl
+
+/-- Compatibility wrapper retaining the original fixed-size bridge theorem. -/
+theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
+    (hlam : ∀ i j : Fin N, i ≤ j → lam j ≤ lam i)
+    (hmu : ∀ i j : Fin N, i ≤ j → mu j ≤ mu i)
+    (hcontained : ∀ i, mu i ≤ lam i) :
+    LGV.nipatWeightSum LGV.integerLattice_pathFinite
+      (jacobiTrudiArcWeight (N := N) (R := R))
+      (jacobiTrudiSourceVertex mu) (jacobiTrudiTargetVertex lam)
+      (Equiv.refl (Fin N)) =
+    ∑ np : Nipat lam mu hlam hmu hcontained, np.weight (R := R) := by
+  have hrect :=
+    lgv_nipatWeightSum_eq_rectNipatSum (R := R) N lam mu
+      (fun h => Nat.pos_of_ne_zero h) hlam hmu hcontained
+  rw [show jacobiTrudiSourceVertex mu = jacobiTrudiSourceVertexRect mu by rfl,
+    show jacobiTrudiTargetVertex lam = jacobiTrudiTargetVertexRect N lam by rfl]
+  rw [hrect]
+  let e := rectNipatSelfEquiv lam mu hlam hmu hcontained
+  calc
+    ∑ p : RectNipat N lam mu hlam hmu hcontained, p.weight (R := R) =
+        ∑ p : RectNipat N lam mu hlam hmu hcontained,
+          (e p).weight (R := R) := by rfl
+    _ = ∑ p : Nipat lam mu hlam hmu hcontained, p.weight (R := R) :=
+      Equiv.sum_comp e (fun p => p.weight)
 
 /-- Key lemma: The Jacobi-Trudi matrix determinant equals the sum of nipat weights.
 
