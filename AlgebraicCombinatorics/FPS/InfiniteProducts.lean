@@ -2982,4 +2982,105 @@ theorem tprod_xnEquiv_approximator {a : I → PowerSeries R}
     (tprod a ha) ≡[x^n] (∏ i ∈ M, a i) := fun m hm =>
   tprod_coeff_eq_approximator ha hM m hm
 
+/-!
+### Limits of initial partial products
+
+The converse to `coeffStabilizesTo_partial_prod` uses the general notion
+`PowerSeries.Multipliable`.  In particular, no normalization of the constant
+coefficients is needed: a finite initial segment (or, for example, a zero
+factor) may absorb later factors without those factors themselves being
+congruent to `1`.
+-/
+
+/-- If all sufficiently long initial partial products are `x^n`-equivalent,
+then the corresponding initial segment determines the `x^n`-coefficient in
+the product over every finite superset. -/
+private lemma determinesCoeffInProd_range_of_partial_prod_xnEquiv
+    {f : ℕ → PowerSeries R} {lim : PowerSeries R} {n N : ℕ}
+    (hN : ∀ i ≥ N, (∏ j ∈ Finset.range (i + 1), f j) ≡[x^n] lim) :
+    DeterminesCoeffInProd f (Finset.range (N + 1)) n := by
+  intro J hMJ
+  have hbase : (∏ i ∈ Finset.range (N + 1), f i) ≡[x^n] lim := hN N (by omega)
+  have hfactor : ∀ j, N < j →
+      (∏ i ∈ Finset.range (N + 1), f i) * f j ≡[x^n]
+        (∏ i ∈ Finset.range (N + 1), f i) := by
+    intro j hj
+    have hj_pos : 0 < j := by omega
+    have hprev : (∏ i ∈ Finset.range j, f i) ≡[x^n] lim := by
+      simpa [Nat.sub_add_cancel hj_pos] using hN (j - 1) (by omega)
+    have hnext : (∏ i ∈ Finset.range (j + 1), f i) ≡[x^n] lim := hN j (by omega)
+    have hstep :
+        (∏ i ∈ Finset.range j, f i) * f j ≡[x^n] lim * f j :=
+      hprev.mul (XnEquiv.refl n (f j))
+    rw [← Finset.prod_range_succ] at hstep
+    have hlim_mul : lim * f j ≡[x^n] lim := hstep.symm.trans hnext
+    exact (hbase.mul (XnEquiv.refl n (f j))).trans (hlim_mul.trans hbase.symm)
+  let S := J \ Finset.range (N + 1)
+  have hS : ∀ j ∈ S, N < j := by
+    intro j hj
+    simp only [S, Finset.mem_sdiff, Finset.mem_range] at hj
+    omega
+  have hextra_aux : ∀ T : Finset ℕ, T ⊆ S →
+      (∏ i ∈ Finset.range (N + 1), f i) * (∏ j ∈ T, f j) ≡[x^n]
+        (∏ i ∈ Finset.range (N + 1), f i) := by
+    classical
+    intro T hTS
+    induction T using Finset.induction_on with
+    | empty => simp
+    | @insert j T hjT ih =>
+        rw [Finset.prod_insert hjT]
+        have hreorder :
+            (∏ i ∈ Finset.range (N + 1), f i) * (f j * ∏ x ∈ T, f x) =
+              ((∏ i ∈ Finset.range (N + 1), f i) * ∏ x ∈ T, f x) * f j := by
+          ring
+        rw [hreorder]
+        exact (ih (fun x hx => hTS (by simp [hx]))).mul (XnEquiv.refl n (f j)) |>.trans
+          (hfactor j (hS j (hTS (by simp))))
+  have hextra :
+      (∏ i ∈ Finset.range (N + 1), f i) * (∏ j ∈ S, f j) ≡[x^n]
+        (∏ i ∈ Finset.range (N + 1), f i) :=
+    hextra_aux S (fun _ h => h)
+  have hdecomp : J = Finset.range (N + 1) ∪ S := by
+    ext j
+    simp only [S, Finset.mem_union, Finset.mem_range, Finset.mem_sdiff]
+    constructor
+    · intro hj
+      by_cases hjN : j < N + 1
+      · exact Or.inl hjN
+      · exact Or.inr ⟨hj, hjN⟩
+    · rintro (hj | ⟨hj, _⟩)
+      · exact hMJ (Finset.mem_range.mpr hj)
+      · exact hj
+  rw [hdecomp, Finset.prod_union]
+  · exact hextra n (le_refl n)
+  · apply Finset.disjoint_left.mpr
+    intro j hjRange hjS
+    exact (Finset.mem_sdiff.mp hjS).2 hjRange
+
+/-- If the sequence of initial partial products converges coefficientwise,
+then the family is multipliable in the source's finitely-determined sense.
+(Theorem 7.5.13, label: `thm.fps.lim.prod-lim-conv`) -/
+theorem multipliable_of_coeffStabilizesTo_partial_prod
+    {f : ℕ → PowerSeries R} {lim : PowerSeries R}
+    (h : CoeffStabilizesTo (fun i => ∏ j ∈ Finset.range (i + 1), f j) lim) :
+    Multipliable f := by
+  intro n
+  obtain ⟨N, hN⟩ := exists_xnEquiv_of_coeffStabilizesTo h n
+  exact ⟨Finset.range (N + 1),
+    determinesCoeffInProd_range_of_partial_prod_xnEquiv hN⟩
+
+/-- If the sequence of initial partial products converges coefficientwise,
+its limit is the general infinite product.  No condition on the factors'
+constant coefficients is required.
+(Theorem 7.5.13, label: `thm.fps.lim.prod-lim-conv`) -/
+theorem tprod_eq_of_coeffStabilizesTo_partial_prod
+    {f : ℕ → PowerSeries R} {lim : PowerSeries R}
+    (h : CoeffStabilizesTo (fun i => ∏ j ∈ Finset.range (i + 1), f j) lim) :
+    tprod f (multipliable_of_coeffStabilizesTo_partial_prod h) = lim := by
+  ext n
+  obtain ⟨N, hN⟩ := exists_xnEquiv_of_coeffStabilizesTo h n
+  rw [tprod_coeff (multipliable_of_coeffStabilizesTo_partial_prod h)
+    (determinesCoeffInProd_range_of_partial_prod_xnEquiv hN)]
+  exact hN N (by omega) n (le_refl n)
+
 end PowerSeries
