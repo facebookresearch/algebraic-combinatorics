@@ -4,6 +4,7 @@ All rights reserved.
 -/
 import Mathlib
 import AlgebraicCombinatorics.FPS.InfiniteProducts2
+import AlgebraicCombinatorics.FPS.InfiniteProducts
 
 /-!
 # Formal Power Series: Definition and Basic Properties
@@ -393,6 +394,22 @@ theorem coeff_summableFPSSum {ι : Type*} (f : ι → R⟦X⟧) (hf : SummableFP
     coeff n (summableFPSSum f hf) = ∑ᶠ i, coeff n (f i) := by
   simp [summableFPSSum, coeff_mk]
 
+/-- If `M` determines the `x^n`-coefficient of a summable family, then the
+    coefficient of the infinite sum can be computed from the finite sum over `M`.
+    (Proposition prop.fps.summable=fin-det part (b)) -/
+theorem coeff_summableFPSSum_eq_sum_of_determines {ι : Type*}
+    (f : ι → R⟦X⟧) (hf : SummableFPS f) (n : ℕ) (M : Finset ι)
+    (hM : PowerSeries.DeterminesCoeffInSum f M n) :
+    coeff n (summableFPSSum f hf) = coeff n (∑ i ∈ M, f i) := by
+  classical
+  rw [coeff_summableFPSSum]
+  rw [finsum_eq_sum_of_support_subset
+    (s := M ∪ (hf n).toFinset) _ (fun i hi => by
+      apply Finset.mem_union_right
+      simpa only [Set.Finite.mem_toFinset] using hi)]
+  rw [← map_sum]
+  exact hM _ Finset.subset_union_left
+
 /-- The sum of the coefficients is finite (since the family is summable). -/
 theorem summableFPS_finsum_finite {ι : Type*} (f : ι → R⟦X⟧) (hf : SummableFPS f) (n : ℕ) :
     (Function.support (fun i => coeff n (f i))).Finite := hf n
@@ -708,13 +725,84 @@ These properties follow from the corresponding properties of essentially finite 
 applied coefficient-wise.
 -/
 
+/-- A finite-support Fubini lemma for `finsum`. -/
+private theorem finsum_finsum_eq_finsum_prod
+    {A ι κ : Type*} [AddCommMonoid A] (g : ι × κ → A)
+    (hg : (Function.support g).Finite) :
+    (∑ᶠ i, ∑ᶠ j, g (i, j)) = ∑ᶠ p, g p := by
+  classical
+  let S : Finset (ι × κ) := hg.toFinset
+  let I : Finset ι := S.image Prod.fst
+  let J : Finset κ := S.image Prod.snd
+  have hrow : Function.support (fun i => ∑ᶠ j, g (i, j)) ⊆ I := by
+    intro i hi
+    simp only [Function.mem_support] at hi
+    by_contra hiI
+    have hz : ∀ j, g (i, j) = 0 := by
+      intro j
+      by_contra hij
+      have hpS : (i, j) ∈ S := by
+        simp only [S, Set.Finite.mem_toFinset, Function.mem_support]
+        exact hij
+      exact hiI (by
+        change i ∈ S.image Prod.fst
+        exact Finset.mem_image.mpr ⟨(i, j), hpS, rfl⟩)
+    exact hi (by simp only [hz, finsum_zero])
+  have hcol (i : ι) : Function.support (fun j => g (i, j)) ⊆ J := by
+    intro j hj
+    simp only [Function.mem_support] at hj
+    have hpS : (i, j) ∈ S := by
+      simp only [S, Set.Finite.mem_toFinset, Function.mem_support]
+      exact hj
+    change j ∈ S.image Prod.snd
+    exact Finset.mem_image.mpr ⟨(i, j), hpS, rfl⟩
+  have hSprod : S ⊆ I ×ˢ J := by
+    intro p hp
+    simp only [Finset.mem_product]
+    constructor
+    · change p.1 ∈ S.image Prod.fst
+      exact Finset.mem_image.mpr ⟨p, hp, rfl⟩
+    · change p.2 ∈ S.image Prod.snd
+      exact Finset.mem_image.mpr ⟨p, hp, rfl⟩
+  calc
+    (∑ᶠ i, ∑ᶠ j, g (i, j)) =
+        ∑ i ∈ I, ∑ᶠ j, g (i, j) :=
+      finsum_eq_sum_of_support_subset _ hrow
+    _ = ∑ i ∈ I, ∑ j ∈ J, g (i, j) := by
+      apply Finset.sum_congr rfl
+      intro i _
+      exact finsum_eq_sum_of_support_subset _ (hcol i)
+    _ = ∑ p ∈ I ×ˢ J, g p := by
+      rw [Finset.sum_product]
+    _ = ∑ p ∈ S, g p := by
+      symm
+      apply Finset.sum_subset hSprod
+      intro p _ hpS
+      simp only [S, Set.Finite.mem_toFinset, Function.mem_support, not_not] at hpS
+      exact hpS
+    _ = ∑ᶠ p, g p := (finsum_eq_sum _ hg).symm
+
+/-- The support of the fiberwise sums of a finite-support family is finite. -/
+private theorem finsum_fiber_support_finite
+    {A ι κ : Type*} [AddCommMonoid A] (g : ι × κ → A)
+    (hg : (Function.support g).Finite) :
+    (Function.support (fun i => ∑ᶠ j, g (i, j))).Finite := by
+  classical
+  apply Set.Finite.subset (hg.image Prod.fst)
+  intro i hi
+  simp only [Function.mem_support] at hi ⊢
+  by_contra hnot
+  have hz : ∀ j, g (i, j) = 0 := by
+    intro j
+    by_contra hij
+    exact hnot ⟨(i, j), hij, rfl⟩
+  exact hi (by simp only [hz, finsum_zero])
+
 /-- The Fubini rule for summable FPS families: interchange of summation is valid
     when the family indexed by the product is summable.
     (Proposition prop.fps.summable-sums-rule, discrete Fubini rule)
 
-    Note: The actual sum computation requires Mathlib's topological sum machinery.
-    This theorem states that the summability condition on the product implies
-    summability of the iterated sums. -/
+    This first theorem establishes summability of every row and column. -/
 theorem summableFPS_fubini {ι κ : Type*} {f : ι × κ → R⟦X⟧}
     (hf : SummableFPS f) :
     (∀ i, SummableFPS (fun j => f (i, j))) ∧
@@ -730,6 +818,70 @@ theorem summableFPS_fubini {ι κ : Type*} {f : ι × κ → R⟦X⟧}
       intro i hi
       exact ⟨(i, j), hi, rfl⟩
     exact Set.Finite.subset (Set.Finite.image Prod.fst (hf n)) this
+
+/-- Under the Fubini hypothesis, the family of row sums is summable. -/
+theorem summableFPS_fubini_row_sums {ι κ : Type*} {f : ι × κ → R⟦X⟧}
+    (hf : SummableFPS f)
+    (hrows : ∀ i, SummableFPS (fun j => f (i, j))) :
+    SummableFPS (fun i => summableFPSSum (fun j => f (i, j)) (hrows i)) := by
+  intro n
+  change (Function.support (fun i => coeff n
+    (summableFPSSum (fun j => f (i, j)) (hrows i)))).Finite
+  simpa only [coeff_summableFPSSum] using
+    finsum_fiber_support_finite (fun p => coeff n (f p)) (hf n)
+
+/-- Under the Fubini hypothesis, the family of column sums is summable. -/
+theorem summableFPS_fubini_column_sums {ι κ : Type*} {f : ι × κ → R⟦X⟧}
+    (hf : SummableFPS f)
+    (hcols : ∀ j, SummableFPS (fun i => f (i, j))) :
+    SummableFPS (fun j => summableFPSSum (fun i => f (i, j)) (hcols j)) := by
+  intro n
+  have hswap : SummableFPS (fun p : κ × ι => f (p.2, p.1)) := by
+    intro m
+    change ((Equiv.prodComm κ ι) ⁻¹'
+      {p : ι × κ | coeff m (f p) ≠ 0}).Finite
+    exact (hf m).preimage (Equiv.prodComm κ ι).injective.injOn
+  change (Function.support (fun j => coeff n
+    (summableFPSSum (fun i => f (i, j)) (hcols j)))).Finite
+  simpa only [coeff_summableFPSSum] using
+    finsum_fiber_support_finite
+      (fun p : κ × ι => coeff n (f (p.2, p.1))) (hswap n)
+
+/-- Discrete Fubini equality for summable families of formal power series:
+    the row-iterated sum, product-indexed sum, and column-iterated sum agree.
+    (Proposition prop.fps.summable-sums-rule, discrete Fubini rule) -/
+theorem summableFPSSum_fubini {ι κ : Type*} {f : ι × κ → R⟦X⟧}
+    (hf : SummableFPS f)
+    (hrows : ∀ i, SummableFPS (fun j => f (i, j)))
+    (hcols : ∀ j, SummableFPS (fun i => f (i, j))) :
+    summableFPSSum
+        (fun i => summableFPSSum (fun j => f (i, j)) (hrows i))
+        (summableFPS_fubini_row_sums hf hrows) =
+      summableFPSSum f hf ∧
+    summableFPSSum f hf =
+      summableFPSSum
+        (fun j => summableFPSSum (fun i => f (i, j)) (hcols j))
+        (summableFPS_fubini_column_sums hf hcols) := by
+  constructor
+  · ext n
+    simp only [coeff_summableFPSSum]
+    exact finsum_finsum_eq_finsum_prod (fun p => coeff n (f p)) (hf n)
+  · ext n
+    simp only [coeff_summableFPSSum]
+    symm
+    calc
+      (∑ᶠ j, ∑ᶠ i, coeff n (f (i, j))) =
+          ∑ᶠ p : κ × ι, coeff n (f (p.2, p.1)) := by
+        apply finsum_finsum_eq_finsum_prod
+          (g := fun p : κ × ι => coeff n (f (p.2, p.1)))
+        change ((Equiv.prodComm κ ι) ⁻¹'
+          {p : ι × κ | coeff n (f p) ≠ 0}).Finite
+        exact (hf n).preimage (Equiv.prodComm κ ι).injective.injOn
+      _ = ∑ᶠ p : ι × κ, coeff n (f p) := by
+        apply finsum_eq_of_bijective (Equiv.prodComm κ ι)
+          (Equiv.prodComm κ ι).bijective
+        intro p
+        rfl
 
 /-!
 ## Generating Functions
