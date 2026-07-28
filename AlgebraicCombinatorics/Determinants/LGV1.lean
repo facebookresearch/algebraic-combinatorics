@@ -2900,15 +2900,7 @@ This follows by choosing appropriate lattice points and applying
 Propositions prop.lgv.2paths.count and prop.lgv.jordan-2.
 -/
 
-/-- Binomial coefficients are log-concave.
-    (Corollary cor.lgv.binom-unimod)
-    Label: cor.lgv.binom-unimod
-
-    For k ≥ 1: C(n,k)² ≥ C(n,k-1) · C(n,k+1)
-
-    Note: We require k ≥ 1 because in natural number arithmetic, (0:ℕ) - 1 = 0,
-    so C(n, 0-1) = C(n, 0) = 1, and the inequality 1 ≥ n fails for n ≥ 2.
-    In the mathematical statement, C(n, -1) = 0, so the k=0 case is trivially true.
+/-- Binomial coefficients are log-concave at positive indices.
 
     Proof sketch (algebraic): Using the recurrences
     - C(n, k+1) · (k+1) = C(n, k) · (n-k)
@@ -2918,7 +2910,7 @@ Propositions prop.lgv.2paths.count and prop.lgv.jordan-2.
 
     Combinatorial proof (via LGV): Define lattice points A=(1,0), A'=(0,1),
     B=(k+1, n-k), B'=(k, n-k+1). Then det(path matrix) = #nipats ≥ 0. -/
-theorem binom_log_concave (n k : ℕ) (hk : 1 ≤ k) :
+theorem binom_log_concave_of_pos (n k : ℕ) (hk : 1 ≤ k) :
     n.choose k * n.choose k ≥ n.choose (k - 1) * n.choose (k + 1) := by
   by_cases hkn : n < k
   · -- k > n: C(n,k) = 0, so LHS = 0. Also C(n,k+1) = 0.
@@ -2983,6 +2975,20 @@ theorem binom_log_concave (n k : ℕ) (hk : 1 ≤ k) :
                 n.choose (k - 1) * n.choose k * ((n - k) * k) := by ring
       rw [h1, h2]
       exact Nat.mul_le_mul_left (n.choose (k - 1) * n.choose k) key
+
+/-- Binomial coefficients are log-concave.
+    (Corollary cor.lgv.binom-unimod)
+    Label: cor.lgv.binom-unimod
+
+    The conditional implements the standard convention `C(n, -1) = 0`, which is
+    needed at `k = 0` because subtraction on natural numbers is truncated. -/
+theorem binom_log_concave (n k : ℕ) :
+    n.choose k * n.choose k ≥
+      (if k = 0 then 0 else n.choose (k - 1)) * n.choose (k + 1) := by
+  by_cases hk : k = 0
+  · simp [hk]
+  · simp only [hk, ↓reduceIte]
+    exact binom_log_concave_of_pos n k (Nat.one_le_iff_ne_zero.mpr hk)
 
 /-!
 ## The LGV Lemma for k Paths (Proposition prop.lgv.kpaths.count)
