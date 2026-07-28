@@ -2430,7 +2430,7 @@ section EulerIdentity
 
 open scoped PowerSeries.WithPiTopology
 
-variable [TopologicalSpace K] [IsTopologicalRing K] [T2Space K] [NoZeroDivisors K]
+variable [TopologicalSpace K] [IsTopologicalRing K] [T2Space K]
 
 /-- Equivalence between positive odd natural numbers and positive natural numbers.
     Maps n ↦ (n+1)/2 with inverse i ↦ 2i-1. -/
@@ -2463,7 +2463,6 @@ def oddPNatEquivPNat : { n : ℕ+ // Odd (n : ℕ) } ≃ ℕ+ where
 lemma oddPNatEquivPNat_symm_coe (i : ℕ+) :
     (oddPNatEquivPNat.symm i : ℕ) = 2 * i - 1 := rfl
 
-omit [NoZeroDivisors K] in
 /-- Key lemma: `Ring.inverse (1 - X^k) = ∑' j, X^(k*j)` when `k ≠ 0`.
 This connects the multiplicative inverse to the geometric series. -/
 private lemma Ring_inverse_one_sub_X_pow (k : ℕ) (hk : k ≠ 0) :
@@ -2483,7 +2482,7 @@ private lemma Ring_inverse_one_sub_X_pow (k : ℕ) (hk : k ≠ 0) :
   rw [hunit.unit_spec, mul_comm]
   exact hmul
 
-omit [IsTopologicalRing K] [NoZeroDivisors K] in
+omit [IsTopologicalRing K] in
 /-- The RHS of Euler's identity equals the generating function for partitions into distinct parts. -/
 private lemma rhs_eq_genFun :
     (∏' k : ℕ+, (1 + (X : K⟦X⟧) ^ (k : ℕ))) =
@@ -2576,8 +2575,14 @@ theorem euler_odd_parts_identity :
   rw [rhs_eq_genFun]
 
   -- Step 2: Use Glaisher's theorem
-  have hglaisher := Nat.Partition.powerSeriesMk_card_restricted_eq_powerSeriesMk_card_countRestricted K
-      (by norm_num : 0 < 2)
+  have hglaisher :
+      (PowerSeries.mk fun n ↦ ((Nat.Partition.restricted n (¬ 2 ∣ ·)).card : K)) =
+        PowerSeries.mk fun n ↦ ((Nat.Partition.countRestricted n 2).card : K) := by
+    ext n
+    simp only [coeff_mk]
+    exact congrArg (fun m : ℕ ↦ (m : K))
+      (Nat.Partition.card_restricted_eq_card_countRestricted n
+        (by norm_num : 0 < 2))
 
   -- Step 3: restricted n Odd = restricted n (¬ 2 ∣ ·)
   have hgen_eq : (PowerSeries.mk fun n ↦ ((Nat.Partition.restricted n Odd).card : K)) =
