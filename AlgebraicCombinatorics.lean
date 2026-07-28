@@ -136,6 +136,7 @@ import AlgebraicCombinatorics.CauchyBinet
 import AlgebraicCombinatorics.DesnanotJacobi
 import AlgebraicCombinatorics.Determinants.LGV1
 import AlgebraicCombinatorics.Determinants.LGV2
+import AlgebraicCombinatorics.Determinants.LGVMultiDigraph
 
 -- ============================================================================
 -- Fin Utilities
