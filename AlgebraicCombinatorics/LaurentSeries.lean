@@ -73,10 +73,10 @@ private theorem bitsFromList_support_finite (L : List ℕ) (hL : ∀ x ∈ L, x 
     {i | bitsFromList L hL i ≠ 0}.Finite := by
   apply Set.Finite.subset (Set.finite_lt_nat L.length)
   intro i hi
-  simp only [Set.mem_setOf_eq, bitsFromList, ne_eq] at hi ⊢
+  simp only [Set.mem_ofPred_eq, bitsFromList, ne_eq] at hi ⊢
   by_contra h
-  push_neg at h
-  simp only [dif_neg (not_lt.mpr h), not_true_eq_false] at hi
+  push Not at h
+  simp only [dite_eq_right (not_lt.mpr h), not_true_eq_false] at hi
 
 @[simp]
 private theorem bitsFromList_of_lt {L : List ℕ} {hL : ∀ x ∈ L, x < 2} {i : ℕ} (hi : i < L.length) :
@@ -131,8 +131,8 @@ private theorem bitsFromList_sum_eq (L : List ℕ) (hL : ∀ x ∈ L, x < 2) :
     simp only [Function.mem_support, ne_eq, bitsFromList] at hi
     simp only [Finset.coe_range, Set.mem_Iio]
     by_contra h
-    push_neg at h
-    simp only [dif_neg (not_lt.mpr h), Fin.val_zero, zero_mul, not_true_eq_false] at hi
+    push Not at h
+    simp only [dite_eq_right (not_lt.mpr h), Fin.val_zero, zero_mul, not_true_eq_false] at hi
 
 end BinaryRepresentation
 
@@ -149,7 +149,7 @@ theorem binaryRepresentation_exists (n : ℕ) : Nonempty (BinaryRepresentation n
 private lemma support_mul_pow_subset (bits : ℕ → Fin 2) :
     {i : ℕ | (bits i : ℕ) * 2^i ≠ 0} ⊆ {i | bits i ≠ 0} := by
   intro i hi
-  simp only [Set.mem_setOf_eq, ne_eq] at hi ⊢
+  simp only [Set.mem_ofPred_eq, ne_eq] at hi ⊢
   intro h
   apply hi
   simp [h]
@@ -166,7 +166,7 @@ private lemma bits_zero_eq_mod (n : ℕ) (r : BinaryRepresentation n) : (r.bits 
   have h_mod : (∑ᶠ i, (r.bits i : ℕ) * 2^i) % 2 = (r.bits 0 : ℕ) % 2 := by
     rw [finsum_eq_sum_of_support_subset (s := hfin.toFinset) (f := fun i => (r.bits i : ℕ) * 2^i)]
     · by_cases h0 : 0 ∈ hfin.toFinset
-      · rw [Finset.sum_eq_add_sum_diff_singleton h0]
+      · rw [Finset.sum_eq_add_sum_sdiff_singleton_of_mem h0]
         simp only [pow_zero, mul_one]
         have hsum_div : 2 ∣ ∑ i ∈ hfin.toFinset \ {0}, (r.bits i : ℕ) * 2 ^ i := by
           apply Finset.dvd_sum
@@ -176,12 +176,12 @@ private lemma bits_zero_eq_mod (n : ℕ) (r : BinaryRepresentation n) : (r.bits 
         have : (∑ i ∈ hfin.toFinset \ {0}, (r.bits i : ℕ) * 2 ^ i) % 2 = 0 :=
           Nat.mod_eq_zero_of_dvd hsum_div
         omega
-      · simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, pow_zero, mul_one, ne_eq,
+      · simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, pow_zero, mul_one, ne_eq,
                    not_not] at h0
         have hsum_div : 2 ∣ ∑ i ∈ hfin.toFinset, (r.bits i : ℕ) * 2 ^ i := by
           apply Finset.dvd_sum
           intro i hi
-          simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, ne_eq] at hi
+          simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, ne_eq] at hi
           have hne : i ≠ 0 := by
             intro heq
             subst heq
@@ -211,7 +211,7 @@ private lemma bits_eq_zero_of_sum_eq_zero {r : BinaryRepresentation 0} (i : ℕ)
       omega
     positivity
   have hmem : i ∈ hfin.toFinset := by
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, ne_eq]
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, ne_eq]
     omega
   have hsum_pos : ∑ j ∈ hfin.toFinset, (r.bits j : ℕ) * 2^j > 0 := by
     apply Finset.sum_pos'
@@ -246,7 +246,7 @@ private lemma sum_decomposition (bits : ℕ → Fin 2) (hfin : {i | bits i ≠ 0
   have hsup : (Function.support (fun i => (bits i : ℕ) * 2^i)).Finite := by
     apply hfin.subset
     intro i hi
-    simp only [Function.mem_support, ne_eq, Set.mem_setOf_eq] at hi ⊢
+    simp only [Function.mem_support, ne_eq, Set.mem_ofPred_eq] at hi ⊢
     intro hb
     apply hi
     simp [hb]
@@ -267,7 +267,7 @@ private lemma sum_decomposition (bits : ℕ → Fin 2) (hfin : {i | bits i ≠ 0
                   Nat.pred '' {i | bits i ≠ 0} := by
         intro i hi
         simp only [Function.mem_support, ne_eq] at hi
-        simp only [Set.mem_image, Set.mem_setOf_eq]
+        simp only [Set.mem_image, Set.mem_ofPred_eq]
         use i + 1
         constructor
         · intro hb
@@ -332,8 +332,8 @@ private def BinaryRepresentation.shift {n : ℕ} (r : BinaryRepresentation n) :
     have h := r.finite_support
     have hsub : {i | r.bits (i + 1) ≠ 0} ⊆ Nat.pred '' {i | r.bits i ≠ 0} := by
       intro i hi
-      simp only [Set.mem_setOf_eq, ne_eq] at hi
-      simp only [Set.mem_image, Set.mem_setOf_eq, ne_eq]
+      simp only [Set.mem_ofPred_eq, ne_eq] at hi
+      simp only [Set.mem_image, Set.mem_ofPred_eq, ne_eq]
       use i + 1, hi
       rfl
     exact Set.Finite.subset (h.image _) hsub
@@ -484,7 +484,7 @@ private theorem abs_div_three_lt (n : ℤ) (hn : n ≠ 0) :
       have h2 : 3 * q + d.toInt ≥ 2 := by omega
       have h3' : 3 * q + d.toInt > 0 := by omega
       rw [abs_of_pos hqpos, hn_eq, abs_of_pos h3']; omega
-    · push_neg at hqpos
+    · push Not at hqpos
       have hqneg : q < 0 := by omega
       have h1 : 3 * q ≤ -3 := by omega
       have h2 : 3 * q + d.toInt ≤ -2 := by omega
@@ -494,7 +494,7 @@ private theorem abs_div_three_lt (n : ℤ) (hn : n ≠ 0) :
 /-- The zero representation for n = 0. -/
 private def zeroRep : BalancedTernaryRepresentation 0 where
   digits := fun _ => 0
-  finite_support := by simp only [ne_eq, not_true_eq_false, Set.setOf_false, Set.finite_empty]
+  finite_support := by simp only [ne_eq, not_true_eq_false, Set.ofPred_false, Set.finite_empty]
   sum_eq := by simp only [BalancedTernaryDigit.toInt_zero, zero_mul, finsum_zero]
 
 /-- Helper: the digits function for prepending a digit. -/
@@ -514,12 +514,12 @@ private theorem prependDigits_finite_support (d : BalancedTernaryDigit)
     {i | prependDigits d f i ≠ 0}.Finite := by
   have hsub : {i | prependDigits d f i ≠ 0} ⊆ {0} ∪ Nat.succ '' {i | f i ≠ 0} := by
     intro i hi
-    simp only [Set.mem_setOf_eq, ne_eq] at hi
+    simp only [Set.mem_ofPred_eq, ne_eq] at hi
     cases i with
     | zero => left; exact Set.mem_singleton 0
     | succ i =>
       right
-      simp only [Set.mem_image, Set.mem_setOf_eq, ne_eq]
+      simp only [Set.mem_image, Set.mem_ofPred_eq, ne_eq]
       use i
       simp [prependDigits] at hi
       exact ⟨hi, rfl⟩
@@ -542,7 +542,7 @@ private theorem prependDigits_sum (d : BalancedTernaryDigit) (f : ℕ → Balanc
     | succ i =>
       right; use i; simp [prependDigits] at hi
       refine ⟨?_, rfl⟩
-      simp only [Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq]
       exact (BalancedTernaryDigit.ne_zero_iff_toInt_ne_zero _).mpr hi
   rw [finsum_eq_sum_of_support_subset _ hsupp_sub]
   have hS_eq : hS_fin.toFinset = {0} ∪ (hf.toFinset.image Nat.succ) := by
@@ -567,7 +567,7 @@ private theorem prependDigits_sum (d : BalancedTernaryDigit) (f : ℕ → Balanc
     intro i hi
     simp only [Function.mem_support, ne_eq, mul_eq_zero, pow_eq_zero_iff', OfNat.ofNat_ne_zero,
       false_and, or_false] at hi
-    rw [Finset.mem_coe, Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+    rw [Finset.mem_coe, Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
     exact (BalancedTernaryDigit.ne_zero_iff_toInt_ne_zero _).mpr hi
   simp only [hfinsum_eq]
 
@@ -709,7 +709,7 @@ theorem balancedTernaryRepresentation_unique (n : ℤ)
     intro i hi
     simp only [Finset.coe_range, Set.mem_Iio]
     by_contra hc
-    push_neg at hc
+    push Not at hc
     have hd : r₁.digits i = 0 := h₁ i hc
     change (r₁.digits i).toInt * (3 : ℤ)^i ≠ 0 at hi
     rw [hd, BalancedTernaryDigit.toInt_zero, zero_mul] at hi
@@ -720,7 +720,7 @@ theorem balancedTernaryRepresentation_unique (n : ℤ)
     intro i hi
     simp only [Finset.coe_range, Set.mem_Iio]
     by_contra hc
-    push_neg at hc
+    push Not at hc
     have hd : r₂.digits i = 0 := h₂ i hc
     change (r₂.digits i).toInt * (3 : ℤ)^i ≠ 0 at hi
     rw [hd, BalancedTernaryDigit.toInt_zero, zero_mul] at hi
@@ -880,7 +880,7 @@ theorem IsLaurentSeries.support_bddBelow {f : DoublyInfinitePowerSeries K}
   use N
   intro n hn
   by_contra h
-  push_neg at h
+  push Not at h
   exact hn (hN n h)
 
 /-- Convert a Mathlib LaurentSeries to a DoublyInfinitePowerSeries -/
@@ -975,7 +975,7 @@ def toLaurentSeries (f : DoublyInfinitePowerSeries K) (hf : IsLaurentSeries f) :
   -- hn : n ∈ {n | coeff f n ≠ 0}
   change coeff f n ≠ 0 at hn
   by_contra h
-  push_neg at h
+  push Not at h
   exact hn (hN n h)
 
 /-- The round-trip from LaurentSeries to DoublyInfinitePowerSeries and back gives the same series -/
@@ -1044,7 +1044,7 @@ theorem laurentPolynomial_one_eq_T_zero : (1 : K[T;T⁻¹]) = LaurentPolynomial.
 /-- The unity of K[x^±] evaluated at index n is 1 if n = 0, else 0.
 This is the explicit characterization from Theorem `thm.fps.laure.laupol-ring`. -/
 @[simp]
-theorem laurentPolynomial_one_apply (n : ℤ) : (1 : K[T;T⁻¹]) n = if n = 0 then 1 else 0 := by
+theorem laurentPolynomial_one_apply (n : ℤ) : (1 : K[T;T⁻¹]).coeff n = if n = 0 then 1 else 0 := by
   simp only [laurentPolynomial_one_eq_T_zero K, LaurentPolynomial.T_apply]
   simp only [eq_comm]
 
@@ -1094,11 +1094,11 @@ This is Proposition `prop.fps.laure.a=sumaixi`.
 
 Here we state this for Laurent polynomials, where the sum is finite. -/
 theorem laurentPolynomial_eq_sum (f : K[T;T⁻¹]) :
-    f = f.sum fun n a => LaurentPolynomial.C a * LaurentPolynomial.T n := by
-  conv_lhs => rw [← Finsupp.sum_single f]
+    f = f.coeff.sum fun n a => LaurentPolynomial.C a * LaurentPolynomial.T n := by
+  conv_lhs => rw [← AddMonoidAlgebra.sum_coeff_single f]
   congr 1
-  ext n a
-  simp [LaurentPolynomial.single_eq_C_mul_T]
+  funext n a
+  exact LaurentPolynomial.single_eq_C_mul_T a n
 
 /-! ### Alternative characterizations
 
@@ -1178,7 +1178,7 @@ def laurentPolyToSeries : K[T;T⁻¹] →+* LaurentSeries K :=
 
 /-- The Laurent polynomial to series map sends single n r to single n r. -/
 theorem laurentPolyToSeries_single (n : ℤ) (r : K) :
-    laurentPolyToSeries K (Finsupp.single n r) = HahnSeries.single n r := by
+    laurentPolyToSeries K (AddMonoidAlgebra.single n r) = HahnSeries.single n r := by
   unfold laurentPolyToSeries
   simp only [AddMonoidAlgebra.liftNCRingHom_single]
   simp only [singleMonoidHom, MonoidHom.coe_mk, OneHom.coe_mk, HahnSeries.C]
@@ -1188,12 +1188,12 @@ theorem laurentPolyToSeries_single (n : ℤ) (r : K) :
 
 /-- The Laurent polynomial to series map preserves coefficients. -/
 theorem laurentPolyToSeries_coeff (f : K[T;T⁻¹]) (n : ℤ) :
-    (laurentPolyToSeries K f).coeff n = f n := by
-  conv_lhs => rw [← Finsupp.sum_single f]
+    (laurentPolyToSeries K f).coeff n = f.coeff n := by
+  conv_lhs => rw [← AddMonoidAlgebra.sum_coeff_single f]
   rw [Finsupp.sum, map_sum]
   rw [HahnSeries.coeff_sum]
   simp_rw [laurentPolyToSeries_single, HahnSeries.coeff_single]
-  by_cases hn : n ∈ f.support
+  by_cases hn : n ∈ f.coeff.support
   · rw [Finset.sum_eq_single n]
     · simp
     · intro b _ hbn
@@ -1253,7 +1253,7 @@ This sum is finite because the Laurent polynomial has finite support.
 This makes K[[x^±]] into a K[x^±]-module. -/
 def laurentPolynomialSmul (p : K[T;T⁻¹]) (f : DoublyInfinitePowerSeries K) :
     DoublyInfinitePowerSeries K :=
-  fun n => p.sum fun i b => b * f (n - i)
+  fun n => p.coeff.sum fun i b => b * f (n - i)
 
 /-- The multiplication (1-x) · (∑_{n ∈ ℤ} x^n) = 0 shows that K[[x^±]] has torsion
 as a K[x^±]-module. This is the calculation showing why we cannot divide by (1-x)
@@ -1270,14 +1270,13 @@ theorem torsion_example :
   refine ⟨?_, ?_, ?_⟩
   · -- Show p ≠ 0
     intro h
-    have h0 : ((1 : K[T;T⁻¹]) - (LaurentPolynomial.T 1 : K[T;T⁻¹])) 0 = 0 := by
-      simp only [h, Finsupp.coe_zero, Pi.zero_apply]
-    have h1 : (1 : K[T;T⁻¹]) 0 = 1 := by
-      rw [AddMonoidAlgebra.one_def, Finsupp.single_eq_pi_single]
-      simp
-    have hT : (LaurentPolynomial.T 1 : K[T;T⁻¹]) 0 = 0 := by
+    have h0 : ((1 : K[T;T⁻¹]) - (LaurentPolynomial.T 1 : K[T;T⁻¹])).coeff 0 = 0 := by
+      rw [h]; rfl
+    have h1 : (1 : K[T;T⁻¹]).coeff 0 = 1 := by
+      rw [laurentPolynomial_one_apply]; simp
+    have hT : (LaurentPolynomial.T 1 : K[T;T⁻¹]).coeff 0 = 0 := by
       simp [LaurentPolynomial.T_apply]
-    rw [Finsupp.sub_apply, h1, hT, sub_zero] at h0
+    rw [AddMonoidAlgebra.coeff_sub, Finsupp.sub_apply, h1, hT, sub_zero] at h0
     exact one_ne_zero h0
   · -- Show f ≠ 0
     intro h
@@ -1286,44 +1285,14 @@ theorem torsion_example :
   · -- Show laurentPolynomialSmul p f = 0
     funext n
     simp only [laurentPolynomialSmul]
-    -- The result is (0 : DoublyInfinitePowerSeries K) n = 0
-    show (1 - LaurentPolynomial.T 1 : K[T;T⁻¹]).sum (fun i b => b * (1 : K)) = (0 : K)
-    -- Need to compute the sum
+    show (1 - LaurentPolynomial.T 1 : K[T;T⁻¹]).coeff.sum (fun i b => b * (1 : K)) = (0 : K)
     simp only [mul_one]
-    have h1 : (1 : K[T;T⁻¹]) = Finsupp.single 0 1 := AddMonoidAlgebra.one_def
-    have hT : (LaurentPolynomial.T 1 : K[T;T⁻¹]) = Finsupp.single 1 1 := rfl
-    rw [h1, hT]
-    -- (single 0 1 - single 1 1).sum (fun i b => b)
-    rw [show (Finsupp.single 0 (1 : K) - Finsupp.single 1 1 : K[T;T⁻¹]).sum (fun _ b => b) =
-        ∑ i ∈ (Finsupp.single 0 (1 : K) - Finsupp.single 1 1 : K[T;T⁻¹]).support,
-          (Finsupp.single 0 (1 : K) - Finsupp.single 1 1 : K[T;T⁻¹]) i from rfl]
-    -- The support is a subset of {0, 1}
-    have hsup : (Finsupp.single 0 (1 : K) - Finsupp.single 1 1 : K[T;T⁻¹]).support ⊆ {0, 1} := by
-      intro x hx
-      simp only [Finsupp.mem_support_iff, ne_eq] at hx
-      by_contra h
-      simp only [Finset.mem_insert, Finset.mem_singleton, not_or] at h
-      have hx0 : x ≠ 0 := h.1
-      have hx1 : x ≠ 1 := h.2
-      have : (Finsupp.single 0 (1 : K) - Finsupp.single 1 1 : K[T;T⁻¹]) x = 0 := by
-        rw [Finsupp.sub_apply, Finsupp.single_apply, Finsupp.single_apply]
-        rw [if_neg (hx0.symm), if_neg (hx1.symm)]
-        ring
-      exact hx this
-    rw [Finset.sum_subset hsup]
-    · -- Now compute the sum over {0, 1}
-      have h0 : (Finsupp.single 0 (1 : K) - Finsupp.single 1 1 : K[T;T⁻¹]) 0 = 1 := by
-        rw [Finsupp.sub_apply, Finsupp.single_apply, Finsupp.single_apply]
-        norm_num
-      have h1' : (Finsupp.single 0 (1 : K) - Finsupp.single 1 1 : K[T;T⁻¹]) 1 = -1 := by
-        rw [Finsupp.sub_apply, Finsupp.single_apply, Finsupp.single_apply]
-        norm_num
-      simp only [Finset.sum_insert (by simp : (0 : ℤ) ∉ ({1} : Finset ℤ)),
-                 Finset.sum_singleton, h0, h1']
-      ring
-    · intro x _ hx
-      simp only [Finsupp.mem_support_iff, ne_eq, not_not] at hx
-      exact hx
+    have hc : (1 - LaurentPolynomial.T 1 : K[T;T⁻¹]).coeff =
+        Finsupp.single 0 (1 : K) - Finsupp.single 1 1 := by
+      rw [AddMonoidAlgebra.coeff_sub, AddMonoidAlgebra.one_def, AddMonoidAlgebra.coeff_single]
+      rfl
+    rw [hc, Finsupp.sum_sub_index (fun _ _ _ => rfl), Finsupp.sum_single_index rfl,
+      Finsupp.sum_single_index rfl, sub_self]
 
 end ModuleStructure
 
@@ -1348,7 +1317,7 @@ lemma bounded_sum_eq {n : ℤ} (r : BalancedTernaryRepresentation n) (k : ℕ)
   intro i hi
   simp only [Finset.coe_range, Set.mem_Iio]
   by_contra hc
-  push_neg at hc
+  push Not at hc
   have hd : r.digits i = 0 := hk i hc
   change (r.digits i).toInt * (3 : ℤ)^i ≠ 0 at hi
   rw [hd, BalancedTernaryDigit.toInt_zero, zero_mul] at hi

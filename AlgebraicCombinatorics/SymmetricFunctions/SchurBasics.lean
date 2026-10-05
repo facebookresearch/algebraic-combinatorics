@@ -216,7 +216,7 @@ theorem alternant_rho_eq_vandermonde :
     have h : ∀ i j : Fin N, i < j → ¬(Fin.revPerm i < Fin.revPerm j) := fun i j hij => by
       simp only [Fin.revPerm_apply, not_lt]; exact Fin.rev_le_rev.mpr (le_of_lt hij)
     have h2 : ∀ i : Fin N, ∀ j ∈ Finset.Ioi i, (if Fin.revPerm i < Fin.revPerm j then (1 : ℤˣ) else -1) = -1 :=
-      fun i j hj => if_neg (h i j (Finset.mem_Ioi.mp hj))
+      fun i j hj => ite_eq_right (h i j (Finset.mem_Ioi.mp hj))
     simp only [Finset.prod_congr rfl (fun i _ => Finset.prod_congr rfl (h2 i)), Finset.prod_const, Fin.card_Ioi]
     have key : ∏ x : Fin N, (-1 : ℤˣ) ^ (N - 1 - x.val) = (-1) ^ (∑ x : Fin N, (N - 1 - x.val)) := by
       rw [← Finset.prod_pow_eq_pow_sum]
@@ -564,6 +564,7 @@ theorem sum_occurrences_eq_card (T : YoungTableau lam) :
     intro c ⟨_, hck⟩ ⟨_, hck'⟩
     exact hkk' (hck.symm.trans hck')
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The total degree of x_T equals the number of cells in the Young diagram.
     This is |Y(λ)| = λ₁ + λ₂ + ... + λ_N. -/
 theorem monomial_totalDegree (T : YoungTableau lam) :
@@ -584,6 +585,7 @@ theorem monomial_totalDegree (T : YoungTableau lam) :
   -- Use Finsupp.equivFunOnFinite_symm_sum to convert
   exact Finsupp.equivFunOnFinite_symm_sum (fun k => T.occurrences k)
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The monomial x_T is indeed a monomial in the MvPolynomial sense
     (a single term with coefficient 1). -/
 theorem monomial_isMonomial (T : YoungTableau lam) :
@@ -684,6 +686,7 @@ def schurPoly {N : ℕ} [NeZero N] (lam : NPartition N) : MvPolynomial (Fin N) �
 
 /-! ## Examples of Schur Polynomials -/
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The Schur polynomial s_{(n,0,...,0)} equals the complete homogeneous symmetric
     polynomial h_n. Example \ref{exa.sf.schur-h-e}(a) in the source.
 
@@ -810,7 +813,7 @@ def col_partition_equiv {N : ℕ} [NeZero N] (n : ℕ) (hn : n ≤ N) (lam : NPa
     { c // c ∈ lam.youngDiagram } ≃ Fin n where
   toFun := fun ⟨c, hc⟩ => ⟨c.1.val, by
     rw [NPartition.mem_youngDiagram] at hc
-    by_contra h; push_neg at h
+    by_contra h; push Not at h
     have := hlam.2 c.1 h; rw [this] at hc
     exact Nat.not_lt_zero _ hc⟩
   invFun := fun ⟨k, hk⟩ => ⟨(⟨k, Nat.lt_of_lt_of_le hk hn⟩, 0), by
@@ -872,13 +875,13 @@ lemma col_partition_ssyt_iff {N : ℕ} [NeZero N] (n : ℕ) (hn : n ≤ N) (lam 
       omega
     · intro c1 c2 _ hrow
       have hi1 : c1.val.1.val < n := by
-        by_contra h; push_neg at h
+        by_contra h; push Not at h
         have := hlam.2 c1.val.1 h
         have hc1 := c1.property
         rw [NPartition.mem_youngDiagram, this] at hc1
         exact Nat.not_lt_zero _ hc1
       have hi2 : c2.val.1.val < n := by
-        by_contra h; push_neg at h
+        by_contra h; push Not at h
         have := hlam.2 c2.val.1 h
         have hc2 := c2.property
         rw [NPartition.mem_youngDiagram, this] at hc2
@@ -898,6 +901,7 @@ lemma col_partition_ssyt_iff {N : ℕ} [NeZero N] (n : ℕ) (hn : n ≤ N) (lam 
       rw [hc1_eq, hc2_eq]
       exact hstrict (by simp only [Fin.lt_def]; exact hrow)
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The Schur polynomial s_{(1,1,...,1,0,...,0)} (with n ones) equals the elementary
     symmetric polynomial e_n. Example \ref{exa.sf.schur-h-e}(b) in the source.
 
@@ -1000,7 +1004,7 @@ theorem esymm_3_eq_sum_strictlyOrdered :
   have card_triple : ∀ i j k : Fin N, i < j → j < k →
       ({i, j, k} : Finset (Fin N)).card = 3 := by
     intro i j k hij hjk
-    rw [card_insert_eq_ite, if_neg, card_insert_eq_ite, if_neg, card_singleton]
+    rw [card_insert_eq_ite, ite_eq_right, card_insert_eq_ite, ite_eq_right, card_singleton]
     · simp [ne_of_lt hjk]
     · simp [ne_of_lt hij, ne_of_lt (lt_trans hij hjk)]
   have min_triple : ∀ i j k : Fin N, i < j → j < k →
@@ -1144,13 +1148,13 @@ theorem esymm_3_eq_sum_strictlyOrdered :
                       · exact hy
                       · exact hc_in_erase
                     calc 3 = ({b, y, c} : Finset (Fin N)).card := by
-                            rw [card_insert_eq_ite, if_neg, card_insert_eq_ite, if_neg, card_singleton]
+                            rw [card_insert_eq_ite, ite_eq_right, card_insert_eq_ite, ite_eq_right, card_singleton]
                             · simp only [mem_singleton]; exact ne_of_lt hyc'''
-                            · simp only [mem_insert, mem_singleton]; push_neg
+                            · simp only [mem_insert, mem_singleton]; push Not
                               exact ⟨ne_of_lt hby, ne_of_lt (lt_trans hby hyc''')⟩
                       _ ≤ (s.erase a).card := card_le_card hsub
                   omega
-              · rw [card_insert_eq_ite, if_neg, card_singleton]
+              · rw [card_insert_eq_ite, ite_eq_right, card_singleton]
                 · omega
                 · simp only [mem_singleton]; exact ne_of_lt hbc
             have hx_in_bc : x ∈ ({b, c} : Finset (Fin N)) := by
@@ -1166,7 +1170,7 @@ theorem esymm_3_eq_sum_strictlyOrdered :
     rw [prod_insert, prod_insert, prod_singleton]
     · ring
     · simp only [mem_singleton]; exact ne_of_lt hjk
-    · simp only [mem_insert, mem_singleton]; push_neg
+    · simp only [mem_insert, mem_singleton]; push Not
       exact ⟨ne_of_lt hij, ne_of_lt (lt_trans hij hjk)⟩
 
 omit [NeZero N] in
@@ -1292,7 +1296,7 @@ theorem esymm_2_mul_esymm_1_expansion :
     intros a b hab
     have h1 : (Finset.univ : Finset (Fin N)).filter (fun c => ¬(c ≠ a ∧ c ≠ b)) = {a, b} := by
       ext c; simp only [Finset.mem_filter, Finset.mem_univ, true_and,
-                        Finset.mem_insert, Finset.mem_singleton]; push_neg
+                        Finset.mem_insert, Finset.mem_singleton]; push Not
       exact ⟨fun h => by by_cases hca : c = a; exact Or.inl hca; exact Or.inr (h hca),
              fun h => h.elim (fun rfl => fun haa => (haa rfl).elim) (fun rfl _ => rfl)⟩
     rw [← Finset.sum_filter_add_sum_filter_not Finset.univ (fun c => c ≠ a ∧ c ≠ b)]
@@ -1351,7 +1355,7 @@ theorem esymm_2_mul_esymm_1_expansion :
         have h_rhs1 : c < a ∧ a < b := ⟨hca, hab⟩
         have h_rhs2 : ¬(a < c ∧ c < b) := fun ⟨h, _⟩ => (lt_asymm hca) h
         have h_rhs3 : ¬(a < b ∧ b < c) := fun ⟨_, h⟩ => (lt_asymm hcb) h
-        simp only [if_pos h_lhs, if_pos h_rhs1, if_neg h_rhs2, if_neg h_rhs3, add_zero]; ring
+        simp only [ite_eq_left h_lhs, ite_eq_left h_rhs1, ite_eq_right h_rhs2, ite_eq_right h_rhs3, add_zero]; ring
       · simp only [hca, ne_eq, not_true_eq_false, and_false, false_and, ite_false, add_zero,
                    lt_irrefl, hab, and_true, asymm hab]
       · rcases lt_trichotomy c b with hcb | hcb | hcb
@@ -1361,7 +1365,7 @@ theorem esymm_2_mul_esymm_1_expansion :
           have h_rhs1 : ¬(c < a ∧ a < b) := fun ⟨h, _⟩ => (lt_asymm h) hca
           have h_rhs2 : a < c ∧ c < b := ⟨hca, hcb⟩
           have h_rhs3 : ¬(a < b ∧ b < c) := fun ⟨_, h⟩ => (lt_asymm hcb) h
-          simp only [if_pos h_lhs, if_neg h_rhs1, if_pos h_rhs2, if_neg h_rhs3, add_zero, zero_add]; ring
+          simp only [ite_eq_left h_lhs, ite_eq_right h_rhs1, ite_eq_left h_rhs2, ite_eq_right h_rhs3, add_zero, zero_add]; ring
         · simp only [hcb, ne_eq, not_true_eq_false, ite_false, add_zero, lt_irrefl,
                      and_false, hab, asymm hab, and_true]
         · have hne_a : c ≠ a := ne_of_gt (hab.trans hcb)
@@ -1370,14 +1374,14 @@ theorem esymm_2_mul_esymm_1_expansion :
           have h_rhs1 : ¬(c < a ∧ a < b) := fun ⟨h, _⟩ => (lt_asymm h) (hab.trans hcb)
           have h_rhs2 : ¬(a < c ∧ c < b) := fun ⟨_, h⟩ => (lt_asymm h) hcb
           have h_rhs3 : a < b ∧ b < c := ⟨hab, hcb⟩
-          simp only [if_pos h_lhs, if_neg h_rhs1, if_neg h_rhs2, if_pos h_rhs3, add_zero, zero_add]
+          simp only [ite_eq_left h_lhs, ite_eq_right h_rhs1, ite_eq_right h_rhs2, ite_eq_left h_rhs3, add_zero, zero_add]
     · have h_rhs2 : ¬(b < c ∧ c < b) := fun ⟨h1, h2⟩ => (lt_asymm h1) h2
-      simp only [hab, lt_irrefl, false_and, ite_false, add_zero, and_false, if_neg h_rhs2]
+      simp only [hab, lt_irrefl, false_and, ite_false, add_zero, and_false, ite_eq_right h_rhs2]
     · have h_lhs : ¬(a < b ∧ c ≠ a ∧ c ≠ b) := fun ⟨h, _, _⟩ => (lt_asymm h) hab
       have h_rhs1 : ¬(c < a ∧ a < b) := fun ⟨_, h⟩ => (lt_asymm h) hab
       have h_rhs2 : ¬(a < c ∧ c < b) := fun ⟨hac, hcb⟩ => (lt_asymm (hac.trans hcb)) hab
       have h_rhs3 : ¬(a < b ∧ b < c) := fun ⟨h, _⟩ => (lt_asymm h) hab
-      simp only [if_neg h_lhs, if_neg h_rhs1, if_neg h_rhs2, if_neg h_rhs3, add_zero]
+      simp only [ite_eq_right h_lhs, ite_eq_right h_rhs1, ite_eq_right h_rhs2, ite_eq_right h_rhs3, add_zero]
   conv_lhs => arg 2; ext a; arg 2; ext b; arg 2; ext c; rw [h_partition a b c]
   simp only [Finset.sum_add_distrib]
 
@@ -2172,19 +2176,19 @@ def skewCellEquiv {N : ℕ} [NeZero N] (lam mu : NPartition N) :
     { c // c ∈ AlgebraicCombinatorics.skewYoungDiagram lam.parts mu.parts } where
   toFun := fun ⟨c, hc⟩ => ⟨(c.1, c.2 + 1), by
     rw [mem_skewYoungDiagram] at hc
-    simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq]
+    simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq]
     refine ⟨?_, ?_⟩
     · show mu.parts c.1 < c.2 + 1; omega
     · show c.2 + 1 ≤ lam.parts c.1; omega⟩
   invFun := fun ⟨c, hc⟩ => ⟨(c.1, c.2 - 1), by
-    simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq] at hc
+    simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq] at hc
     rw [mem_skewYoungDiagram]
     refine ⟨?_, ?_⟩
     · show mu.parts c.1 ≤ c.2 - 1; omega
     · show c.2 - 1 < lam.parts c.1; omega⟩
   left_inv := fun ⟨c, hc⟩ => by simp
   right_inv := fun ⟨c, hc⟩ => by
-    simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq] at hc
+    simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq] at hc
     ext
     · rfl
     · simp; omega
@@ -2225,7 +2229,7 @@ theorem mem_skewYoungDiagram_iff_mem_LR_shifted {N : ℕ} [NeZero N] (lam mu : N
     (i, j) ∈ skewYoungDiagram lam mu ↔ 
     (i, j + 1) ∈ AlgebraicCombinatorics.skewYoungDiagram lam.parts mu.parts := by
   rw [mem_skewYoungDiagram]
-  simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq]
+  simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq]
   constructor
   · intro ⟨hlo, hhi⟩
     exact ⟨by omega, by omega⟩
@@ -2251,7 +2255,7 @@ theorem skewFillingEquiv_isSSYT {N : ℕ} [NeZero N] (lam mu : NPartition N)
       intro c1 c2 hrow hcol
       have hc1 := c1.prop
       have hc2 := c2.prop
-      simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq] at hc1 hc2
+      simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq] at hc1 hc2
       -- Map back to SchurBasics cells
       let c1' : { c // c ∈ skewYoungDiagram lam mu } := ⟨(c1.val.1, c1.val.2 - 1), by
         rw [mem_skewYoungDiagram]
@@ -2268,7 +2272,7 @@ theorem skewFillingEquiv_isSSYT {N : ℕ} [NeZero N] (lam mu : NPartition N)
       intro c1 c2 hcol hrow
       have hc1 := c1.prop
       have hc2 := c2.prop
-      simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq] at hc1 hc2
+      simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq] at hc1 hc2
       let c1' : { c // c ∈ skewYoungDiagram lam mu } := ⟨(c1.val.1, c1.val.2 - 1), by
         rw [mem_skewYoungDiagram]
         refine ⟨?_, ?_⟩ <;> [show mu.parts c1.val.1 ≤ c1.val.2 - 1; show c1.val.2 - 1 < lam.parts c1.val.1] <;> omega⟩
@@ -2309,6 +2313,7 @@ def fillingMonomial {N : ℕ} [NeZero N] {lam mu : NPartition N}
     (f : SkewFilling lam mu) : MvPolynomial (Fin N) ℤ :=
   ∏ c : { c // c ∈ skewYoungDiagram lam mu }, X (f c)
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The content of a filling: the number of cells with each entry value.
     content(f)(i) = |{c ∈ Y(λ/μ) : f(c) = i}|
     
@@ -2320,6 +2325,7 @@ def fillingContent {N : ℕ} [NeZero N] {lam mu : NPartition N}
     (f : SkewFilling lam mu) : Fin N → ℕ :=
   fun i => Finset.univ.filter (fun c : { c // c ∈ skewYoungDiagram lam mu } => f c = i) |>.card
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The fillingMonomial equals the product of X i raised to the content power. -/
 lemma fillingMonomial_eq_prod_pow {N : ℕ} [NeZero N] {lam mu : NPartition N}
     (f : SkewFilling lam mu) :
@@ -2333,6 +2339,7 @@ lemma fillingMonomial_eq_prod_pow {N : ℕ} [NeZero N] {lam mu : NPartition N}
   simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hc
   rw [hc]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Content bridge: the content of a filling equals the content of the corresponding tableau
     under the skewFillingEquiv bijection.
     
@@ -2462,7 +2469,7 @@ theorem skewSchurPoly_zero {N : ℕ} [NeZero N] (lam : NPartition N) :
   · simp only [ssytFillingsYoung, Finset.mem_filter, Finset.mem_univ, true_and] at ha
     simp only [ssytFillings, Finset.mem_filter, Finset.mem_univ, true_and]
     rw [h_ssyt]
-    convert ha using 2
+    convert ha using 2; simp
 
 /-- Applying a permutation σ to each entry of a filling. -/
 def applyPermToFilling {N : ℕ} [NeZero N] {lam mu : NPartition N}
@@ -2662,6 +2669,7 @@ lemma benderKnuthInvol_content_swap_spec {N : ℕ} [NeZero N] (lam mu : NPartiti
     convert h3' using 1
     simp only [Equiv.apply_symm_apply]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The monomial effect of the Bender-Knuth involution:
     x_{BK_k(f)} = (swap x_k x_{k+1}) · x_f
     
@@ -2909,16 +2917,16 @@ theorem schurPoly_eq_AC_schurPoly {N : ℕ} [NeZero N] (lam : NPartition N) :
       { c // c ∈ AlgebraicCombinatorics.skewYoungDiagram lam.parts 0 } := {
     toFun := fun ⟨c, hc⟩ => ⟨(c.1, c.2 + 1), by
       rw [NPartition.mem_youngDiagram] at hc
-      simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq, Pi.zero_apply]
+      simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq, Pi.zero_apply]
       exact ⟨Nat.zero_lt_succ c.2, hc⟩⟩
     invFun := fun ⟨c, hc⟩ => ⟨(c.1, c.2 - 1), by
-      simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq, Pi.zero_apply] at hc
+      simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq, Pi.zero_apply] at hc
       rw [NPartition.mem_youngDiagram]
       simp
       omega⟩
     left_inv := fun ⟨c, hc⟩ => by simp
     right_inv := fun ⟨c, hc⟩ => by
-      simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq, Pi.zero_apply] at hc
+      simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq, Pi.zero_apply] at hc
       ext
       · rfl
       · simp; omega
@@ -2944,7 +2952,7 @@ theorem schurPoly_eq_AC_schurPoly {N : ℕ} [NeZero N] (lam : NPartition N) :
         intro c1 c2 hrow hcol
         have hc1 := c1.prop
         have hc2 := c2.prop
-        simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq, Pi.zero_apply] at hc1 hc2
+        simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq, Pi.zero_apply] at hc1 hc2
         have h1 : c1.val.2 - 1 < lam.parts c1.val.1 := by omega
         have h2 : c2.val.2 - 1 < lam.parts c2.val.1 := by omega
         let c1' : { c // c ∈ lam.youngDiagram } := ⟨(c1.val.1, c1.val.2 - 1), by
@@ -2960,7 +2968,7 @@ theorem schurPoly_eq_AC_schurPoly {N : ℕ} [NeZero N] (lam : NPartition N) :
         intro c1 c2 hcol hrow
         have hc1 := c1.prop
         have hc2 := c2.prop
-        simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_setOf_eq, Pi.zero_apply] at hc1 hc2
+        simp only [AlgebraicCombinatorics.skewYoungDiagram, Set.mem_ofPred_eq, Pi.zero_apply] at hc1 hc2
         have h1 : c1.val.2 - 1 < lam.parts c1.val.1 := by omega
         have h2 : c2.val.2 - 1 < lam.parts c2.val.1 := by omega
         let c1' : { c // c ∈ lam.youngDiagram } := ⟨(c1.val.1, c1.val.2 - 1), by

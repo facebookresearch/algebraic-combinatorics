@@ -184,7 +184,7 @@ private lemma exists_middle_to_middle (σ : Equiv.Perm (Fin 5)) :
   let middle : Finset (Fin 5) := {⟨1, by omega⟩, ⟨2, by omega⟩, ⟨3, by omega⟩}
   let outer : Finset (Fin 5) := {⟨0, by omega⟩, ⟨4, by omega⟩}
   by_contra h
-  push_neg at h
+  push Not at h
   have h1 : ∀ i ∈ middle, σ i ∈ outer := by
     intro i hi
     have hi' : i.val ∈ ({1, 2, 3} : Set ℕ) := by
@@ -436,7 +436,7 @@ If A is upper-triangular or lower-triangular, then det A = ∏ᵢ Aᵢᵢ.
 theorem det_upperTriangular (A : Matrix (Fin n) (Fin n) K)
     (hA : ∀ i j, j < i → A i j = 0) : A.det = ∏ i, A i i := by
   have h : Matrix.BlockTriangular A id := fun i j hij => hA i j hij
-  exact Matrix.det_of_upperTriangular h
+  exact Matrix.det_of_isUpperTriangular h
 
 /-- Determinant of lower triangular matrix is product of diagonal.
     Label: thm.det.triang -/
@@ -446,7 +446,7 @@ theorem det_lowerTriangular (A : Matrix (Fin n) (Fin n) K)
     simp only [Matrix.transpose_apply]
     exact hA j i hij
   rw [← det_transpose A]
-  exact Matrix.det_of_upperTriangular h
+  exact Matrix.det_of_isUpperTriangular h
 
 /-- Determinant of diagonal matrix is product of diagonal entries -/
 theorem det_diagonal' (d : Fin n → K) :

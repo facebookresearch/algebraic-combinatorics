@@ -529,6 +529,7 @@ def setBelow (σ : Perm (Fin n)) (i j : Fin n) : Finset (Fin n) :=
 def setAbove (σ : Perm (Fin n)) (i j : Fin n) : Finset (Fin n) :=
   Finset.filter (fun k => i < k ∧ k < j ∧ σ i ≤ σ k) Finset.univ
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Key symmetry: Q for σ * swap i j equals R for σ (when σ(i) < σ(j)).
 This allows us to reduce the case σ(i) < σ(j) to the case σ(i) > σ(j). -/
 lemma setQ_swap_eq_setR (σ : Perm (Fin n)) (i j : Fin n) :
@@ -588,6 +589,7 @@ lemma setQ_setB_disjoint (σ : Perm (Fin n)) (i j : Fin n) :
   intro ⟨_, ha_lt_j, _, _⟩ hj_lt_a
   exact absurd ha_lt_j (not_lt.mpr (le_of_lt hj_lt_a))
 
+set_option backward.isDefEq.respectTransparency false in
 /-- For k ∈ Q: (i, k) is a lost inversion. -/
 lemma ik_lost_for_k_in_Q (σ : Perm (Fin n)) (i j k : Fin n)
     (hk : k ∈ setQ σ i j) : (i, k) ∈ inversions σ \ inversions (σ * Equiv.swap i j) := by
@@ -602,6 +604,7 @@ lemma ik_lost_for_k_in_Q (σ : Perm (Fin n)) (i j k : Fin n)
     simp only [Equiv.swap_apply_left, Equiv.swap_apply_of_ne_of_ne hk_ne_i hk_ne_j]
     exact le_of_lt hk.2.2.1
 
+set_option backward.isDefEq.respectTransparency false in
 /-- For k ∈ Q: (k, j) is a lost inversion. -/
 lemma kj_lost_for_k_in_Q (σ : Perm (Fin n)) (i j k : Fin n)
     (hk : k ∈ setQ σ i j) : (k, j) ∈ inversions σ \ inversions (σ * Equiv.swap i j) := by
@@ -616,6 +619,7 @@ lemma kj_lost_for_k_in_Q (σ : Perm (Fin n)) (i j k : Fin n)
     simp only [Equiv.swap_apply_right, Equiv.swap_apply_of_ne_of_ne hk_ne_i hk_ne_j]
     exact le_of_lt hk.2.2.2
 
+set_option backward.isDefEq.respectTransparency false in
 /-- (i, j) is a lost inversion when σ(j) < σ(i). -/
 lemma ij_lost (σ : Perm (Fin n)) (i j : Fin n) (hij : i < j) (h : σ j < σ i) :
     (i, j) ∈ inversions σ \ inversions (σ * Equiv.swap i j) := by
@@ -625,6 +629,7 @@ lemma ij_lost (σ : Perm (Fin n)) (i j : Fin n) (hij : i < j) (h : σ j < σ i) 
   · exact ⟨hij, h⟩
   · intro _; exact le_of_lt h
 
+set_option backward.isDefEq.respectTransparency false in
 /-- For a ∈ A: (a, i) is a gained inversion. -/
 lemma ai_gained_for_a_in_A (σ : Perm (Fin n)) (i j a : Fin n) (hij : i < j)
     (ha : a ∈ setA σ i j) : (a, i) ∈ inversions (σ * Equiv.swap i j) \ inversions σ := by
@@ -640,6 +645,7 @@ lemma ai_gained_for_a_in_A (σ : Perm (Fin n)) (i j a : Fin n) (hij : i < j)
       exact ha.2.1
   · intro _; exact le_of_lt ha.2.2
 
+set_option backward.isDefEq.respectTransparency false in
 /-- For b ∈ B: (j, b) is a gained inversion. -/
 lemma jb_gained_for_b_in_B (σ : Perm (Fin n)) (i j b : Fin n) (hij : i < j)
     (hb : b ∈ setB σ i j) : (j, b) ∈ inversions (σ * Equiv.swap i j) \ inversions σ := by
@@ -1129,7 +1135,7 @@ theorem length_mul_transposition (σ : Perm (Fin n)) (i j : Fin n) (hij : i < j)
     exact h_arith
   · -- Case: σ(i) ≤ σ(j), so (i, j) is not an inversion of σ
     simp only [h, ↓reduceIte, hτ]
-    push_neg at h
+    push Not at h
     have h' : σ i < σ j := lt_of_le_of_ne h (σ.injective.ne hi_ne_j)
     -- Key: σ = τ * swap i j (since swap is self-inverse)
     have hσ_eq : σ = τ * Equiv.swap i j := by
@@ -1234,6 +1240,7 @@ private lemma wordProd_flatten (L : List (Word n)) :
     simp only [List.flatten_cons, List.prod_append, List.map_cons, List.prod_cons]
     rw [ih]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Length of identity is 0. -/
 private lemma length_one : ℓ (1 : Perm (Fin n)) = 0 := by
   simp only [length, inversions, Perm.one_apply]
@@ -1285,7 +1292,7 @@ private lemma perm_strictMono_eq_one (σ : Perm (Fin n)) (hmono : StrictMono σ)
         by_contra hne
         have hσj_gt' : (σ j).val > j.val := by
           by_contra hle
-          push_neg at hle
+          push Not at hle
           have heq : (σ j).val = j.val := le_antisymm hle hσj_ge
           exact hne (Fin.ext heq)
         obtain ⟨k, hk⟩ := σ.surjective j
@@ -1312,7 +1319,7 @@ private lemma eq_one_of_length_zero (σ : Perm (Fin n)) (h : ℓ σ = 0) : σ = 
   apply perm_strictMono_eq_one
   intro i j hij
   by_contra hle
-  push_neg at hle
+  push Not at hle
   have hne : σ j ≠ σ i := fun heq => absurd hij (not_lt.mpr (le_of_eq (σ.injective heq)))
   have hlt : σ j < σ i := lt_of_le_of_ne hle hne
   have hmem : (i, j) ∈ (Finset.filter (fun p => p.1 < p.2 ∧ σ p.2 < σ p.1) Finset.univ :
@@ -1369,7 +1376,7 @@ private lemma strictMono_of_no_adjacent_inversions (σ : Perm (Fin n)) (hn : n >
 /-- If ℓ σ > 0, then n > 1 (a nontrivial permutation requires at least 2 elements). -/
 private lemma n_gt_one_of_length_pos (σ : Perm (Fin n)) (hpos : ℓ σ > 0) : n > 1 := by
   by_contra hle
-  push_neg at hle
+  push Not at hle
   interval_cases n
   · simp only [length, inversions] at hpos
     have : (Finset.filter (fun p => p.1 < p.2 ∧ σ p.2 < σ p.1) Finset.univ :
@@ -1399,7 +1406,7 @@ private lemma exists_adjacent_inversion (σ : Perm (Fin n)) (hpos : ℓ σ > 0) 
         σ (Fin.castLE (by have := n_gt_one_of_length_pos σ hpos; omega) k.castSucc) := by
   have hn : n > 1 := n_gt_one_of_length_pos σ hpos
   by_contra hall
-  push_neg at hall
+  push Not at hall
   have hmono : StrictMono σ := strictMono_of_no_adjacent_inversions σ hn hall
   have heq1 : σ = 1 := perm_strictMono_eq_one σ hmono
   simp only [length, inversions, heq1, Perm.one_apply] at hpos
@@ -1443,7 +1450,7 @@ theorem exists_reduced_word (σ : Perm (Fin n)) :
       -- The condition is σ(k.castSucc) < σ(k.succ), but we have σ(k.succ) < σ(k.castSucc)
       -- So the condition is false, and we get ℓ σ - 1
       have hcond : ¬(σ (Fin.castLE (by omega) k.castSucc) < σ (Fin.castLE (by omega) k.succ)) := by
-        push_neg
+        push Not
         exact le_of_lt hk_inv
       simp only [hcond, ↓reduceIte]
       omega
@@ -1472,6 +1479,7 @@ theorem exists_reduced_word (σ : Perm (Fin n)) :
       simp only [τ]
       rw [mul_assoc, simpleTransposition_sq, mul_one]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- **Theorem thm.perm.len.redword1 (b)**: The length ℓ(σ) is the minimum number
 of simple transpositions needed to express σ.
 
@@ -1546,7 +1554,7 @@ private lemma length_mul_simple_mod_two (σ : Perm (Fin n)) (k : Fin (n - 1)) :
             omega
           exact hcs
         · -- σ(k+1) < σ(k), which is ¬(σ(k) < σ(k+1))
-          push_neg at h
+          push Not at h
           have hne : σ (Fin.castLE (by omega) k.castSucc) ≠ σ (Fin.castLE (by omega) k.succ) := by
             intro heq
             have hinj := σ.injective heq
@@ -1802,7 +1810,7 @@ lemma sigma_zero_eq_lehmerEntry (σ : Perm (Fin n)) (hn : n > 0) :
       simp only [Finset.mem_filter, Finset.mem_univ, true_and, gt_iff_lt]
       refine ⟨?_, ?_⟩
       · by_contra heq
-        push_neg at heq
+        push Not at heq
         simp only [Fin.le_def] at heq
         have heq0 : j.val = 0 := Nat.eq_zero_of_le_zero heq
         have hj0 : j = ⟨0, hn⟩ := by ext; exact heq0
@@ -2074,7 +2082,7 @@ private lemma wordProd_descendingWordRec_shift (i k j : ℕ) (h : i + k ≤ n - 
       simp only [wordProd] at hrest
       rw [hrest]
       have happ := simpleTransposition_apply_succ' ⟨i + k, by omega⟩ hn
-      convert happ using 2
+      convert happ using 2; rfl
     · have hj2' : j ≤ k := by omega
       have ih' := ih j (by omega : i + k ≤ n - 1) hj1 hj2'
       simp only [wordProd] at ih'
@@ -2310,7 +2318,7 @@ lemma lehmerEntry_diff_iff_inversion (σ : Perm (Fin n)) (i : Fin n) (hi : i.val
       rw [hempty, Finset.card_empty]
   rw [hfirst]
   by_cases hcond : σ i' < σ i
-  · rw [if_pos hcond]
+  · rw [ite_eq_left hcond]
     constructor
     · intro _; exact hcond
     · intro _
@@ -2321,8 +2329,8 @@ lemma lehmerEntry_diff_iff_inversion (σ : Perm (Fin n)) (i : Fin n) (hi : i.val
         exact ⟨hj.1, lt_trans hj.2 hcond⟩
       have hcard := Finset.card_le_card hsubset
       omega
-  · rw [if_neg hcond]
-    push_neg at hcond
+  · rw [ite_eq_right hcond]
+    push Not at hcond
     have hle : σ i ≤ σ i' := hcond
     constructor
     · intro hcard
@@ -2378,13 +2386,13 @@ lemma eq_of_inversions_eq (σ τ : Perm (Fin n))
       constructor
       · intro hσji
         by_contra hτji
-        push_neg at hτji
+        push Not at hτji
         have hτij : τ i < τ j := lt_of_le_of_ne hτji (τ.injective.ne (ne_of_lt hji').symm)
         rw [← h'] at hτij
         exact not_lt.mpr (le_of_lt hσji) hτij
       · intro hτji
         by_contra hσji
-        push_neg at hσji
+        push Not at hσji
         have hσij : σ i < σ j := lt_of_le_of_ne hσji (σ.injective.ne (ne_of_lt hji').symm)
         rw [h'] at hσij
         exact not_lt.mpr (le_of_lt hτji) hσij
@@ -2438,7 +2446,7 @@ private lemma countLargerBetween_bound (σ : Perm (Fin n)) (p : Fin n) (lo hi : 
             (Finset.Ioo lo hi).card := by
     apply Finset.card_le_card_of_injOn (fun (m : Fin n) => m.val)
     · intro m hm
-      simp only [Finset.coe_filter, Set.mem_setOf_eq] at hm
+      simp only [Finset.coe_filter, Set.mem_ofPred_eq] at hm
       exact Finset.mem_Ioo.mpr hm.2
     · intro m₁ _ m₂ _ heq
       exact Fin.ext heq
@@ -2644,7 +2652,7 @@ private lemma block_shifts_iff_inversion (σ : Perm (Fin n)) (p j : Fin n) (hjp 
     intro ⟨_, hq_le⟩
     -- Contrapositive: if σ(j) ≤ σ(p), then q > j + lehmerEntry σ j
     by_contra hσ
-    push_neg at hσ
+    push Not at hσ
     have hσ_lt : σ j < σ p := lt_of_le_of_ne hσ (fun h => by
       have : j = p := σ.injective h
       omega)
@@ -2895,8 +2903,7 @@ private lemma position_after_blocks (σ : Perm (Fin n)) (p : Fin n) (j : ℕ) (h
     · -- Block j shifts q down by 1
       have hshift_cond : jfin.val < q.val ∧ q.val ≤ jfin.val + lehmerEntry σ jfin := by
         have := hshift_iff.mpr hσ
-        simp only at this
-        convert this using 1
+        rw [hq_eq]; exact this
       have hblock_shift : wordProd (lehmerBlock σ jfin) q = ⟨q.val - 1, by omega⟩ := by
         exact block_shift_condition σ jfin q hn hshift_cond.1 hshift_cond.2
       rw [hblock_shift]
@@ -2950,12 +2957,11 @@ private lemma position_after_blocks (σ : Perm (Fin n)) (p : Fin n) (j : ℕ) (h
         intro hcond
         have hcontra : σ jfin > σ p := by
           have := hshift_iff.mp
-          simp only at this
           apply this
-          convert hcond using 1
+          rw [← hq_eq]; exact hcond
         exact hσ hcontra
       have hq_gt_range : q.val > jfin.val + lehmerEntry σ jfin := by
-        push_neg at hfix_cond
+        push Not at hfix_cond
         exact hfix_cond hq_gt_j
       have hblock_fix : wordProd (lehmerBlock σ jfin) q = q := by
         exact block_fixes_outside' σ jfin q hn (Or.inr hq_gt_range)

@@ -138,12 +138,12 @@ scoped notation "⦃" P "⦄" => iverson P
 /-- The Iverson bracket of a true proposition is 1. -/
 @[simp]
 theorem iverson_true {α : Type*} [Zero α] [One α] {P : Prop} [Decidable P] (h : P) :
-    (⦃P⦄ : α) = 1 := if_pos h
+    (⦃P⦄ : α) = 1 := ite_eq_left h
 
 /-- The Iverson bracket of a false proposition is 0. -/
 @[simp]
 theorem iverson_false {α : Type*} [Zero α] [One α] {P : Prop} [Decidable P] (h : ¬P) :
-    (⦃P⦄ : α) = 0 := if_neg h
+    (⦃P⦄ : α) = 0 := ite_eq_right h
 
 /-- The Iverson bracket equals 1 iff the proposition is true. -/
 theorem iverson_eq_one_iff {α : Type*} [Zero α] [One α] [NeZero (1 : α)]
@@ -348,7 +348,7 @@ theorem ceil_eq_floor_add_one_iff (a : ℝ) : ⌈a⌉ = ⌊a⌋ + 1 ↔ a ≠ �
   · intro h
     have h1 : (⌊a⌋ : ℝ) < a := by
       by_contra hle
-      push_neg at hle
+      push Not at hle
       have heq : a = ⌊a⌋ := le_antisymm hle (Int.floor_le a)
       exact h heq
     have h2 : ⌊a⌋ + 1 ≤ ⌈a⌉ := by
@@ -677,6 +677,7 @@ example : partsCount 5 5 = 1 := by native_decide
 /-- The number of parts of a partition equals the cardinality of its parts multiset. -/
 def numParts {n : ℕ} (p : Partition n) : ℕ := Multiset.card p.parts
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Alternative characterization: `partsCount k n` counts partitions with `numParts = k`. -/
 theorem partsCount_eq_filter_numParts (k n : ℕ) :
     partsCount k n = ((Finset.univ : Finset (Partition n)).filter (fun p => p.numParts = k)).card := by
@@ -835,7 +836,7 @@ theorem partsCount_eq_zero_iff (k n : ℕ) :
   · -- Forward direction: if partsCount k n = 0, then k > n or (k = 0 ∧ n > 0)
     intro h
     by_contra hc
-    push_neg at hc
+    push Not at hc
     obtain ⟨hkn, hk0⟩ := hc
     -- We have k ≤ n and (k ≠ 0 or n = 0)
     rcases Nat.eq_zero_or_pos k with hk | hkpos
@@ -907,7 +908,7 @@ theorem partsCount_one (n : ℕ) : partsCount 1 n = if n > 0 then 1 else 0 := by
     rw [h]
     simp only [Finset.card_singleton]
   · -- For n = 0, there are no partitions into 1 part
-    push_neg at hn
+    push Not at hn
     interval_cases n
     rw [Finset.card_eq_zero, filter_eq_empty_iff]
     intro p _
@@ -1099,6 +1100,7 @@ private def castPartition {n m : ℕ} (h : n = m) (p : Partition n) : Partition 
 private lemma castPartition_parts {n m : ℕ} (h : n = m) (p : Partition n) :
     (castPartition h p).parts = p.parts := rfl
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Bijection: partsWithOne k n ↔ partitions of (n-1) into (k-1) parts. -/
 lemma partsWithOne_card_eq {k n : ℕ} (hk : k > 0) (hn : n > 0) :
     (partsWithOne k n).card = partsCount (k - 1) (n - 1) := by
@@ -1161,7 +1163,7 @@ lemma partsWithoutOne_card_eq {k n : ℕ} (hk : k > 0) :
       omega
     rw [h1, h2]
   · -- When n ≥ k
-    push_neg at hn
+    push Not at hn
     have hn_eq : n - k + k = n := Nat.sub_add_cancel hn
     apply Finset.card_bij (fun p hp => by
       have hmem := Finset.mem_filter.mp hp
@@ -1259,7 +1261,7 @@ lemma partition_two_parts_form {n : ℕ} (p : Partition n) (hp : p.parts.card = 
   rw [Multiset.card_eq_two] at hp
   obtain ⟨a, b, hab⟩ := hp
   wlog h : b ≤ a generalizing a b
-  · push_neg at h
+  · push Not at h
     have hab' : p.parts = {b, a} := by
       rw [hab]; ext x
       simp only [Multiset.insert_eq_cons, Multiset.count_cons, Multiset.count_singleton]
@@ -1410,7 +1412,7 @@ theorem partitionCount_genFun :
 theorem partitionCount_genFun_partsLeq (m : ℕ) :
     HasProd (fun k => if k + 1 ≤ m then ∑' j : ℕ, (X : R⟦X⟧) ^ ((k + 1) * j) else 1)
       (PowerSeries.mk fun n => (partsLeqCount m n : R)) := by
-  convert hasProd_powerSeriesMk_card_restricted R (· ≤ m) using 1
+  convert hasProd_powerSeriesMk_card_restricted R (· ≤ m) using 1; rfl
 
 /-- The generating function for partitions with parts ≤ m, expressed as a finite product:
     `∑_{n≥0} p_{parts≤m}(n) x^n = ∏_{k=1}^m (∑_{j≥0} x^{kj})`.
@@ -1432,13 +1434,13 @@ theorem partitionCount_genFun_partsLeq_finprod (m : ℕ) :
     apply Finset.prod_congr rfl
     intro k hk
     simp only [mem_range] at hk
-    simp only [show k + 1 ≤ m by omega, if_true]
+    simp only [show k + 1 ≤ m by omega, ite_true]
   rw [hprod]
   symm
   apply tprod_eq_prod
   intro k hk
   simp only [mem_range, not_lt] at hk
-  simp only [show ¬(k + 1 ≤ m) by omega, if_false]
+  simp only [show ¬(k + 1 ≤ m) by omega, ite_false]
 
 /-- The number of partitions with parts ≤ m equals the n-th coefficient
     of the finite product ∏_{k=1}^m (∑_{j≥0} x^{kj}).
@@ -1468,7 +1470,7 @@ theorem partsLeqCount_eq_coeff (m n : ℕ) :
 theorem partitionCount_genFun_partsIn (I : Set ℕ) [DecidablePred (· ∈ I)] :
     HasProd (fun k => if (k + 1) ∈ I then ∑' j : ℕ, (X : R⟦X⟧) ^ ((k + 1) * j) else 1)
       (PowerSeries.mk fun n => (partsInCount I n : R)) := by
-  convert hasProd_powerSeriesMk_card_restricted R (· ∈ I) using 1
+  convert hasProd_powerSeriesMk_card_restricted R (· ∈ I) using 1; rfl
 
 /-- The infinite product form of the generating function for partitions with parts in I.
     This is the `tprod` version of `partitionCount_genFun_partsIn`.
@@ -1759,7 +1761,7 @@ lemma sorted_countP_gt_iff {sl : List ℕ} (hsl : sl.Pairwise (· ≥ ·)) (j : 
   · -- If countP > j, then sl[j] > i
     intro h
     by_contra hle
-    push_neg at hle
+    push Not at hle
     -- If sl[j] ≤ i, then sl[j], sl[j+1], ... are all ≤ i, so countP ≤ j
     have hcount : sl.countP (· > i) ≤ j := by
       have htake : (sl.take j).countP (· > i) + (sl.drop j).countP (· > i) = sl.countP (· > i) := by
@@ -1831,7 +1833,7 @@ theorem transpose_transpose {n : ℕ} (p : Partition n) : p.transpose.transpose 
   · -- For k > 0, the proof uses the Young diagram involution property.
       -- The key insight is that transpose.transpose.parts = p.parts as multisets.
       -- This follows from the bijection property of Young diagrams.
-      push_neg at hk
+      push Not at hk
       have hk_pos : 0 < k := Nat.pos_of_ne_zero hk
       -- Set up the sorted list representation
       set sl := p.parts.sort (· ≥ ·) with hsl_def
@@ -2096,7 +2098,7 @@ lemma filter_card_pos_of_lt_largest {n : ℕ} (p : Partition n) (i : ℕ)
     (hi : i < p.parts.fold max 0) : 0 < (p.parts.filter (· > i)).card := by
   have h : ∃ x ∈ p.parts, x > i := by
     by_contra hc
-    push_neg at hc
+    push Not at hc
     have hmax : p.parts.fold max 0 ≤ i := fold_max_le_of_all_le p.parts i hc
     omega
   obtain ⟨x, hx_mem, hx_gt⟩ := h
@@ -2165,7 +2167,7 @@ theorem transpose_largestPart_eq_length {n : ℕ} (p : Partition n) :
     simp only [h_empty, Multiset.card_zero]
     rfl
   · -- Case: largest part > 0
-    push_neg at hn
+    push Not at hn
     have hpos : 0 < p.parts.fold max 0 := Nat.pos_of_ne_zero hn
     have h_first : (p.parts.filter (· > 0)).card = p.parts.card := filter_gt_zero_card_eq p
 
@@ -2357,7 +2359,7 @@ private lemma fold_max_mem_of_nonempty {m : Multiset ℕ} (h : m ≠ 0) :
     · simp [hm']
     · by_cases ha : a ≥ m'.fold max 0
       · left; exact max_eq_left ha
-      · push_neg at ha
+      · push Not at ha
         right
         rw [max_eq_right (le_of_lt ha)]
         exact ih hm'
@@ -2536,7 +2538,7 @@ theorem partsAndLargestCountTotal_eq (k ℓ : ℕ) (hk : k ≥ 1) (hℓ : ℓ �
     simp only [Multiset.count_filter, symToPartsMultiset]
     split_ifs with h
     · rfl
-    · push_neg at h
+    · push Not at h
       subst h
       symm
       rw [Multiset.count_eq_zero]
@@ -2620,7 +2622,7 @@ theorem partsAndLargestCountTotal_eq (k ℓ : ℕ) (hk : k ≥ 1) (hℓ : ℓ �
       · simp [hm']
       · by_cases ha : a ≥ m.fold max 0
         · simp [max_eq_left ha]
-        · push_neg at ha
+        · push Not at ha
           simp only [max_eq_right (le_of_lt ha)]
           exact Multiset.mem_cons_of_mem (ih hm')
   
@@ -2878,11 +2880,11 @@ lemma coeff_S (n : ℕ) : coeff n S = if n = 0 then 0 else divisorSum n := by
 
 /-- The coefficient of x^n in X · P' equals n · p(n). -/
 lemma coeff_X_mul_derivative_P (n : ℕ) :
-    coeff n (X * d⁄dX ℤ P) = n * coeff n P := by
+    coeff n (X * d⁄dX P) = n * coeff n P := by
   rcases n with _ | n
   · simp [coeff_zero_eq_constantCoeff_apply]
-  · change coeff (n + 1) (X * P.derivativeFun) = (n + 1) * coeff (n + 1) P
-    rw [coeff_succ_X_mul, coeff_derivativeFun]
+  · change coeff (n + 1) (X * d⁄dX P) = (n + 1) * coeff (n + 1) P
+    rw [coeff_succ_X_mul, coeff_derivative]
     ring
 
 /-- The coefficient of x^n in S · P equals ∑_{k=1}^n σ(k) · p(n-k). -/
@@ -2892,8 +2894,8 @@ lemma coeff_S_mul_P (n : ℕ) :
   simp only [coeff_S, coeff_P]
   rw [Nat.sum_antidiagonal_eq_sum_range_succ_mk]
   rw [sum_range_succ']
-  simp only [if_true, CharP.cast_eq_zero, zero_mul]
-  simp only [Nat.succ_ne_zero, if_false, add_zero]
+  simp only [ite_true, CharP.cast_eq_zero, zero_mul]
+  simp only [Nat.succ_ne_zero, ite_false, add_zero]
   simp only [Nat.cast_sum, Nat.cast_mul, Nat.sub_sub]
 
 end DivisorSumRecurrence
@@ -3454,7 +3456,7 @@ theorem partitionCount_divisorSum (n : ℕ) :
 
 This follows from the combinatorial identity `partitionCount_divisorSum` by
 comparing coefficients. -/
-theorem X_mul_derivative_P_eq_S_mul_P : X * d⁄dX ℤ P = S * P := by
+theorem X_mul_derivative_P_eq_S_mul_P : X * d⁄dX P = S * P := by
   ext n
   rw [coeff_X_mul_derivative_P, coeff_S_mul_P, coeff_P]
   exact_mod_cast partitionCount_divisorSum n

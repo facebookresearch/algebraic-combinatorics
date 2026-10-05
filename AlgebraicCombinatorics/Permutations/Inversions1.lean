@@ -158,6 +158,7 @@ theorem invCount_le_choose (σ : Equiv.Perm (Fin n)) : invCount σ ≤ n.choose 
           exact hp.1
       _ = n.choose 2 := hcard
 
+set_option backward.isDefEq.respectTransparency false in
 /--
 The only permutation σ ∈ S_n with ℓ(σ) = 0 is the identity map.
 
@@ -172,7 +173,7 @@ theorem invCount_eq_zero_iff (σ : Equiv.Perm (Fin n)) : invCount σ = 0 ↔ σ 
     have hσ : StrictMono σ := by
       intro a b hab
       by_contra hle
-      push_neg at hle
+      push Not at hle
       have hne : σ a ≠ σ b := σ.injective.ne (ne_of_lt hab)
       have hgt : σ a > σ b := lt_of_le_of_ne hle hne.symm
       have hmem : (a, b) ∈ inv σ := by
@@ -200,6 +201,7 @@ theorem invCount_eq_zero_iff (σ : Equiv.Perm (Fin n)) : invCount σ = 0 ↔ σ 
     intro hij
     exact le_of_lt hij
 
+set_option backward.isDefEq.respectTransparency false in
 /--
 The identity permutation has no inversions.
 
@@ -254,6 +256,7 @@ theorem invCount_inv (σ : Equiv.Perm (Fin n)) : invCount σ⁻¹ = invCount σ 
     intro ⟨i, j⟩ _
     simp
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The inversion count of a product is bounded by the sum of inversion counts.
     This is not an equality in general (the triangle inequality for inversions). -/
 theorem invCount_mul_le (σ τ : Equiv.Perm (Fin n)) :
@@ -279,7 +282,7 @@ theorem invCount_mul_le (σ τ : Equiv.Perm (Fin n)) :
       simp only [mem_filter, mem_univ, true_and]
       exact ⟨hij_lt, hτ⟩
     · -- Case: τ(i) ≤ τ(j), so we need τ(i) < τ(j) and (τ(i), τ(j)) is an inversion of σ
-      push_neg at hτ
+      push Not at hτ
       have hτ_lt : τ i < τ j := by
         cases hτ.lt_or_eq with
         | inl h => exact h
@@ -339,6 +342,7 @@ theorem longestElement_eq_revPerm : longestElement n = Fin.revPerm := by
   simp only [longestElement, Equiv.coe_fn_mk, Fin.revPerm_apply, Fin.rev]
   omega
 
+set_option backward.isDefEq.respectTransparency false in
 /--
 The set of inversions of the longest element w₀ is exactly the set of all pairs (i, j)
 with i < j. That is, every pair is an inversion.
@@ -384,6 +388,7 @@ theorem invCount_longestElement : invCount (longestElement n) = n.choose 2 := by
     intro i hi; simp only [Finset.mem_range] at hi; omega
   rw [h4, Finset.sum_range_id]
 
+set_option backward.isDefEq.respectTransparency false in
 /--
 The only permutation σ ∈ S_n with ℓ(σ) = n choose 2 is w₀.
 
@@ -463,7 +468,7 @@ theorem invCount_eq_choose_iff (σ : Equiv.Perm (Fin n)) :
         simp only [mem_filter, mem_univ, true_and]
         constructor
         · intro hsj
-          by_contra hji; push_neg at hji
+          by_contra hji; push Not at hji
           rcases hji.lt_or_eq with hlt | heq'
           · have := h i j hlt; omega
           · subst heq'; exact lt_irrefl (τ i) hsj
@@ -576,6 +581,7 @@ private lemma unique_inv_adjacent {m : ℕ} (σ : Equiv.Perm (Fin m)) (a b : Fin
       rw [hab] at hinv'; simp only [Finset.mem_singleton, Prod.mk.injEq] at hinv'
       exact (Fin.ne_of_lt hac) hinv'.1.symm
 
+set_option backward.isDefEq.respectTransparency false in
 /-- If inv σ = {(a, b)} with adjacent a, b, then σ = swap a b -/
 private lemma eq_swap_of_unique_adjacent_inv {m : ℕ} (σ : Equiv.Perm (Fin m)) (a b : Fin m)
     (hab : inv σ = {(a, b)}) (hadj : b.val = a.val + 1) : σ = Equiv.swap a b := by
@@ -584,7 +590,7 @@ private lemma eq_swap_of_unique_adjacent_inv {m : ℕ} (σ : Equiv.Perm (Fin m))
   obtain ⟨hab_lt, hab_gt⟩ := hinv
   have hno_other_inv : ∀ x y : Fin m, x < y → (x, y) ≠ (a, b) → σ x < σ y := by
     intro x y hxy hne
-    by_contra h; push_neg at h
+    by_contra h; push Not at h
     have hne' : σ x ≠ σ y := σ.injective.ne (Fin.ne_of_lt hxy)
     have hgt : σ x > σ y := lt_of_le_of_ne h hne'.symm
     have hmem : (x, y) ∈ inv σ := by simp only [inv, Finset.mem_filter, Finset.mem_univ, true_and]; exact ⟨hxy, hgt⟩
@@ -615,7 +621,7 @@ private lemma eq_swap_of_unique_adjacent_inv {m : ℕ} (σ : Equiv.Perm (Fin m))
               have ha_lt_y : a < y := lt_trans hab_lt (hxb ▸ hxy)
               by_cases hσa_le_σy : σ a ≤ σ y
               · exact hσa_le_σy
-              · push_neg at hσa_le_σy
+              · push Not at hσa_le_σy
                 have hay_ne : (a, y) ≠ (a, b) := fun heq => hyb (Prod.mk.inj heq).2
                 have hσa_lt_σy := hno_other_inv a y ha_lt_y hay_ne
                 exact le_of_lt hσa_lt_σy
@@ -627,7 +633,7 @@ private lemma eq_swap_of_unique_adjacent_inv {m : ℕ} (σ : Equiv.Perm (Fin m))
             have hx_lt_b : x < b := lt_trans (hya ▸ hxy) hab_lt
             by_cases hσx_le_σb : σ x ≤ σ b
             · exact hσx_le_σb
-            · push_neg at hσx_le_σb
+            · push Not at hσx_le_σb
               have hxb_ne : (x, b) ≠ (a, b) := fun heq => hxa (Prod.mk.inj heq).1
               have hσx_lt_σb := hno_other_inv x b hx_lt_b hxb_ne
               exact le_of_lt hσx_lt_σb
@@ -647,7 +653,7 @@ private lemma eq_swap_of_unique_adjacent_inv {m : ℕ} (σ : Equiv.Perm (Fin m))
     exact (not_lt.mpr hle) hgt
   have hprod_inv : inv (σ * Equiv.swap a b) = ∅ := by
     rw [← Finset.card_eq_zero]
-    by_contra hne; push_neg at hne
+    by_contra hne; push Not at hne
     have ⟨p, hp⟩ := Finset.card_pos.mp (Nat.pos_of_ne_zero hne)
     exact hprod_inv_empty p hp
   have hprod_id : σ * Equiv.swap a b = 1 := by
@@ -893,7 +899,7 @@ private lemma typeA_injOn (m : ℕ) :
       Equiv.swap (Fin.castSucc p.1) (Fin.succ p.1) *
       Equiv.swap (Fin.castSucc p.2) (Fin.succ p.2)) pairsLt := by
   intro pairsLt ⟨i, j⟩ hij ⟨i', j'⟩ hi'j' heq
-  simp only [pairsLt, Finset.coe_filter, Set.mem_setOf_eq] at hij hi'j'
+  simp only [pairsLt, Finset.coe_filter, Set.mem_ofPred_eq] at hij hi'j'
   have hij' : i < j := hij.2; have hi'j'' : i' < j' := hi'j'.2
   simp only [Prod.mk.injEq]
   have hi_eq : i = i' := by
@@ -1080,6 +1086,7 @@ private lemma card_typeB_helper (m : ℕ) :
       have : j.val = j.val + 2 := Fin.mk.inj heq
       omega
 
+set_option backward.isDefEq.respectTransparency false in
 theorem card_invCount_eq_two (hn : 2 ≤ n) :
     (Finset.univ.filter (fun σ : Equiv.Perm (Fin n) => invCount σ = 2)).card =
     (n - 2) * (n + 1) / 2 := by
@@ -1781,7 +1788,7 @@ theorem card_invCount_eq_two (hn : 2 ≤ n) :
                 ext; simp [Finset.mem_insert, Finset.mem_singleton, or_comm]
               rw [hswap, hc_eq_ci, hd_eq_si, ha_eq_cj, hb_eq_sj, hinv_τ]
         · -- At least one has gap > 1: use two_inv_gap_constraint
-          push_neg at hboth_gap1
+          push Not at hboth_gap1
           by_cases hab_gap1 : b.val = a.val + 1
           · -- (a,b) has gap 1, (c,d) has gap > 1
             have hcd_gap : d.val > c.val + 1 := by omega
@@ -1932,7 +1939,7 @@ theorem card_invCount_eq_two (hn : 2 ≤ n) :
                   rcases hce_mem with ⟨_, he_eq_b⟩ | ⟨_, he_eq_b⟩
                   · simp only [he_def, Fin.ext_iff] at he_eq_b; omega
                   · simp only [he_def, Fin.ext_iff] at he_eq_b; omega
-                · push_neg at hce_inv
+                · push Not at hce_inv
                   by_cases heb_inv : σ e > σ b
                   · have heb_mem : (e, b) ∈ inv σ := by
                       simp only [inv, Finset.mem_filter, Finset.mem_univ, true_and]; exact ⟨heb, heb_inv⟩
@@ -1941,7 +1948,7 @@ theorem card_invCount_eq_two (hn : 2 ≤ n) :
                     rcases heb_mem with ⟨he_eq_c, _⟩ | ⟨he_eq_a, _⟩
                     · simp only [he_def, Fin.ext_iff] at he_eq_c; omega
                     · simp only [he_def, Fin.ext_iff] at he_eq_a; omega
-                  · push_neg at heb_inv
+                  · push Not at heb_inv
                     exact not_lt.mpr (le_trans hce_inv heb_inv) hcb_gt
               -- Construct Type A adjacent witness
               have ha_bound : a.val < m + 1 := by have := b.isLt; omega
@@ -2519,7 +2526,7 @@ private lemma inv_union_nonInv (σ : Equiv.Perm (Fin n)) :
     by_cases h : σ i > σ j
     · left; exact ⟨hij, h⟩
     · right
-      push_neg at h
+      push Not at h
       have hne : σ i ≠ σ j := σ.injective.ne (Fin.ne_of_lt hij)
       exact ⟨hij, lt_of_le_of_ne h hne⟩
 
@@ -2707,7 +2714,7 @@ def Iic0 (m : ℤ) : Set ℕ := {n : ℕ | (n : ℤ) ≤ m}
 /-- [m]_0 is empty when m < 0 -/
 theorem Iic0_eq_empty_of_neg {m : ℤ} (hm : m < 0) : Iic0 m = ∅ := by
   ext n
-  simp only [Iic0, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+  simp only [Iic0, Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false]
   intro hn
   have : (n : ℤ) ≥ 0 := Int.natCast_nonneg n
   omega
@@ -2716,7 +2723,7 @@ theorem Iic0_eq_empty_of_neg {m : ℤ} (hm : m < 0) : Iic0 m = ∅ := by
 theorem Iic0_eq_Iic_of_nonneg {m : ℤ} (hm : 0 ≤ m) :
     Iic0 m = Set.Iic m.toNat := by
   ext n
-  simp only [Iic0, Set.mem_setOf_eq, Set.mem_Iic]
+  simp only [Iic0, Set.mem_ofPred_eq, Set.mem_Iic]
   constructor
   · intro hn
     have h : (n : ℤ).toNat ≤ m.toNat := Int.toNat_le_toNat hn
@@ -2737,7 +2744,7 @@ def Iic0Nat (m : ℕ) : Set ℕ := Set.Iic m
 /-- [m]_0 for natural numbers equals the integer version -/
 theorem Iic0Nat_eq_Iic0 (m : ℕ) : Iic0Nat m = Iic0 m := by
   ext n
-  simp only [Iic0Nat, Set.mem_Iic, Iic0, Set.mem_setOf_eq, Int.ofNat_le]
+  simp only [Iic0Nat, Set.mem_Iic, Iic0, Set.mem_ofPred_eq, Int.ofNat_le]
 
 /-- The cardinality of [m]_0 for natural numbers is m + 1 -/
 theorem card_Iic0Nat (m : ℕ) : (Iic0Nat m).ncard = m + 1 := by
@@ -2745,7 +2752,7 @@ theorem card_Iic0Nat (m : ℕ) : (Iic0Nat m).ncard = m + 1 := by
 
 /-- Membership characterization for [m]_0 -/
 theorem mem_Iic0_iff {m : ℤ} {n : ℕ} : n ∈ Iic0 m ↔ (n : ℤ) ≤ m := by
-  simp only [Iic0, Set.mem_setOf_eq]
+  simp only [Iic0, Set.mem_ofPred_eq]
 
 /-- Membership characterization for [m]_0 with natural numbers -/
 theorem mem_Iic0Nat_iff {m n : ℕ} : n ∈ Iic0Nat m ↔ n ≤ m := by
@@ -2924,7 +2931,7 @@ theorem card_lehmerCodeSet (n : ℕ) :
   -- Express lehmerCodeSet as a pi set
   have h : lehmerCodeSet n = Set.pi Set.univ (fun i : Fin n => Set.Iic (n - 1 - i.val)) := by
     ext f
-    simp only [lehmerCodeSet, Set.mem_setOf_eq, Set.mem_pi, Set.mem_univ, Set.mem_Iic, true_implies]
+    simp only [lehmerCodeSet, Set.mem_ofPred_eq, Set.mem_pi, Set.mem_univ, Set.mem_Iic, true_implies]
   rw [h]
   -- Show the pi set is finite
   have hfin : (Set.pi Set.univ (fun i : Fin n => Set.Iic (n - 1 - i.val))).Finite := by
@@ -2973,7 +2980,7 @@ private lemma lehmerEntry_eq_countSmaller {n : ℕ} (σ : Equiv.Perm (Fin n)) (i
     simp only [Finset.mem_filter, Finset.mem_univ, true_and]
     refine ⟨?_, ?_⟩
     · by_contra h
-      push_neg at h
+      push Not at h
       have hsx : σ (σ.symm x) = x := σ.apply_symm_apply x
       rcases h.lt_or_eq with hlt | heq
       · exact hx.1 (σ.symm x) hlt hsx
@@ -3072,7 +3079,7 @@ theorem Perm.lehmerCode_bijective (n : ℕ) :
     apply Set.Finite.subset (s := {f : Fin n → ℕ | ∀ i, f i ∈ Set.Iic (n - 1 - i.val)})
     · exact Set.Finite.pi' (fun i => Set.finite_Iic _)
     · intro f hf
-      simp only [Set.mem_setOf_eq, Set.mem_Iic]
+      simp only [Set.mem_ofPred_eq, Set.mem_Iic]
       exact hf
   haveI : Fintype (lehmerCodeSet n) := hfinite.fintype
   -- Bijective iff injective and equal cardinality
@@ -3174,7 +3181,7 @@ theorem lexLt_trichotomous {n : ℕ} (a b : Fin n → ℤ) (hab : a ≠ b) :
   -- There exists some index where they differ
   have h : ∃ i, a i ≠ b i := Function.ne_iff.mp hab
   -- Find the minimal such index using well-founded recursion on Fin n
-  have wf : WellFounded (fun (i j : Fin n) => i < j) := IsWellFounded.wf
+  have wf : WellFounded (fun (i j : Fin n) => i < j) := wellFounded_lt
   obtain ⟨k, hk_mem, hk_min⟩ := wf.has_min {i : Fin n | a i ≠ b i} h
   have hk : a k ≠ b k := hk_mem
   have hk_min' : ∀ i, i < k → a i = b i := by
@@ -3239,7 +3246,7 @@ lemma Perm.lehmerEntry_eq_card_filter {n : ℕ} (σ : Equiv.Perm (Fin n)) (i : F
     · simp only [Finset.mem_filter, Finset.mem_univ, true_and]
       constructor
       · by_contra h_not_lt
-        push_neg at h_not_lt
+        push Not at h_not_lt
         rcases h_not_lt.lt_or_eq with h_lt | h_eq
         · apply hv.2
           simp only [Finset.mem_image, Finset.mem_filter, Finset.mem_univ, true_and]
@@ -3337,7 +3344,7 @@ private lemma lehmerEntry_lt_of_agree_below_and_lt {n : ℕ} (σ τ : Equiv.Perm
   -- σ(k) is not in S_σ (since σ(k) is not < σ(k))
   have h_σk_notin_S_σ : σ k ∉ S_σ := by
     rw [hS_σ_def, Finset.mem_filter]
-    push_neg
+    push Not
     intro _ h_absurd
     exact absurd h_absurd (Nat.lt_irrefl _)
   -- Therefore S_σ is a proper subset of S_τ

@@ -481,9 +481,7 @@ consider the underlying undirected graph structure. -/
     (def.perm.notations (c)) -/
 def cycleDigraph {n : ℕ} (σ : Sn n) : SimpleGraph (Fin n) where
   Adj i j := i ≠ j ∧ (σ i = j ∨ σ j = i)
-  symm := by
-    intro i j ⟨hne, h⟩
-    exact ⟨hne.symm, h.symm⟩
+  symm := ⟨fun _ _ ⟨hne, h⟩ => ⟨hne.symm, h.symm⟩⟩
   loopless := ⟨fun _ ⟨hn, _⟩ => hn rfl⟩
 
 /-- Two vertices are adjacent in the cycle digraph iff one maps to the other under σ. -/
@@ -660,7 +658,7 @@ private lemma swap_eq_swap_iff {X : Type*} [DecidableEq X] {x y a b : X} (hxy : 
 /-- Two swaps are equal iff their Sym2 representations are equal. -/
 private lemma swap_eq_iff_sym2_eq {X : Type*} [DecidableEq X] {x₁ y₁ x₂ y₂ : X}
     (h₁ : x₁ ≠ y₁) (h₂ : x₂ ≠ y₂) :
-    Equiv.swap x₁ y₁ = Equiv.swap x₂ y₂ ↔ Sym2.mk (x₁, y₁) = Sym2.mk (x₂, y₂) := by
+    Equiv.swap x₁ y₁ = Equiv.swap x₂ y₂ ↔ s(x₁, y₁) = s(x₂, y₂) := by
   rw [Sym2.eq_iff, swap_eq_swap_iff h₁ h₂]
 
 /-- Extract a canonical pair from a swap. -/
@@ -703,11 +701,12 @@ theorem num_transpositions (X : Type*) [DecidableEq X] [Fintype X] :
       simp only [Fintype.card_subtype] at h
       exact h
     rw [← hT]
+    show (Finset.univ.filter (fun σ : Equiv.Perm X => σ.support.card = 2)).card = T.card
     -- Define the bijection: σ ↦ Sym2.mk (swapToPair σ)
     apply Finset.card_bij (fun σ hσ =>
       let h := Equiv.Perm.card_support_eq_two.mp (Finset.mem_filter.mp hσ).2
       let p := swapToPair σ h
-      Sym2.mk p)
+      Sym2.mk p.1 p.2)
     -- hi : i maps S to T
     · intro σ hσ
       rw [Finset.mem_filter]
@@ -722,7 +721,8 @@ theorem num_transpositions (X : Type*) [DecidableEq X] [Fintype X] :
       have h₂ : σ₂.IsSwap := Equiv.Perm.card_support_eq_two.mp (Finset.mem_filter.mp hσ₂).2
       have hp₁ := swapToPair_spec σ₁ h₁
       have hp₂ := swapToPair_spec σ₂ h₂
-      have hsym : Sym2.mk (swapToPair σ₁ h₁) = Sym2.mk (swapToPair σ₂ h₂) := heq
+      have hsym : Sym2.mk (swapToPair σ₁ h₁).1 (swapToPair σ₁ h₁).2 =
+          Sym2.mk (swapToPair σ₂ h₂).1 (swapToPair σ₂ h₂).2 := heq
       have hswap : Equiv.swap (swapToPair σ₁ h₁).1 (swapToPair σ₁ h₁).2 =
                    Equiv.swap (swapToPair σ₂ h₂).1 (swapToPair σ₂ h₂).2 :=
         (swap_eq_iff_sym2_eq hp₁.1 hp₂.1).mpr hsym
@@ -734,7 +734,7 @@ theorem num_transpositions (X : Type*) [DecidableEq X] [Fintype X] :
       rw [Finset.mem_filter] at hz
       have hnd : ¬z.IsDiag := hz.2
       let p := z.out
-      have hp : z = Sym2.mk p := z.out_eq.symm
+      have hp : z = Sym2.mk p.1 p.2 := z.out_eq.symm
       have hne : p.1 ≠ p.2 := by
         intro h
         apply hnd
@@ -751,9 +751,10 @@ theorem num_transpositions (X : Type*) [DecidableEq X] [Fintype X] :
       have h : σ.IsSwap := Equiv.Perm.card_support_eq_two.mp (Finset.mem_filter.mp hσS).2
       have hq := swapToPair_spec σ h
       have heq : Equiv.swap (swapToPair σ h).1 (swapToPair σ h).2 = Equiv.swap p.1 p.2 := hq.2.symm
-      have hsym : Sym2.mk (swapToPair σ h) = Sym2.mk p :=
+      have hsym : Sym2.mk (swapToPair σ h).1 (swapToPair σ h).2 = Sym2.mk p.1 p.2 :=
         (swap_eq_iff_sym2_eq hq.1 hne).mp heq
-      show Sym2.mk (swapToPair σ (Equiv.Perm.card_support_eq_two.mp (Finset.mem_filter.mp hσS).2)) = z
+      show Sym2.mk (swapToPair σ (Equiv.Perm.card_support_eq_two.mp (Finset.mem_filter.mp hσS).2)).1
+        (swapToPair σ (Equiv.Perm.card_support_eq_two.mp (Finset.mem_filter.mp hσS).2)).2 = z
       rw [hp]
       exact hsym
 
@@ -1259,7 +1260,7 @@ theorem isInvolution_simpleTransposition {n : ℕ} (i : Fin (n - 1)) :
 /-- The order of an involution divides 2. -/
 theorem IsInvolution.orderOf_dvd_two {X : Type*} [Fintype X] {σ : Equiv.Perm X} (h : IsInvolution σ) :
     orderOf σ ∣ 2 := by
-  have h2 : σ ^ 2 = 1 := by simpa [sq] using h
+  have h2 : σ ^ 2 = 1 := by rw [sq]; exact h
   exact orderOf_dvd_of_pow_eq_one h2
 
 /-- An involution has order 1 or 2. -/
@@ -1289,7 +1290,7 @@ theorem not_isInvolution_of_cycle_gt_two {X : Type*} [DecidableEq X] [Fintype X]
   intro h
   -- h says σ * σ = 1, i.e., σ² = 1
   -- This means orderOf σ divides 2
-  have h2 : σ ^ 2 = 1 := by simpa [sq] using h
+  have h2 : σ ^ 2 = 1 := by rw [sq]; exact h
   have hdvd : orderOf σ ∣ 2 := orderOf_dvd_of_pow_eq_one h2
   -- For a cycle, orderOf σ = #σ.support
   rw [hσ.orderOf] at hdvd

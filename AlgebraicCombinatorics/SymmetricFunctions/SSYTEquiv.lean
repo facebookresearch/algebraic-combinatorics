@@ -338,7 +338,7 @@ def toSchurBasicsSkewSSYT {s : SymmetricFunctions.SkewPartition N}
   support := fun c hc => by
     rw [mem_skewYoungDiagram] at hc
     simp only [sfSkewPartition_to_SchurBasics, sfNPartition_to_SchurBasics_parts] at hc
-    push_neg at hc
+    push Not at hc
     by_cases h1 : s.inner.parts c.1 ≤ c.2
     · have h2 := hc h1
       simp only [h1, Nat.not_lt.mpr h2, and_false, ↓reduceDIte]

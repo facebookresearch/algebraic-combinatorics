@@ -211,10 +211,10 @@ theorem omegaInvolution_esymm_succ {σ : Type*} [Fintype σ] [DecidableEq σ]
     {R : Type*} [CommRing R] {n : ℕ} (hn : Fintype.card σ = n) (k : ℕ) (hk : k < n) :
     (omegaInvolution hn ⟨esymm σ R (k + 1), esymm_isSymmetric σ R (k + 1)⟩ : 
       symmetricSubalgebra σ R).val = hsymm σ R (k + 1) := by
-  simp only [omegaInvolution, AlgHom.comp_apply, AlgEquiv.toAlgHom_eq_coe, AlgHom.coe_coe]
+  simp only [omegaInvolution, AlgHom.comp_apply, AlgHom.coe_ofClass]
   have h : (esymmAlgEquiv σ R hn).symm ⟨esymm σ R (k + 1), esymm_isSymmetric σ R (k + 1)⟩ = X ⟨k, hk⟩ := 
     @esymmAlgEquiv_symm_apply σ R n _ _ hn ⟨k, hk⟩
-  rw [h]
+  erw [h]
   simp [hsymmAlgHom]
 
 /-- The ω-involution maps 1 to 1. -/
@@ -328,7 +328,7 @@ theorem hsymm_recurrence_eh {σ : Type*} [Fintype σ] [DecidableEq σ]
   -- From Newton-Girard: ∑_{j=0}^n (-1)^j e_j h_{n-j} = 0
   have ng := newtonGirard_eh_general (σ := σ) (R := R) n hn
   -- Split off the j=0 term: h_n + ∑_{j>0} ... = 0
-  rw [Finset.sum_eq_sum_diff_singleton_add (Finset.mem_range.mpr (Nat.succ_pos n))] at ng
+  rw [Finset.sum_eq_sum_sdiff_singleton_add (Finset.mem_range.mpr (Nat.succ_pos n))] at ng
   simp only [pow_zero, one_mul, esymm_zero, Nat.sub_zero] at ng
   -- ng: ∑_{j>0} (-1)^j e_j h_{n-j} + h_n = 0, so ∑_{j>0} ... = -h_n
   -- Rearrange: h_n = -∑_{j>0} (-1)^j e_j h_{n-j}
@@ -362,7 +362,7 @@ theorem esymm_recurrence_he {σ : Type*} [Fintype σ] [DecidableEq σ]
   -- From symmetric Newton-Girard: ∑_{j=0}^n (-1)^j h_j e_{n-j} = 0
   have ng := newtonGirard_he (σ := σ) (R := R) n hn
   -- Split off the j=0 term
-  rw [Finset.sum_eq_sum_diff_singleton_add (Finset.mem_range.mpr (Nat.succ_pos n))] at ng
+  rw [Finset.sum_eq_sum_sdiff_singleton_add (Finset.mem_range.mpr (Nat.succ_pos n))] at ng
   simp only [pow_zero, one_mul, hsymm_zero, Nat.sub_zero] at ng
   -- ng: ∑_{j>0} (-1)^j h_j e_{n-j} + e_n = 0
   -- Rearrange: e_n = -∑_{j>0} (-1)^j h_j e_{n-j}
@@ -603,7 +603,7 @@ theorem omegaInvolution_involutive {σ : Type*} [Fintype σ] [DecidableEq σ]
     -- ω preserves multiplication
     simp only [map_mul, ih]
     -- Need to show ω(ω(esymmAlgEquiv (X i))) = esymmAlgEquiv (X i)
-    congr 1
+    refine congrArg (HMul.hMul _) ?_
     -- esymmAlgEquiv (X i) = ⟨e_{i+1}, _⟩
     have h1 : (esymmAlgEquiv σ R hn) (X i) = ⟨esymm σ R (i + 1), esymm_isSymmetric σ R (i + 1)⟩ := by
       simp [esymmAlgEquiv, esymmAlgHom]

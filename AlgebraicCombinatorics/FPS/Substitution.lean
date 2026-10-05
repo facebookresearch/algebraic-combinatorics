@@ -118,7 +118,7 @@ theorem fps_comp_coeff_finite (f g : K⟦X⟧) (hg : constantCoeff g = 0) (n : �
   intro d hd
   simp only [Finset.coe_range, Set.mem_Iio]
   by_contra h
-  push_neg at h
+  push Not at h
   have hdn : n < d := Nat.lt_of_succ_le h
   have hz : coeff n (g ^ d) = 0 := fps_subs_wd_firstCoeffs g hg d n hdn
   rw [Function.mem_support] at hd
@@ -294,13 +294,8 @@ theorem fps_subs_X_left (g : K⟦X⟧) (hg : constantCoeff g = 0) :
 /-- **Proposition 7.3.4(g)** (prop.fps.subs.rules)
 g ∘ X = g -/
 theorem fps_subs_X_right (g : K⟦X⟧) :
-    PowerSeries.subst X g = g := by
-  have ha : HasSubst (X : K⟦X⟧) := HasSubst.X'
-  ext n
-  rw [coeff_subst' ha g n]
-  simp only [coeff_X_pow, smul_eq_mul]
-  rw [finsum_eq_single _ n (fun d hd => by simp [hd.symm])]
-  simp
+    PowerSeries.subst X g = g :=
+  PowerSeries.X_subst g
 
 /-- **Proposition 7.3.4(h)** (prop.fps.subs.rules) - Finite sum version
 For a finite sum (∑ᵢ∈s fᵢ), we have (∑ᵢ∈s fᵢ) ∘ g = ∑ᵢ∈s (fᵢ ∘ g). -/
@@ -337,10 +332,10 @@ theorem fps_subs_summable {ι : Type*} (f : ι → K⟦X⟧) (g : K⟦X⟧)
   have h_union : {i | coeff n (PowerSeries.subst g (f i)) ≠ 0} ⊆
       ⋃ k ∈ Finset.range (n + 1), {i | coeff k (f i) ≠ 0} := by
     intro i hi
-    simp only [Set.mem_setOf_eq] at hi
-    simp only [Set.mem_iUnion, Finset.mem_range, Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq] at hi
+    simp only [Set.mem_iUnion, Finset.mem_range, Set.mem_ofPred_eq]
     by_contra h
-    push_neg at h
+    push Not at h
     have hfi : ∀ k ≤ n, coeff k (f i) = 0 := fun k hk => h k (Nat.lt_succ_of_le hk)
     have heq : coeff n (PowerSeries.subst g (f i)) =
         ∑ᶠ d, coeff d (f i) * coeff n (g ^ d) := by
@@ -351,7 +346,7 @@ theorem fps_subs_summable {ι : Type*} (f : ι → K⟦X⟧) (g : K⟦X⟧)
       intro d
       by_cases hd : d ≤ n
       · simp [hfi d hd]
-      · push_neg at hd
+      · push Not at hd
         have hgd : coeff n (g ^ d) = 0 := by
           have h_order : (d : ℕ∞) ≤ (g ^ d).order := le_order_pow_of_constantCoeff_eq_zero d hg
           exact coeff_of_lt_order n (lt_of_lt_of_le (Nat.cast_lt.mpr hd) h_order)
@@ -360,7 +355,7 @@ theorem fps_subs_summable {ι : Type*} (f : ι → K⟦X⟧) (g : K⟦X⟧)
   apply Set.Finite.subset _ h_union
   refine Set.Finite.biUnion ?_ ?_
   · show ({k | k ∈ Finset.range (n + 1)} : Set ℕ).Finite
-    exact Finset.finite_toSet _
+    exact (Finset.range (n + 1)).finite_toSet.subset (fun k hk => by simpa using hk)
   · intro k _
     exact hf k
 
@@ -422,13 +417,13 @@ theorem fps_subs_summableFPSSum {ι : Type*} (f : ι → K⟦X⟧) (g : K⟦X⟧
     intro d i h
     simp only [S_d, Finset.mem_range]
     by_contra hc
-    push_neg at hc
+    push Not at hc
     have : n < d := Nat.lt_of_succ_le hc
     rw [hd_finite d this, mul_zero] at h
     exact h rfl
   have h_supp_i : ∀ d i, coeff d (f i) * coeff n (g ^ d) ≠ 0 → i ∈ S_i := by
     intro d i h
-    simp only [S_i, Set.Finite.mem_toFinset, S_i_set, Set.mem_iUnion, Set.mem_setOf_eq]
+    simp only [S_i, Set.Finite.mem_toFinset, S_i_set, Set.mem_iUnion, Set.mem_ofPred_eq]
     refine ⟨d, ?_, ?_⟩
     · exact h_supp_d d i h
     · intro h_zero
@@ -446,7 +441,7 @@ theorem fps_subs_summableFPSSum {ι : Type*} (f : ι → K⟦X⟧) (g : K⟦X⟧
       simp only [Function.mem_support] at hd
       simp only [S_d, Finset.coe_range, Set.mem_Iio]
       by_contra h
-      push_neg at h
+      push Not at h
       have hdn : n < d := Nat.lt_of_succ_le h
       have hz : ∀ i, coeff d (f i) * coeff n (g ^ d) = 0 := fun i => by
         rw [hd_finite d hdn, mul_zero]
@@ -477,11 +472,11 @@ theorem fps_subs_summableFPSSum {ι : Type*} (f : ι → K⟦X⟧) (g : K⟦X⟧
         · have h_coeff_zero : coeff d (f i) = 0 := by
             by_contra h_ne
             have h_in : i ∈ S_i := by
-              simp only [S_i, Set.Finite.mem_toFinset, S_i_set, Set.mem_iUnion, Set.mem_setOf_eq]
+              simp only [S_i, Set.Finite.mem_toFinset, S_i_set, Set.mem_iUnion, Set.mem_ofPred_eq]
               exact ⟨d, Finset.mem_range.mpr hd, h_ne⟩
             exact h_contra h_in
           rw [h_coeff_zero, zero_mul]
-        · push_neg at hd
+        · push Not at hd
           have hdn : n < d := Nat.lt_of_succ_le hd
           rw [hd_finite d hdn, mul_zero]
       simp only [finsum_eq_zero_of_forall_eq_zero hz, ne_eq, not_true_eq_false] at hi
@@ -494,7 +489,7 @@ theorem fps_subs_summableFPSSum {ι : Type*} (f : ι → K⟦X⟧) (g : K⟦X⟧
     simp only [Function.mem_support] at hd
     simp only [S_d, Finset.coe_range, Set.mem_Iio]
     by_contra h
-    push_neg at h
+    push Not at h
     have hdn : n < d := Nat.lt_of_succ_le h
     rw [hd_finite d hdn, mul_zero] at hd
     exact hd rfl

@@ -190,7 +190,7 @@ theorem fpsLog_one : fpsLog (1 : K⟦X⟧) = 0 := by
       intro d
       match d with
       | 0 => simp [pow_zero]
-      | d + 1 => rw [if_neg (Nat.succ_ne_zero d), zero_pow (Nat.succ_ne_zero d)]
+      | d + 1 => rw [ite_eq_right (Nat.succ_ne_zero d), zero_pow (Nat.succ_ne_zero d)]
     simp_rw [h]
     rw [finsum_eq_zero_of_forall_eq_zero]
     intro d
@@ -303,14 +303,14 @@ theorem fpsExp_add {x y : K⟦X⟧} (hx : constantCoeff x = 0) (hy : constantCoe
 /-- Uniqueness theorem for power series over ℚ-algebras:
     If two power series have the same derivative and constant term, they are equal. -/
 private theorem derivative_ext_Q {f g : K⟦X⟧}
-    (hD : d⁄dX K f = d⁄dX K g) (hc : constantCoeff f = constantCoeff g) : f = g := by
+    (hD : d⁄dX f = d⁄dX g) (hc : constantCoeff f = constantCoeff g) : f = g := by
   ext n
   induction n with
   | zero =>
     simp only [← coeff_zero_eq_constantCoeff_apply] at hc
     exact hc
   | succ n ih =>
-    have h1 : coeff n (d⁄dX K f) = coeff n (d⁄dX K g) := by rw [hD]
+    have h1 : coeff n (d⁄dX f) = coeff n (d⁄dX g) := by rw [hD]
     rw [coeff_derivative, coeff_derivative] at h1
     have hinv : IsUnit ((n + 1 : ℕ) : K) := by
       have h : ((n + 1 : ℕ) : K) = algebraMap ℚ K (n + 1) := by simp
@@ -324,15 +324,15 @@ private theorem derivative_ext_Q {f g : K⟦X⟧}
 
 /-- The derivative of fpsLog using the chain rule. -/
 private theorem derivative_fpsLog {f : K⟦X⟧} (hf : HasConstantTermOne f) :
-    d⁄dX K (fpsLog f) = (d⁄dX K logSeries).subst (f - 1) * d⁄dX K f := by
+    d⁄dX (fpsLog f) = (d⁄dX (logSeries : K⟦X⟧)).subst (f - 1) * d⁄dX f := by
   unfold fpsLog
   have hsub : HasSubst (f - 1) := HasSubst.of_constantCoeff_zero (by
     simp only [HasConstantTermOne] at hf
     rw [map_sub, map_one]
     have : MvPowerSeries.constantCoeff (R := K) (σ := Unit) f = constantCoeff f := rfl
     rw [this, hf, sub_self])
-  rw [derivative_subst K hsub]
-  have h1 : d⁄dX K (1 : K⟦X⟧) = 0 := by rw [← map_one C, derivative_C]
+  rw [derivative_subst hsub]
+  have h1 : d⁄dX (1 : K⟦X⟧) = 0 := by rw [← map_one C, derivative_C]
   simp only [map_sub, h1, sub_zero]
 
 omit [Algebra ℚ K] in
@@ -361,7 +361,7 @@ private theorem subst_X' (a : K⟦X⟧) (ha : HasSubst a) : (X : K⟦X⟧).subst
 
 /-- The derivative of logSeries is the geometric series 1/(1+x). -/
 private theorem derivative_logSeries :
-    d⁄dX K (logSeries (K := K)) = PowerSeries.mk fun n => algebraMap ℚ K ((-1 : ℚ)^n) := by
+    d⁄dX (logSeries (K := K)) = PowerSeries.mk fun n => algebraMap ℚ K ((-1 : ℚ)^n) := by
   ext n
   rw [coeff_derivative]
   simp only [logSeries, coeff_mk]
@@ -398,7 +398,7 @@ private theorem mk_neg_one_pow_mul_one_add_X :
 
 /-- The derivative of logSeries times (1+X) equals 1. -/
 private theorem derivative_logSeries_mul_one_add_X :
-    (d⁄dX K logSeries) * (1 + X) = 1 := by
+    (d⁄dX (logSeries : K⟦X⟧)) * (1 + X) = 1 := by
   rw [derivative_logSeries]
   have h : (PowerSeries.mk fun n => algebraMap ℚ K ((-1 : ℚ)^n)) =
            PowerSeries.mk fun n => (-1 : K)^n := by
@@ -409,14 +409,14 @@ private theorem derivative_logSeries_mul_one_add_X :
 /-- Key lemma: (d/dx logSeries).subst (f-1) * f = 1 when f has constant term 1.
     This encodes that the derivative of log is the reciprocal. -/
 private theorem derivative_logSeries_subst_mul_f {f : K⟦X⟧} (hf : HasConstantTermOne f) :
-    (d⁄dX K logSeries).subst (f - 1) * f = 1 := by
+    (d⁄dX (logSeries : K⟦X⟧)).subst (f - 1) * f = 1 := by
   have hsub : HasSubst (f - 1) := HasSubst.of_constantCoeff_zero (by
     simp only [HasConstantTermOne] at hf
     rw [map_sub, map_one]
     have : MvPowerSeries.constantCoeff (R := K) (σ := Unit) f = constantCoeff f := rfl
     rw [this, hf, sub_self])
   have h1 := derivative_logSeries_mul_one_add_X (K := K)
-  have h2 : ((d⁄dX K logSeries) * (1 + X)).subst (f - 1) = (1 : K⟦X⟧).subst (f - 1) := by
+  have h2 : ((d⁄dX (logSeries : K⟦X⟧)) * (1 + X)).subst (f - 1) = (1 : K⟦X⟧).subst (f - 1) := by
     rw [h1]
   rw [subst_mul hsub] at h2
   have h3 : (1 + X : K⟦X⟧).subst (f - 1) = f := by
@@ -455,41 +455,41 @@ theorem fpsLog_mul {f g : K⟦X⟧} (hf : HasConstantTermOne f) (hg : HasConstan
       rw [map_mul, hf, hg, one_mul]
       exact isUnit_one
     -- We have L_{fg} * (fg) = 1, L_f * f = 1, L_g * g = 1
-    have hL_fg : (d⁄dX K logSeries).subst (f * g - 1) * (f * g) = 1 :=
+    have hL_fg : (d⁄dX (logSeries : K⟦X⟧)).subst (f * g - 1) * (f * g) = 1 :=
       derivative_logSeries_subst_mul_f (hasConstantTermOne_mul hf hg)
-    have hL_f : (d⁄dX K logSeries).subst (f - 1) * f = 1 :=
+    have hL_f : (d⁄dX (logSeries : K⟦X⟧)).subst (f - 1) * f = 1 :=
       derivative_logSeries_subst_mul_f hf
-    have hL_g : (d⁄dX K logSeries).subst (g - 1) * g = 1 :=
+    have hL_g : (d⁄dX (logSeries : K⟦X⟧)).subst (g - 1) * g = 1 :=
       derivative_logSeries_subst_mul_f hg
     -- Show LHS * (fg) = (fg)'
-    have h_lhs : (d⁄dX K logSeries).subst (f * g - 1) * d⁄dX K (f * g) * (f * g) =
-                 d⁄dX K (f * g) := by
-      calc (d⁄dX K logSeries).subst (f * g - 1) * d⁄dX K (f * g) * (f * g)
-          = (d⁄dX K logSeries).subst (f * g - 1) * (f * g) * d⁄dX K (f * g) := by ring
-        _ = 1 * d⁄dX K (f * g) := by rw [hL_fg]
-        _ = d⁄dX K (f * g) := by ring
+    have h_lhs : (d⁄dX (logSeries : K⟦X⟧)).subst (f * g - 1) * d⁄dX (f * g) * (f * g) =
+                 d⁄dX (f * g) := by
+      calc (d⁄dX (logSeries : K⟦X⟧)).subst (f * g - 1) * d⁄dX (f * g) * (f * g)
+          = (d⁄dX (logSeries : K⟦X⟧)).subst (f * g - 1) * (f * g) * d⁄dX (f * g) := by ring
+        _ = 1 * d⁄dX (f * g) := by rw [hL_fg]
+        _ = d⁄dX (f * g) := by ring
     -- Show RHS * (fg) = (fg)'
-    have h_rhs : ((d⁄dX K logSeries).subst (f - 1) * d⁄dX K f +
-                  (d⁄dX K logSeries).subst (g - 1) * d⁄dX K g) * (f * g) =
-                 d⁄dX K (f * g) := by
-      have h_leibniz : d⁄dX K (f * g) = f * d⁄dX K g + g * d⁄dX K f := by
-        have h := (derivative K).leibniz f g
+    have h_rhs : ((d⁄dX (logSeries : K⟦X⟧)).subst (f - 1) * d⁄dX f +
+                  (d⁄dX (logSeries : K⟦X⟧)).subst (g - 1) * d⁄dX g) * (f * g) =
+                 d⁄dX (f * g) := by
+      have h_leibniz : d⁄dX (f * g) = f * d⁄dX g + g * d⁄dX f := by
+        have h := (derivative (R := K)).leibniz f g
         simp only [smul_eq_mul] at h
         exact h
-      calc ((d⁄dX K logSeries).subst (f - 1) * d⁄dX K f +
-            (d⁄dX K logSeries).subst (g - 1) * d⁄dX K g) * (f * g)
-          = (d⁄dX K logSeries).subst (f - 1) * d⁄dX K f * (f * g) +
-            (d⁄dX K logSeries).subst (g - 1) * d⁄dX K g * (f * g) := by ring
-        _ = (d⁄dX K logSeries).subst (f - 1) * f * d⁄dX K f * g +
-            (d⁄dX K logSeries).subst (g - 1) * g * d⁄dX K g * f := by ring
-        _ = 1 * d⁄dX K f * g + 1 * d⁄dX K g * f := by rw [hL_f, hL_g]
-        _ = d⁄dX K f * g + d⁄dX K g * f := by ring
-        _ = g * d⁄dX K f + f * d⁄dX K g := by ring
-        _ = d⁄dX K (f * g) := by rw [h_leibniz]; ring
+      calc ((d⁄dX (logSeries : K⟦X⟧)).subst (f - 1) * d⁄dX f +
+            (d⁄dX (logSeries : K⟦X⟧)).subst (g - 1) * d⁄dX g) * (f * g)
+          = (d⁄dX (logSeries : K⟦X⟧)).subst (f - 1) * d⁄dX f * (f * g) +
+            (d⁄dX (logSeries : K⟦X⟧)).subst (g - 1) * d⁄dX g * (f * g) := by ring
+        _ = (d⁄dX (logSeries : K⟦X⟧)).subst (f - 1) * f * d⁄dX f * g +
+            (d⁄dX (logSeries : K⟦X⟧)).subst (g - 1) * g * d⁄dX g * f := by ring
+        _ = 1 * d⁄dX f * g + 1 * d⁄dX g * f := by rw [hL_f, hL_g]
+        _ = d⁄dX f * g + d⁄dX g * f := by ring
+        _ = g * d⁄dX f + f * d⁄dX g := by ring
+        _ = d⁄dX (f * g) := by rw [h_leibniz]; ring
     -- Now we have LHS * (fg) = RHS * (fg), cancel fg
-    have h_eq : (d⁄dX K logSeries).subst (f * g - 1) * d⁄dX K (f * g) * (f * g) =
-                ((d⁄dX K logSeries).subst (f - 1) * d⁄dX K f +
-                 (d⁄dX K logSeries).subst (g - 1) * d⁄dX K g) * (f * g) := by
+    have h_eq : (d⁄dX (logSeries : K⟦X⟧)).subst (f * g - 1) * d⁄dX (f * g) * (f * g) =
+                ((d⁄dX (logSeries : K⟦X⟧)).subst (f - 1) * d⁄dX f +
+                 (d⁄dX (logSeries : K⟦X⟧)).subst (g - 1) * d⁄dX g) * (f * g) := by
       rw [h_lhs, h_rhs]
     exact hfg_unit.mul_right_cancel h_eq
   · -- Show constant terms are equal
@@ -879,7 +879,7 @@ private theorem polynomial_zero_of_nat_roots (p : Polynomial ℚ)
   intro x hx
   simp only [Set.mem_range] at hx
   obtain ⟨n, rfl⟩ := hx
-  simp only [Set.mem_setOf_eq, Polynomial.IsRoot]
+  simp only [Set.mem_ofPred_eq, Polynomial.IsRoot]
   have h1 : (p.map (algebraMap ℚ K)).eval (↑n : K) = algebraMap ℚ K (p.eval (↑n : ℚ)) := by
     rw [Polynomial.eval_map, Polynomial.eval₂_at_natCast]
   rw [h n] at h1
@@ -1006,7 +1006,7 @@ theorem coeff_fpsPow_eq_coeffExpPoly_eval (k : ℕ) (c : K) :
     simp only [Function.mem_support, ne_eq] at hd
     simp only [Finset.coe_range, Set.mem_Iio]
     by_contra h
-    push_neg at h
+    push Not at h
     have hzero : coeff k ((c • logSeries (K := K))^d) = 0 := by
       rw [coeff_smul_pow, coeff_logSeries_pow_eq_zero_of_gt k d h, smul_zero]
     rw [hzero, smul_zero] at hd
@@ -1014,7 +1014,7 @@ theorem coeff_fpsPow_eq_coeffExpPoly_eval (k : ℕ) (c : K) :
   rw [finsum_eq_sum_of_support_subset _ hsupp]
   -- Now show the sums are equal
   unfold coeffExpPoly
-  rw [Polynomial.map_sum, Polynomial.eval_finset_sum]
+  rw [Polynomial.map_sum, Polynomial.eval_finsetSum]
   congr 1
   ext d
   simp only [Polynomial.map_mul, Polynomial.map_pow, Polynomial.map_C, Polynomial.map_X,
@@ -1435,6 +1435,7 @@ noncomputable def f_series' (n : K) : K⟦X⟧ :=
 /-- The series g = (1+x)^n = binomialSeries K n -/
 noncomputable def g_series' (n : K) : K⟦X⟧ := binomialSeries K n
 
+set_option backward.isDefEq.respectTransparency false in
 omit [Algebra ℚ K] [CharZero K] in
 /-- The coefficient of x^k in f * g equals the LHS of the binomial identity -/
 theorem coeff_f_mul_g' (n : K) (k : ℕ) :
@@ -1709,7 +1710,7 @@ private lemma alternating_sum_antidiagonal_even (m : ℕ) :
   -- Key: for x ∈ antidiagonal (2m), we have (-1)^x.2 = (-1)^x.1
   have h_sym : ∀ x ∈ antidiagonal (2*m), ((-1 : K) ^ x.2 : K) = (-1)^x.1 := by
     intro x hx
-    rw [Finset.mem_antidiagonal] at hx
+    rw [Finset.HasAntidiagonal.mem_antidiagonal] at hx
     have h : (-1 : K)^x.1 * (-1)^x.2 = (-1)^(x.1 + x.2) := by rw [← pow_add]
     rw [hx, h2m_even] at h
     -- (-1)^x.1 * (-1)^x.2 = 1, so (-1)^x.2 = (-1)^x.1
@@ -1889,7 +1890,7 @@ theorem key_product_identity' (n : K) :
       obtain ⟨m, hm⟩ := hk
       subst hm
       have h_even : Even (m + m) := ⟨m, rfl⟩
-      rw [if_pos h_even]
+      rw [ite_eq_left h_even]
       have h_div : (m + m) / 2 = m := by omega
       rw [h_div]
       -- The coefficient identity: ∑_{i+j=2m} (-1)^i * C(-n,i) * C(-n,j) = C(n+m-1,m)
@@ -1975,7 +1976,7 @@ theorem key_product_identity' (n : K) :
         -- Ring.choose (n - 1) 0 = 1
         simp only [Nat.cast_zero, add_zero]
         rw [coeff_mul]
-        simp only [antidiagonal_zero, sum_singleton]
+        simp only [Finset.Nat.antidiagonal_zero, sum_singleton]
         rw [hf'_coeff, hg'_coeff]
         simp only [Ring.choose_zero_right, pow_zero, mul_one]
         | succ m =>
@@ -2148,7 +2149,7 @@ theorem key_product_identity' (n : K) :
               intro c'
               simp only [coeffFn, coeffFnPoly]
               rw [coeff_mul]
-              simp only [Polynomial.map_sum, Polynomial.eval_finset_sum]
+              simp only [Polynomial.map_sum, Polynomial.eval_finsetSum]
               apply Finset.sum_congr rfl
               intro x hx
               simp only [Polynomial.map_smul, Polynomial.eval_smul, smul_eq_mul]
@@ -2199,7 +2200,7 @@ theorem key_product_identity' (n : K) :
           -- Hence chooseFn n = coeffFn n by symmetry
           exact (congrFun h_eq n).symm
     · -- k is odd: coefficient is 0
-      rw [if_neg hk]
+      rw [ite_eq_right hk]
       -- For k odd, the sum ∑_{i+j=k} (-1)^i * C(-n,i) * C(-n,j) = 0
       -- Proof: pair (i, k-i) with (k-i, i). Their sum involves (-1)^i + (-1)^{k-i}.
       -- Since k is odd, i and k-i have opposite parities, so (-1)^i + (-1)^{k-i} = 0.
@@ -2208,7 +2209,7 @@ theorem key_product_identity' (n : K) :
           (-1 : K) ^ x.1 * Ring.choose (-n) x.1 * Ring.choose (-n) x.2 +
           (-1 : K) ^ x.2 * Ring.choose (-n) x.2 * Ring.choose (-n) x.1 = 0 := by
         intro x hx
-        rw [Finset.mem_antidiagonal] at hx
+        rw [Finset.HasAntidiagonal.mem_antidiagonal] at hx
         have h : (-1 : K) ^ x.1 + (-1 : K) ^ x.2 = 0 := by
           have hsum_odd : Odd (x.1 + x.2) := by rw [hx]; exact hodd
           rw [Nat.odd_add] at hsum_odd
@@ -2303,7 +2304,7 @@ theorem fpsPow_int {K' : Type*} [Field K'] [Algebra ℚ K'] {f : K'⟦X⟧}
     exact fpsPow_nat hf n.toNat
   · -- Case n < 0
     simp only [hn, ↓reduceIte]
-    push_neg at hn
+    push Not at hn
     have hpos : 0 ≤ -n := le_of_lt (Int.neg_pos.mpr hn)
     have h_cast : ((-n) : K') = ((-n).toNat : K') := by
       have h : ((-n).toNat : ℤ) = -n := Int.toNat_of_nonneg hpos
@@ -2361,7 +2362,7 @@ theorem polynomial_identity_trick {R : Type*} [CommRing R] [IsDomain R] [CharZer
     intro x hx
     simp only [Set.mem_range] at hx
     obtain ⟨n, rfl⟩ := hx
-    simp only [Set.mem_setOf_eq, Polynomial.IsRoot, h n]
+    simp only [Set.mem_ofPred_eq, Polynomial.IsRoot, h n]
   exact hnat.mono hsub
 
 end FPS

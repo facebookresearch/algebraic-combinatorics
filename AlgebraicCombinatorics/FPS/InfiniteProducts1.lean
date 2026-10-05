@@ -692,7 +692,7 @@ theorem infprod_union_eq {ι : Type*} {a : ι → K⟦X⟧} {J : Set ι}
     simp only [coeff_mul]
     apply Finset.sum_congr rfl
     intro ⟨i, j⟩ hij
-    simp only [mem_antidiagonal] at hij
+    simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
     rw [h5 i (by omega), h6 j (by omega)]
   rw [h1, h2, h3, h4, h7]
 
@@ -731,7 +731,7 @@ theorem multipliable_mul {ι : Type*} {a b : ι → K⟦X⟧}
   rw [coeff_mul, coeff_mul]
   apply Finset.sum_congr rfl
   intro ⟨p, q⟩ hpq
-  rw [mem_antidiagonal] at hpq
+  rw [Finset.HasAntidiagonal.mem_antidiagonal] at hpq
   -- p + q = n, so p ≤ n and q ≤ n
   have hp : p ≤ n := by omega
   have hq : q ≤ n := by omega
@@ -816,7 +816,7 @@ theorem infprod_mul_eq {ι : Type*} {a b : ι → K⟦X⟧}
     rw [coeff_mul, coeff_mul]
     apply Finset.sum_congr rfl
     intro ⟨p, q⟩ hpq
-    rw [Finset.mem_antidiagonal] at hpq
+    rw [Finset.HasAntidiagonal.mem_antidiagonal] at hpq
     have hp : p ≤ n := by omega
     have hq : q ≤ n := by omega
     rw [coeff_infprod_eq_coeff_finprod ha (hU_det_a p hp),
@@ -865,7 +865,7 @@ theorem multipliable_div {ι : Type*} {a b : ι → K⟦X⟧}
   rw [coeff_mul, coeff_mul]
   apply Finset.sum_congr rfl
   intro ⟨p, q⟩ hpq
-  rw [mem_antidiagonal] at hpq
+  rw [Finset.HasAntidiagonal.mem_antidiagonal] at hpq
   -- p + q = n, so p ≤ n and q ≤ n
   have hp : p ≤ n := by omega
   have hq : q ≤ n := by omega
@@ -924,7 +924,7 @@ theorem multipliable_div {ι : Type*} {a b : ι → K⟦X⟧}
     | _ m ih =>
       cases m with
       | zero =>
-        rw [coeff_invOfUnit, coeff_invOfUnit, if_pos rfl, if_pos rfl]
+        rw [coeff_invOfUnit, coeff_invOfUnit, ite_eq_left rfl, ite_eq_left rfl]
         have huv' : hT_inv.unit⁻¹ = hU_inv.unit⁻¹ := by
           apply Units.ext
           show (hT_inv.unit⁻¹ : Kˣ).val = (hU_inv.unit⁻¹ : Kˣ).val
@@ -933,7 +933,7 @@ theorem multipliable_div {ι : Type*} {a b : ι → K⟦X⟧}
             _ = (hU_inv.unit⁻¹ : Kˣ).val := Ring.inverse_unit hU_inv.unit
         rw [huv']
       | succ k =>
-        rw [coeff_invOfUnit, coeff_invOfUnit, if_neg (Nat.succ_ne_zero k), if_neg (Nat.succ_ne_zero k)]
+        rw [coeff_invOfUnit, coeff_invOfUnit, ite_eq_right (Nat.succ_ne_zero k), ite_eq_right (Nat.succ_ne_zero k)]
         have huv' : hT_inv.unit⁻¹ = hU_inv.unit⁻¹ := by
           apply Units.ext
           show (hT_inv.unit⁻¹ : Kˣ).val = (hU_inv.unit⁻¹ : Kˣ).val
@@ -944,7 +944,7 @@ theorem multipliable_div {ι : Type*} {a b : ι → K⟦X⟧}
         congr 1
         apply Finset.sum_congr rfl
         intro ⟨i, j⟩ hij
-        simp only [Finset.mem_antidiagonal] at hij
+        simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
         split_ifs with hj
         · congr 1
           · exact hb_eq i (by omega)
@@ -1248,7 +1248,7 @@ theorem multipliable_fiber_prods {S W : Type*} {a : S → K⟦X⟧} {f : S → W
     have h_empty : ∀ w ∈ V \ U.image f, U.filter (fun s => f s = w) = ∅ := by
       intro w hw
       rw [Finset.mem_sdiff, Finset.mem_image] at hw
-      push_neg at hw
+      push Not at hw
       rw [Finset.eq_empty_iff_forall_notMem]
       intro s hs
       rw [Finset.mem_filter] at hs
@@ -1509,7 +1509,7 @@ theorem infprod_eq_infprod_fiber {S W : Type*} {a : S → K⟦X⟧} {f : S → W
     intro s hs
     simp only [mem_filter] at hs
     simp only [mem_image] at hnw
-    push_neg at hnw
+    push Not at hnw
     exact absurd hs.2 (hnw s hs.1)
 
   -- And: ∏ w ∈ W', b w ≡[x^n] ∏ w ∈ W', (∏ s ∈ U.filter (f · = w), a s)

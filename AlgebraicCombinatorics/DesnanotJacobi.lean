@@ -479,7 +479,7 @@ lemma sign_Fin_revPerm (m : ℕ) : Equiv.Perm.sign (Fin.revPerm (n := m)) = (-1 
     intro i
     apply Finset.prod_congr rfl
     intro j hj
-    rw [if_neg (h i j (Finset.mem_Ioi.mp hj))]
+    rw [ite_eq_right (h i j (Finset.mem_Ioi.mp hj))]
   simp only [h2, Finset.prod_const, Fin.card_Ioi]
   -- Now need to show ∏ x, (-1)^(m - 1 - x) = (-1)^(m*(m-1)/2)
   conv_lhs =>
@@ -616,7 +616,7 @@ private lemma sign_revPerm_eq : Equiv.Perm.sign (Fin.revPerm (n := n)) = (-1 : �
     apply Finset.prod_congr rfl
     intro j hj
     rw [Finset.mem_Ioi] at hj
-    rw [if_neg]
+    rw [ite_eq_right]
     rw [Fin.revPerm_apply, Fin.revPerm_apply, Fin.rev_lt_rev]
     exact not_lt.mpr (le_of_lt hj)
   rw [h]
@@ -783,7 +783,7 @@ theorem det_laplace_col_zero {m : ℕ} (A : Matrix (Fin (m + 1)) (Fin (m + 1)) R
   -- This equals (Aᵀ.det • 1) r q = Aᵀ.det * δ_{r,q}
   -- Since q ≠ r, this is 0
   simp only [Matrix.smul_apply, Matrix.one_apply, smul_eq_mul, mul_ite, mul_one, mul_zero]
-  rw [if_neg (hqr.symm)]
+  rw [ite_eq_right (hqr.symm)]
 
 /-!
 ## Adjugate Matrix (Definition def.det.adj)
@@ -1577,6 +1577,7 @@ private lemma prod_ite_eq_neg_one_pow {α : Type*} [DecidableEq α] (s : Finset 
     · have hfilter : a ∉ s'.filter (fun x => ¬P x) := by simp [ha]
       rw [card_insert_of_notMem hfilter, pow_succ, mul_comm, ih]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The inversion pairs (i,j) with i ∈ Pᶜ, j ∈ P, i < j have cardinality ∑_{j ∈ P} |{i ∈ Pᶜ : i < j}|. -/
 private lemma card_inversion_pairs {m : ℕ} (P : Finset (Fin m)) :
     (filter (fun p : (Fin m) × (Fin m) => p.1 ∉ P ∧ p.2 ∈ P ∧ p.1 < p.2) 
@@ -1743,7 +1744,6 @@ private noncomputable def restrictToPerm {m : ℕ} (P Q : Finset (Fin m)) (hPQ :
     have hσ2 : σ ↑(eP k2) ∈ Q := hσ' (eP k2) (Finset.coe_mem _)
     have h1 : (eQ.symm ⟨σ (eP k1), hσ1⟩).val = (eQ.symm ⟨σ (eP k2), hσ2⟩).val := by
       have := congrArg Fin.val hk
-      simp only at this
       exact this
     have h2 : eQ.symm ⟨σ (eP k1), hσ1⟩ = eQ.symm ⟨σ (eP k2), hσ2⟩ := Fin.ext h1
     have h3 : (⟨σ (eP k1), hσ1⟩ : Q) = ⟨σ (eP k2), hσ2⟩ := eQ.symm.injective h2
@@ -1767,6 +1767,7 @@ private noncomputable def restrictToPerm {m : ℕ} (P Q : Finset (Fin m)) (hPQ :
     rfl
   exact Equiv.ofBijective f ⟨hf_inj, hf_surj⟩
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Key property of restrictToPerm: σ (eP k) = eQ (τ k) after appropriate casting. -/
 private lemma restrictToPerm_spec {m : ℕ} (P Q : Finset (Fin m)) (hPQ : P.card = Q.card) 
     (σ : Equiv.Perm (Fin m)) (hσ : PermFinset.imageFinset σ P = Q) (k : Fin P.card) :
@@ -1841,6 +1842,7 @@ private lemma constructPermFromPair_image {m : ℕ} (P Q : Finset (Fin m)) (hPQ 
       simp only [k, j, Equiv.apply_symm_apply, finCongr_apply, Fin.cast_cast,
                  Fin.cast_eq_self, OrderIso.apply_symm_apply, Subtype.coe_mk]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The bijection between permutations mapping P to Q and pairs of permutations.
     
     Given σ with σ(P) = Q, we can extract:
@@ -2226,11 +2228,6 @@ private lemma permsMappingEquiv_sign_spec {m : ℕ} (P Q : Finset (Fin m)) (hPQ 
     _ = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) * 
         (Equiv.Perm.sign (sortingPermOfFinset Q) : ℤ) *
         (Equiv.Perm.sign τ : ℤ) * (Equiv.Perm.sign ρ : ℤ) := by ring
-    _ = (Equiv.Perm.sign (sortingPermOfFinset P) : ℤ) * 
-        (Equiv.Perm.sign (sortingPermOfFinset Q) : ℤ) *
-        (Equiv.Perm.sign ((permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩).1 : ℤ) * 
-        (Equiv.Perm.sign ((permsMappingEquiv P Q hPQ) ⟨σ, hσ⟩).2 : ℤ) := by
-      rw [hgoal_simp]
 
 /-- The sign decomposition: for σ ∈ PermFinset.permsMapping P Q with corresponding (τ, ρ),
     sign(σ) = (-1)^(∑ P + ∑ Q) · sign(τ) · sign(ρ)
@@ -3198,7 +3195,7 @@ lemma desnanot_jacobi_5x5 (A : Matrix (Fin 5) (Fin 5) R) :
                A 2 3 * (A 3 1 * A 4 2 - A 3 2 * A 4 1)) := by
     have h := det_fin_four' (submatrixRemove A 0 0)
     simp only [submatrixRemove, submatrix_apply] at h ⊢
-    convert h using 2
+    convert h using 2 <;> rfl
   -- Expand submatrixRemove A (Fin.last 4) (Fin.last 4) (4×4 with rows/cols 0,1,2,3)
   have hll : (submatrixRemove A (Fin.last 4) (Fin.last 4)).det =
       A 0 0 * (A 1 1 * (A 2 2 * A 3 3 - A 2 3 * A 3 2) -
@@ -3215,7 +3212,7 @@ lemma desnanot_jacobi_5x5 (A : Matrix (Fin 5) (Fin 5) R) :
                A 1 2 * (A 2 0 * A 3 1 - A 2 1 * A 3 0)) := by
     have h := det_fin_four' (submatrixRemove A (Fin.last 4) (Fin.last 4))
     simp only [submatrixRemove, submatrix_apply] at h ⊢
-    convert h using 2
+    convert h using 2 <;> rfl
   -- Expand submatrixRemove A 0 (Fin.last 4) (4×4 with rows 1,2,3,4 and cols 0,1,2,3)
   have h0l : (submatrixRemove A 0 (Fin.last 4)).det =
       A 1 0 * (A 2 1 * (A 3 2 * A 4 3 - A 3 3 * A 4 2) -
@@ -3232,7 +3229,7 @@ lemma desnanot_jacobi_5x5 (A : Matrix (Fin 5) (Fin 5) R) :
                A 2 2 * (A 3 0 * A 4 1 - A 3 1 * A 4 0)) := by
     have h := det_fin_four' (submatrixRemove A 0 (Fin.last 4))
     simp only [submatrixRemove, submatrix_apply] at h ⊢
-    convert h using 2
+    convert h using 2 <;> rfl
   -- Expand submatrixRemove A (Fin.last 4) 0 (4×4 with rows 0,1,2,3 and cols 1,2,3,4)
   have hl0 : (submatrixRemove A (Fin.last 4) 0).det =
       A 0 1 * (A 1 2 * (A 2 3 * A 3 4 - A 2 4 * A 3 3) -
@@ -3249,7 +3246,7 @@ lemma desnanot_jacobi_5x5 (A : Matrix (Fin 5) (Fin 5) R) :
                A 1 3 * (A 2 1 * A 3 2 - A 2 2 * A 3 1)) := by
     have h := det_fin_four' (submatrixRemove A (Fin.last 4) 0)
     simp only [submatrixRemove, submatrix_apply] at h ⊢
-    convert h using 2
+    convert h using 2 <;> rfl
   -- Expand the 5×5 determinant
   have hdet : A.det =
       A 0 0 * (A 1 1 * (A 2 2 * (A 3 3 * A 4 4 - A 3 4 * A 4 3) -
@@ -3511,7 +3508,7 @@ lemma submatrixRemove_last_last_det_6x6 (A : Matrix (Fin 6) (Fin 6) R) :
                         A 2 2 * (A 3 0 * A 4 1 - A 3 1 * A 4 0))) := by
   have h := det_fin_five' (submatrixRemove A (Fin.last 5) (Fin.last 5))
   simp only [submatrixRemove, submatrix_apply] at h ⊢
-  convert h using 2
+  convert h using 2 <;> rfl
 
 -- Note: desnanot_jacobi_6x6 is defined later in the file, after desnanot_jacobi_field,
 -- to avoid circular dependencies. See the lemma below desnanot_jacobi_field.
@@ -3561,7 +3558,7 @@ private def finCornerPerm (m : ℕ) : Fin (m + 2) ≃ Fin 2 ⊕ Fin m where
     | Sum.inl ⟨1, _⟩ =>
       simp only [Fin.last, Fin.isValue]
       have hne0 : (⟨m + 1, by omega⟩ : Fin (m + 2)) ≠ 0 := by simp
-      simp only [dif_neg hne0]
+      simp only [dite_eq_right hne0]
       simp
     | Sum.inl ⟨n+2, h⟩ => exact absurd h (by omega)
     | Sum.inr k =>
@@ -3569,7 +3566,7 @@ private def finCornerPerm (m : ℕ) : Fin (m + 2) ≃ Fin 2 ⊕ Fin m where
         simp only [ne_eq, Fin.ext_iff, Fin.val_zero]; omega
       have hnelast : (⟨k.val + 1, by omega⟩ : Fin (m + 2)) ≠ Fin.last (m + 1) := by
         simp only [ne_eq, Fin.ext_iff, Fin.val_last]; omega
-      simp only [dif_neg hne0, dif_neg hnelast, Sum.inr.injEq]
+      simp only [dite_eq_right hne0, dite_eq_right hnelast, Sum.inr.injEq]
       ext; simp only [Nat.add_sub_cancel]
 
 private lemma finCornerPerm_symm_inl_zero (m : ℕ) : (finCornerPerm m).symm (Sum.inl 0) = 0 := rfl
@@ -3694,7 +3691,7 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
   have hadj_inv : ∀ i j, A.adjugate i j = A.det * A⁻¹ i j := by
     intro i j
     rw [nonsing_inv_apply A hunit]
-    simp only [smul_apply, smul_eq_mul]
+    simp only [Matrix.smul_apply, smul_eq_mul]
     have h : (↑hunit.unit⁻¹ : K) = A.det⁻¹ := by
       have hval : (hunit.unit : K) = A.det := hunit.unit_spec
       calc (↑hunit.unit⁻¹ : K) = (hunit.unit : K)⁻¹ := by simp
@@ -3795,7 +3792,7 @@ private lemma complementary_minor_2x2_corner {K : Type*} [Field K] {m : ℕ}
                                   A⁻¹ 0 (Fin.last (m + 1)) * A⁻¹ (Fin.last (m + 1)) 0)) := by ring
             _ = A.det * (innerSubmatrix A).det := by rw [hSchur]
         · -- Case 2: innerSubmatrix is singular (det = 0)
-          push_neg at hInner
+          push Not at hInner
           -- When innerSubmatrix.det = 0, RHS = A.det * 0 = 0
           -- We need to show LHS = 0, which follows from the polynomial identity
           -- det(M.adjugate.toBlocks₁₁) = det(M)^(k-1) * det(M.toBlocks₂₂)
@@ -4503,7 +4500,7 @@ lemma skipTwo_range {m : ℕ} (p q : Fin (m + 2)) (hpq : p < q) :
     Set.range (skipTwo p q hpq) = ({p, q} : Finset (Fin (m + 2)))ᶜ := by
   rw [Fin.skipTwo_range]
   ext x
-  simp only [Set.mem_setOf_eq, Finset.mem_coe, Finset.mem_compl, Finset.mem_insert,
+  simp only [Set.mem_ofPred_eq, Finset.mem_coe, Finset.mem_compl, Finset.mem_insert,
     Finset.mem_singleton, not_or]
 
 /-- skipTwo equals the canonical orderEmbOfFin enumeration of {p,q}ᶜ.
@@ -4535,7 +4532,7 @@ lemma submatrixRemove2_det_eq_submatrixDet_compl {m : ℕ} (A : Matrix (Fin (m +
   unfold submatrixDet
   have hcard_eq : ({p, q} : Finset (Fin (m + 2)))ᶜ.card = ({u, v} : Finset (Fin (m + 2)))ᶜ.card := by
     rw [card_compl_pair p q hpq, card_compl_pair u v huv]
-  rw [dif_pos hcard_eq]
+  rw [dite_eq_left hcard_eq]
   unfold submatrixOfFinsets' submatrixRemove2
   have hP : ({p, q} : Finset (Fin (m + 2)))ᶜ.card = m := card_compl_pair p q hpq
   -- Rewrite Fin.skipTwo using finsetToFin (via the skipTwo alias)
@@ -4708,7 +4705,7 @@ lemma inv_apply_eq_adjugate_div_det {n : ℕ} (A : Matrix (Fin n) (Fin n) K)
     A⁻¹ i j = A.adjugate i j / A.det := by
   have hunit : IsUnit A.det := IsUnit.mk0 _ hA
   rw [Matrix.nonsing_inv_apply _ hunit]
-  simp only [smul_apply, smul_eq_mul]
+  simp only [Matrix.smul_apply, smul_eq_mul]
   have h1 : (↑hunit.unit⁻¹ : K) = A.det⁻¹ := by
     have : (hunit.unit : K) = A.det := hunit.unit_spec
     simp only [Units.val_inv_eq_inv_val, this]
@@ -4733,7 +4730,7 @@ lemma adjugate_submatrix_eq_smul {n : Type*} [DecidableEq n] [Fintype n] {m' : T
   simp only [submatrix_apply]
   have hinv := Matrix.nonsing_inv_apply A h
   rw [hinv]
-  simp only [smul_apply, smul_eq_mul, submatrix_apply]
+  simp only [Matrix.smul_apply, smul_eq_mul, submatrix_apply]
   have hcancel : A.det * ↑h.unit⁻¹ = 1 := IsUnit.mul_val_inv h
   calc A.adjugate (f i) (g j)
       = A.adjugate (f i) (g j) * 1 := by ring
@@ -5015,6 +5012,7 @@ private lemma sortEquiv_composition_maps_Q_to_P {m : ℕ} (P Q : Finset (Fin m))
     rfl
   rw [h1, sortEquivPQ_inl]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The sign of the composition of sorting equivalences equals (-1)^(∑P + ∑Q).
     This is the key sign calculation for the complementary minor theorem.
     
@@ -5315,7 +5313,7 @@ theorem complementary_minor_inverse {m : ℕ} (A : Matrix (Fin m) (Fin m) K) (hA
       -- (since Fin 0 is empty), so det(D') = det(M) ≠ 0, contradicting hD_zero.
       have hk1 : k ≥ 1 := by
         by_contra hk0
-        push_neg at hk0
+        push Not at hk0
         have hk_eq : k = 0 := Nat.lt_one_iff.mp hk0
         -- When k = 0, M.det ≠ 0 but D'.det = 0 is impossible
         have hMdet_ne : M.det ≠ 0 := by
@@ -5630,7 +5628,7 @@ theorem jacobi_complementary_minor_field {m : ℕ} (A : Matrix (Fin m) (Fin m) K
   have hadj_inv : A.adjugate.submatrix (finsetOrderEmb P) (fun i => finsetOrderEmb Q (finCongr hPQ i)) =
       A.det • (A⁻¹.submatrix (finsetOrderEmb P) (fun i => finsetOrderEmb Q (finCongr hPQ i))) := by
     ext i j
-    simp only [submatrix_apply, smul_apply, smul_eq_mul]
+    simp only [submatrix_apply, Matrix.smul_apply, smul_eq_mul]
     exact adjugate_eq_det_smul_inv A hA _ _
   rw [hadj_inv, det_smul, Fintype.card_fin]
   -- Now use complementary_minor_inverse
@@ -5952,7 +5950,7 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
           ext i j
           rw [Matrix.smul_apply, smul_eq_mul]
           rw [nonsing_inv_apply A'' hunit]
-          simp only [smul_apply, smul_eq_mul]
+          simp only [Matrix.smul_apply, smul_eq_mul]
           have h : (↑hunit.unit⁻¹ : FractionRing (MvPolynomial (Fin (m''' + 1 + 1 + 1 + 2) × Fin (m''' + 1 + 1 + 1 + 2)) ℤ)) = A''.det⁻¹ := by
             have hval : (hunit.unit : FractionRing _) = A''.det := hunit.unit_spec
             calc (↑hunit.unit⁻¹ : FractionRing _) = (hunit.unit : FractionRing _)⁻¹ := by simp
@@ -6039,16 +6037,16 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
           have hQpair := orderEmbOfFin_pair p q hpq
           have hP0 : finsetOrderEmb P ⟨0, by rw [hPcard]; omega⟩ = u := by
             simp only [finsetOrderEmb, Function.Embedding.trans_apply, RelIso.coe_toEmbedding]
-            convert hPpair.1
+            convert hPpair.1; exact rfl
           have hP1 : finsetOrderEmb P ⟨1, by rw [hPcard]; omega⟩ = v := by
             simp only [finsetOrderEmb, Function.Embedding.trans_apply, RelIso.coe_toEmbedding]
-            convert hPpair.2
+            convert hPpair.2; exact rfl
           have hQ0 : finsetOrderEmb Q ⟨0, by rw [hQcard]; omega⟩ = p := by
             simp only [finsetOrderEmb, Function.Embedding.trans_apply, RelIso.coe_toEmbedding]
-            convert hQpair.1
+            convert hQpair.1; exact rfl
           have hQ1 : finsetOrderEmb Q ⟨1, by rw [hQcard]; omega⟩ = q := by
             simp only [finsetOrderEmb, Function.Embedding.trans_apply, RelIso.coe_toEmbedding]
-            convert hQpair.2
+            convert hQpair.2; exact rfl
           have hreindex : (A''⁻¹.submatrix (finsetOrderEmb P) 
               (fun i => finsetOrderEmb Q (finCongr hPQ i))).det = 
               ((A''⁻¹.submatrix (finsetOrderEmb P) 
@@ -6073,7 +6071,7 @@ private lemma desnanot_jacobi_direct {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m
           rw [submatrixRemove2_det_eq_submatrixDet_compl]
           unfold submatrixDet submatrixOfFinsets'
           have hcard_eq : Qᶜ.card = Pᶜ.card := by simp only [Finset.card_compl, hPQ]
-          rw [dif_pos hcard_eq]
+          rw [dite_eq_left hcard_eq]
           have heq : A''.submatrix (finsetToFin Qᶜ rfl) (finsetToFin Pᶜ hcard_eq.symm) =
                      A''.submatrix (finsetOrderEmb Qᶜ) 
                       (fun i => finsetOrderEmb Pᶜ (finCongr (by simp only [Finset.card_compl]; omega) i)) := by
@@ -6210,7 +6208,6 @@ theorem desnanot_jacobi_general {m : ℕ} (A : Matrix (Fin (m + 2)) (Fin (m + 2)
        (submatrixRemove A q u).det * (submatrixRemove A p v).det =
        A.det * (submatrixRemove2 A p q u v hpq huv).det := by
     have := congr_arg (fun x => (-1 : R) ^ (p.val + u.val + q.val + v.val) * x) h3
-    simp only at this
     rw [← mul_assoc, neg_one_sq, one_mul] at this
     rw [← mul_assoc, ← mul_assoc, neg_one_sq, one_mul] at this
     exact this
@@ -6269,6 +6266,7 @@ lemma cauchy_det_zero {K : Type*} [Field K] (x y : Fin 0 → K) (h : ∀ i j, x 
     (cauchyMat x y h).det = cauchyNumerator x y / cauchyDenominator x y := by
   simp [cauchyMat, det_fin_zero, cauchyNumerator, cauchyDenominator]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Cauchy determinant for n = 1: det = 1/(x_0 + y_0) -/
 lemma cauchy_det_one {K : Type*} [Field K] (x y : Fin 1 → K) (h : ∀ i j, x i + y j ≠ 0) :
     (cauchyMat x y h).det = cauchyNumerator x y / cauchyDenominator x y := by
@@ -6321,7 +6319,7 @@ private lemma poly_matrix_eq_diag_mul_cauchyMat {K : Type*} [Field K] {m : ℕ} 
     rw [mul_comm]
     exact prod_filter_eq_inv_mul_prod x y h i j
   · intro b _ hbi
-    simp only [if_neg hbi.symm, zero_mul]
+    simp only [ite_eq_right hbi.symm, zero_mul]
   · intro hi
     simp at hi
 
@@ -6395,13 +6393,13 @@ lemma X_sub_X_dvd_sub_subst {σ : Type*} [DecidableEq σ]
     unfold substXiToXj at hp ⊢
     simp only [map_mul, MvPolynomial.aeval_X]
     by_cases hk : k = i
-    · rw [if_pos hk, hk]
+    · rw [ite_eq_left hk, hk]
       have heq : p * MvPolynomial.X i - MvPolynomial.aeval (fun m => if m = i then MvPolynomial.X j else MvPolynomial.X m) p * MvPolynomial.X j =
              (p - MvPolynomial.aeval (fun m => if m = i then MvPolynomial.X j else MvPolynomial.X m) p) * MvPolynomial.X i +
              MvPolynomial.aeval (fun m => if m = i then MvPolynomial.X j else MvPolynomial.X m) p * (MvPolynomial.X i - MvPolynomial.X j) := by ring
       rw [heq]
       exact dvd_add (dvd_mul_of_dvd_left hp _) (dvd_mul_of_dvd_right (dvd_refl _) _)
-    · rw [if_neg hk]
+    · rw [ite_eq_right hk]
       have heq : p * MvPolynomial.X k - MvPolynomial.aeval (fun m => if m = i then MvPolynomial.X j else MvPolynomial.X m) p * MvPolynomial.X k =
              (p - MvPolynomial.aeval (fun m => if m = i then MvPolynomial.X j else MvPolynomial.X m) p) * MvPolynomial.X k := by ring
       rw [heq]
@@ -6507,7 +6505,7 @@ lemma rename_succ_finSuccEquiv_eval_general (m : ℕ) (P : MvPolynomial (Fin (m 
     simp only [map_mul, MvPolynomial.eval₂_mul, Polynomial.eval_mul]
     cases' i using Fin.cases with i
     · simp only [MvPolynomial.finSuccEquiv_X_zero, Polynomial.eval_X, MvPolynomial.rename_X, 
-                 MvPolynomial.eval₂_X, if_true]
+                 MvPolynomial.eval₂_X, ite_true]
       rw [hp]
       simp only [Fin.succ_zero_eq_one]
     · simp only [MvPolynomial.finSuccEquiv_X_succ, Polynomial.eval_C, MvPolynomial.rename_X, 
@@ -6585,15 +6583,15 @@ lemma X_sub_X_totalDegree_eq_one {σ : Type*} [DecidableEq σ] (i j : σ) (hij :
     intro h
     have := MvPolynomial.X_injective (σ := σ) (R := ℤ) (sub_eq_zero.mp h)
     exact hij this
-  have hcoeff : MvPolynomial.coeff (Finsupp.single i 1) 
-      (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) = 1 := by
-    rw [MvPolynomial.coeff_sub, MvPolynomial.coeff_X', MvPolynomial.coeff_X']
+  have hcoeff :
+      (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).coeff (Finsupp.single i 1) = 1 := by
+    rw [MvPolynomial.coeff_sub, MvPolynomial.coeff_X, MvPolynomial.coeff_X]
     have h2' : (Finsupp.single i 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 := by
       intro heq
       have : i = j := Finsupp.single_left_injective (by norm_num : (1 : ℕ) ≠ 0) heq
       exact hij this
     have h3' : (Finsupp.single j 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := h2'.symm
-    simp only [if_true, if_neg h3', sub_zero]
+    simp only [ite_true, ite_eq_right h3', sub_zero]
   have hmem : Finsupp.single i 1 ∈ 
       (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).support := by
     rw [MvPolynomial.mem_support_iff, hcoeff]
@@ -6610,20 +6608,20 @@ omit [IsDomain R] in
 /-- The polynomial X_i - X_j is primitive (only units divide all coefficients).
     This is needed for `irreducible_of_totalDegree_eq_one`. -/
 lemma X_sub_X_isPrimitive {σ : Type*} [DecidableEq σ] (i j : σ) (hij : i ≠ j) :
-    ∀ r : ℤ, (∀ d : σ →₀ ℕ, r ∣ MvPolynomial.coeff d 
-      (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ)) → IsUnit r := by
+    ∀ r : ℤ, (∀ d : σ →₀ ℕ,
+      r ∣ (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).coeff d) → IsUnit r := by
   intro r hr
-  have h1 : r ∣ MvPolynomial.coeff (Finsupp.single i 1) 
-      (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) := hr _
-  have h2 : r ∣ MvPolynomial.coeff (Finsupp.single j 1) 
-      (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) := hr _
-  rw [MvPolynomial.coeff_sub, MvPolynomial.coeff_X', MvPolynomial.coeff_X'] at h1 h2
+  have h1 : r ∣
+      (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).coeff (Finsupp.single i 1) := hr _
+  have h2 : r ∣
+      (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).coeff (Finsupp.single j 1) := hr _
+  rw [MvPolynomial.coeff_sub, MvPolynomial.coeff_X, MvPolynomial.coeff_X] at h1 h2
   have hij' : (Finsupp.single j 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := by
     intro heq
     have : j = i := Finsupp.single_left_injective (by norm_num : (1 : ℕ) ≠ 0) heq
     exact hij this.symm
-  simp only [if_true, if_neg hij', sub_zero] at h1
-  simp only [if_neg hij'.symm, if_true, zero_sub] at h2
+  simp only [ite_true, ite_eq_right hij', sub_zero] at h1
+  simp only [ite_eq_right hij'.symm, ite_true, zero_sub] at h2
   exact isUnit_of_dvd_one h1
 
 omit [IsDomain R] in
@@ -6805,52 +6803,52 @@ lemma X_sub_X_eq_iff {σ : Type*} [DecidableEq σ] (i j k l : σ)
   constructor
   · intro h
     have h_coeff : ∀ s : σ →₀ ℕ, 
-        MvPolynomial.coeff s (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ) = 
-        MvPolynomial.coeff s (MvPolynomial.X k - MvPolynomial.X l) := 
-      fun s => congrArg (MvPolynomial.coeff s) h
+        (MvPolynomial.X i - MvPolynomial.X j : MvPolynomial σ ℤ).coeff s =
+        (MvPolynomial.X k - MvPolynomial.X l : MvPolynomial σ ℤ).coeff s :=
+      fun s => congrArg (fun p => AddMonoidAlgebra.coeff p s) h
     have hi := h_coeff (Finsupp.single i 1)
-    simp only [MvPolynomial.coeff_sub, MvPolynomial.coeff_X', ite_true] at hi
+    simp only [MvPolynomial.coeff_sub, MvPolynomial.coeff_X, ite_true] at hi
     have hji' : (Finsupp.single j 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := 
       fun heq => hij (Finsupp.single_left_injective (by norm_num) heq).symm
-    rw [if_neg hji', sub_zero] at hi
+    rw [ite_eq_right hji', sub_zero] at hi
     by_cases hik : i = k
     · have hik' : (Finsupp.single k 1 : σ →₀ ℕ) = Finsupp.single i 1 := by simp [hik]
-      rw [if_pos hik'] at hi
+      rw [ite_eq_left hik'] at hi
       have hil : i ≠ l := by
         intro hil
         have hil' : (Finsupp.single l 1 : σ →₀ ℕ) = Finsupp.single i 1 := by simp [hil]
-        rw [if_pos hil'] at hi
+        rw [ite_eq_left hil'] at hi
         omega
       have hil' : (Finsupp.single l 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := 
         fun heq => hil (Finsupp.single_left_injective (by norm_num) heq).symm
-      rw [if_neg hil', sub_zero] at hi
+      rw [ite_eq_right hil', sub_zero] at hi
       have hj := h_coeff (Finsupp.single j 1)
-      simp only [MvPolynomial.coeff_sub, MvPolynomial.coeff_X', ite_true] at hj
+      simp only [MvPolynomial.coeff_sub, MvPolynomial.coeff_X, ite_true] at hj
       have hij'' : (Finsupp.single i 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 := 
         fun heq => hij (Finsupp.single_left_injective (by norm_num) heq)
-      rw [if_neg hij'', zero_sub] at hj
+      rw [ite_eq_right hij'', zero_sub] at hj
       by_cases hjk : j = k
       · exact absurd (hik.trans hjk.symm) hij
       · have hjk' : (Finsupp.single k 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 := 
           fun heq => hjk (Finsupp.single_left_injective (by norm_num) heq).symm
-        rw [if_neg hjk', zero_sub] at hj
+        rw [ite_eq_right hjk', zero_sub] at hj
         have hjl : j = l := by
           by_contra hjl_ne
           have hjl' : (Finsupp.single l 1 : σ →₀ ℕ) ≠ Finsupp.single j 1 := 
             fun heq => hjl_ne (Finsupp.single_left_injective (by norm_num) heq).symm
-          rw [if_neg hjl', neg_zero] at hj
+          rw [ite_eq_right hjl', neg_zero] at hj
           omega
         exact ⟨hik, hjl⟩
     · have hik' : (Finsupp.single k 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := 
         fun heq => hik (Finsupp.single_left_injective (by norm_num) heq).symm
-      rw [if_neg hik', zero_sub] at hi
+      rw [ite_eq_right hik', zero_sub] at hi
       by_cases hil : i = l
       · have hil' : (Finsupp.single l 1 : σ →₀ ℕ) = Finsupp.single i 1 := by simp [hil]
-        rw [if_pos hil'] at hi
+        rw [ite_eq_left hil'] at hi
         omega
       · have hil' : (Finsupp.single l 1 : σ →₀ ℕ) ≠ Finsupp.single i 1 := 
           fun heq => hil (Finsupp.single_left_injective (by norm_num) heq).symm
-        rw [if_neg hil', neg_zero] at hi
+        rw [ite_eq_right hil', neg_zero] at hi
         omega
   · intro ⟨hik, hjl⟩
     simp only [hik, hjl]
@@ -6871,17 +6869,17 @@ lemma MvPolynomial_unit_eq_one_or_neg_one {σ : Type*} [DecidableEq σ]
   have h := MvPolynomial.isUnit_iff.mp u.isUnit
   obtain ⟨h0, hnil⟩ := h
   have hcoeffs : ∀ i : σ →₀ ℕ, i ≠ 0 → 
-      MvPolynomial.coeff i (u : MvPolynomial σ ℤ) = 0 := by
+      (u : MvPolynomial σ ℤ).coeff i = 0 := by
     intro i hi
     have hnil_i := hnil i hi
     rwa [isNilpotent_iff_eq_zero] at hnil_i
   have hu_eq : (u : MvPolynomial σ ℤ) = 
-      MvPolynomial.C (MvPolynomial.coeff 0 (u : MvPolynomial σ ℤ)) := by
+      MvPolynomial.C ((u : MvPolynomial σ ℤ).coeff 0) := by
     ext m
     simp only [MvPolynomial.coeff_C]
     by_cases hm : m = 0
     · simp [hm]
-    · rw [if_neg (Ne.symm hm), hcoeffs m hm]
+    · rw [ite_eq_right (Ne.symm hm), hcoeffs m hm]
   rcases Int.isUnit_iff.mp h0 with h1 | h1
   · left; rw [hu_eq, h1]; simp
   · right; rw [hu_eq, h1]; simp
@@ -6990,24 +6988,22 @@ lemma X_sub_X_isRelPrime_inl_inr {m : ℕ} (i j k l : Fin m) (hij : i ≠ j) (hk
     obtain ⟨hu0, hunil⟩ := h
     -- u is a constant polynomial
     have hu_const : (u : MvPolynomial (Fin m ⊕ Fin m) ℤ) = 
-        MvPolynomial.C (MvPolynomial.coeff 0 (u : MvPolynomial (Fin m ⊕ Fin m) ℤ)) := by
+        MvPolynomial.C ((u : MvPolynomial (Fin m ⊕ Fin m) ℤ).coeff 0) := by
       ext m'
       simp only [MvPolynomial.coeff_C]
       by_cases hm : m' = 0
       · simp [hm]
-      · rw [if_neg (Ne.symm hm)]
+      · rw [ite_eq_right (Ne.symm hm)]
         have := hunil m' hm
         rwa [isNilpotent_iff_eq_zero] at this
     rw [hu_const] at hu
     -- Rewrite the multiplication as scalar multiplication
     rw [mul_comm, ← MvPolynomial.smul_eq_C_mul] at hu
     -- Look at the coefficient of Finsupp.single (Sum.inl i) 1 on both sides
-    have h_coeff : MvPolynomial.coeff (Finsupp.single (Sum.inl i) 1) 
-        ((MvPolynomial.coeff 0 (u : MvPolynomial (Fin m ⊕ Fin m) ℤ)) • 
-          (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j) : MvPolynomial (Fin m ⊕ Fin m) ℤ)) = 
-        MvPolynomial.coeff (Finsupp.single (Sum.inl i) 1) 
-          (MvPolynomial.X (Sum.inr k) - MvPolynomial.X (Sum.inr l) : MvPolynomial (Fin m ⊕ Fin m) ℤ) := by rw [hu]
-    simp only [MvPolynomial.coeff_smul, smul_eq_mul, MvPolynomial.coeff_sub, MvPolynomial.coeff_X'] at h_coeff
+    have h_coeff : (((u : MvPolynomial (Fin m ⊕ Fin m) ℤ).coeff 0) •
+          (MvPolynomial.X (Sum.inl i) - MvPolynomial.X (Sum.inl j) : MvPolynomial (Fin m ⊕ Fin m) ℤ)).coeff (Finsupp.single (Sum.inl i) 1) =
+        (MvPolynomial.X (Sum.inr k) - MvPolynomial.X (Sum.inr l) : MvPolynomial (Fin m ⊕ Fin m) ℤ).coeff (Finsupp.single (Sum.inl i) 1) := by rw [hu]
+    simp only [MvPolynomial.coeff_smul, smul_eq_mul, MvPolynomial.coeff_sub, MvPolynomial.coeff_X] at h_coeff
     -- RHS: coefficients of X_{inr k} - X_{inr l} at position single (inl i) 1 are both 0
     have h1 : (Finsupp.single (Sum.inr k) 1 : (Fin m ⊕ Fin m) →₀ ℕ) ≠ 
         Finsupp.single (Sum.inl i) 1 := by
@@ -7019,13 +7015,13 @@ lemma X_sub_X_isRelPrime_inl_inr {m : ℕ} (i j k l : Fin m) (hij : i ≠ j) (hk
       intro heq
       have := Finsupp.single_left_injective (by norm_num : (1 : ℕ) ≠ 0) heq
       cases this  -- Sum.inr _ = Sum.inl _ is impossible
-    simp only [if_neg h1, if_neg h2, sub_zero] at h_coeff
+    simp only [ite_eq_right h1, ite_eq_right h2, sub_zero] at h_coeff
     -- LHS: coefficient of X_{inl i} - X_{inl j} at position single (inl i) 1 is 1 - 0 = 1
     have hne1 : (Finsupp.single (Sum.inl j) 1 : (Fin m ⊕ Fin m) →₀ ℕ) ≠ Finsupp.single (Sum.inl i) 1 := by
       intro heq
       have := Finsupp.single_left_injective (by norm_num : (1 : ℕ) ≠ 0) heq
       exact hij (Sum.inl_injective this).symm
-    simp only [ite_true, if_neg hne1, sub_zero] at h_coeff
+    simp only [ite_true, ite_eq_right hne1, sub_zero] at h_coeff
     -- Now h_coeff says: coeff 0 u * 1 = 0, i.e., coeff 0 u = 0
     -- But u is a unit, so coeff 0 u is a unit in ℤ, hence ±1, not 0
     rw [Int.isUnit_iff] at hu0
@@ -8848,7 +8844,7 @@ private lemma evalPolyCauchy_eq_diag_mul_cauchy (m : ℕ) :
       rfl
     rw [h2, h]
   · intro b _ hbi
-    simp only [if_neg hbi.symm, zero_mul]
+    simp only [ite_eq_right hbi.symm, zero_mul]
   · intro hi
     simp at hi
 
@@ -8975,7 +8971,7 @@ private lemma exists_pos_degree_component {σ : Type*} [DecidableEq σ] [Finite 
     {r : MvPolynomial σ ℤ} (h : ∀ c : ℤ, r ≠ MvPolynomial.C c) :
     ∃ d > 0, MvPolynomial.homogeneousComponent d r ≠ 0 := by
   by_contra h'
-  push_neg at h'
+  push Not at h'
   have hr : r = MvPolynomial.homogeneousComponent 0 r := by
     conv_lhs => rw [← MvPolynomial.sum_homogeneousComponent r]
     rw [Finset.sum_eq_single 0]
@@ -8991,7 +8987,7 @@ private lemma exists_pos_degree_component {σ : Type*} [DecidableEq σ] [Finite 
     rw [MvPolynomial.coeff_C]
     by_cases hm : m = 0
     · subst hm; rfl
-    · rw [if_neg (ne_comm.mp hm)]
+    · rw [ite_eq_right (ne_comm.mp hm)]
       by_contra hm'
       have hm_supp := MvPolynomial.mem_support_iff.mpr hm'
       have := h0 (MvPolynomial.mem_support_iff.mp hm_supp)
@@ -9045,7 +9041,7 @@ private lemma homogeneous_mul_eq_const {σ : Type*} [DecidableEq σ] [Finite σ]
     (hp0 : p ≠ 0) : 
     ∃ c : ℤ, r = MvPolynomial.C c := by
   by_contra h
-  push_neg at h
+  push Not at h
   obtain ⟨d, hd_pos, hd_ne⟩ := exists_pos_degree_component h
   have h1 : (p * MvPolynomial.homogeneousComponent d r).IsHomogeneous (n + d) := 
     hp.mul (MvPolynomial.homogeneousComponent_isHomogeneous d r)
@@ -9053,7 +9049,7 @@ private lemma homogeneous_mul_eq_const {σ : Type*} [DecidableEq σ] [Finite σ]
     have hmem : p * r ∈ MvPolynomial.homogeneousSubmodule σ ℤ n := hpr
     rw [MvPolynomial.homogeneousComponent_of_mem hmem]
     have hne : n + d ≠ n := by omega
-    rw [if_neg hne]
+    rw [ite_eq_right hne]
   have h2 : p * MvPolynomial.homogeneousComponent d r = 
             MvPolynomial.homogeneousComponent (n + d) (p * r) := 
     homogeneousComponent_mul_of_isHomogeneous hp

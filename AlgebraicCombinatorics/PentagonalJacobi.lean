@@ -96,7 +96,7 @@ theorem pentagonalNumber_eq (k : ℤ) :
       · apply mul_nonneg_of_nonpos_of_nonpos
         · linarith
         · exact hk
-      · push_neg at hk
+      · push Not at hk
         apply mul_nonneg
         · omega
         · linarith
@@ -227,7 +227,7 @@ lemma pentagonalNumber_ge_natAbs {k : ℤ} (hk : k ≠ 0) :
     have habs : k.natAbs = k.toNat := by omega
     rw [habs]
     exact Int.toNat_le_toNat h1
-  · push_neg at hpos
+  · push Not at hpos
     have hneg : k < 0 := by omega
     let m := -k
     have hm : m ≥ 1 := by omega
@@ -244,7 +244,7 @@ lemma pentagonalNumber_ge_natAbs {k : ℤ} (hk : k ≠ 0) :
 lemma pentagonal_below_finite (n : ℕ) : Set.Finite {k : ℤ | pentagonalNumber k < n} := by
   have h : {k : ℤ | pentagonalNumber k < n} ⊆ Set.Icc (-(n : ℤ)) n := by
     intro k hk
-    simp only [Set.mem_setOf_eq] at hk
+    simp only [Set.mem_ofPred_eq] at hk
     simp only [Set.mem_Icc]
     by_cases hk0 : k = 0
     · subst hk0; omega
@@ -526,6 +526,7 @@ private lemma genFun_term_mul_euler_term_eq_one (k : ℕ) :
   ring
 
 -- Intermediate lemma: the product of all terms equals 1
+set_option backward.isDefEq.respectTransparency false in
 private lemma eulerProduct_mul_eulerProductInv_aux :
     (∏' k, (1 - (PowerSeries.X : ℤ⟦X⟧) ^ (k + 1))) *
     (∏' k, (1 + ∑' j, (1 : ℤ) • PowerSeries.X ^ ((k + 1) * (j + 1)))) = 1 := by
@@ -549,7 +550,8 @@ Note: `partitionGenFun_mul_pentagonalSeries` is defined later in this file after
 `euler_pentagonal_number_theorem`. -/
 theorem coeff_partitionGenFun_mul_pentagonalSeries (n : ℕ) :
     PowerSeries.coeff n (partitionGenFun * (pentagonalSeries : ℤ⟦X⟧)) =
-    ∑ p ∈ Finset.antidiagonal n, (partitionCount p.1 : ℤ) * pentagonalCoeff p.2 := by
+    ∑ p ∈ Finset.HasAntidiagonal.antidiagonal n,
+      (partitionCount p.1 : ℤ) * pentagonalCoeff p.2 := by
   rw [PowerSeries.coeff_mul]
   congr 1
   ext ⟨a, b⟩
@@ -561,11 +563,12 @@ theorem coeff_one_pos (n : ℕ) (hn : n > 0) : PowerSeries.coeff n (1 : ℤ⟦X�
 
 /-- The antidiagonal sum can be split: separate the (n, 0) term -/
 theorem antidiagonal_sum_eq (n : ℕ) (_ : n > 0) :
-    ∑ p ∈ Finset.antidiagonal n, (partitionCount p.1 : ℤ) * pentagonalCoeff p.2 =
+    ∑ p ∈ Finset.HasAntidiagonal.antidiagonal n, (partitionCount p.1 : ℤ) * pentagonalCoeff p.2 =
     (partitionCount n : ℤ) +
-    ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0),
+    ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.2 ≠ 0),
       (partitionCount p.1 : ℤ) * pentagonalCoeff p.2 := by
-  have hmem : (n, 0) ∈ Finset.antidiagonal n := by simp [Finset.mem_antidiagonal]
+  have hmem : (n, 0) ∈ Finset.HasAntidiagonal.antidiagonal n := by
+    simp [Finset.HasAntidiagonal.mem_antidiagonal]
   conv_lhs =>
     rw [← Finset.insert_erase hmem, Finset.sum_insert (by simp)]
   simp only [pentagonalCoeff_zero, mul_one]
@@ -578,7 +581,7 @@ theorem antidiagonal_sum_eq (n : ℕ) (_ : n > 0) :
       refine ⟨hmem', ?_⟩
       intro heq
       apply hne
-      have hp := Finset.mem_antidiagonal.mp hmem'
+      have hp := Finset.HasAntidiagonal.mem_antidiagonal.mp hmem'
       ext
       · simp only [heq] at hp; omega
       · exact heq
@@ -591,7 +594,7 @@ theorem antidiagonal_sum_eq (n : ℕ) (_ : n > 0) :
 
 /-- The sum reindexing lemma: relates the antidiagonal sum to the sum over pentagonal indices -/
 theorem sum_reindex (n : ℕ) (_hn : n > 0) :
-    -∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0),
+    -∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.2 ≠ 0),
       (partitionCount p.1 : ℤ) * pentagonalCoeff p.2 =
     ∑' k : {k : ℤ // k ≠ 0 ∧ pentagonalNumber k ≤ n},
       (if k.val.natAbs % 2 = 1 then (1 : ℤ) else (-1 : ℤ)) *
@@ -637,7 +640,7 @@ theorem sum_reindex (n : ℕ) (_hn : n > 0) :
     have h_subset : {k : ℤ | k ≠ 0 ∧ pentagonalNumber k ≤ n} ⊆
                     {k : ℤ | pentagonalNumber k < n + 1} := by
       intro k ⟨_, hk⟩
-      simp only [Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq]
       omega
     exact Set.Finite.subset (pentagonal_below_finite (n + 1)) h_subset
   -- Helper lemma: pentagonalNumberInverse_spec for use before it's defined later
@@ -753,13 +756,14 @@ theorem sum_reindex (n : ℕ) (_hn : n > 0) :
   haveI : Fintype {k : ℤ // k ≠ 0 ∧ pentagonalNumber k ≤ n} := Fintype.ofFinite _
   rw [tsum_eq_sum (fun _ h => (h (Finset.mem_univ _)).elim)]
   -- Step 2: Filter the LHS to only terms where pentagonalCoeff p.2 ≠ 0
-  have h_filter : ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0),
+  have h_filter : ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.2 ≠ 0),
       (partitionCount p.1 : ℤ) * pentagonalCoeff p.2 =
-      ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0 ∧ pentagonalCoeff p.2 ≠ 0),
+      ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter
+          (fun p => p.2 ≠ 0 ∧ pentagonalCoeff p.2 ≠ 0),
       (partitionCount p.1 : ℤ) * pentagonalCoeff p.2 := by
     rw [← Finset.sum_filter_add_sum_filter_not _ (fun p => pentagonalCoeff p.2 ≠ 0)]
     simp only [not_not]
-    have h_zero : ∑ p ∈ ((Finset.antidiagonal n).filter (fun p => p.2 ≠ 0)).filter
+    have h_zero : ∑ p ∈ ((Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.2 ≠ 0)).filter
         (fun p => pentagonalCoeff p.2 = 0), (partitionCount p.1 : ℤ) * pentagonalCoeff p.2 = 0 := by
       apply Finset.sum_eq_zero
       intro p hp
@@ -768,17 +772,18 @@ theorem sum_reindex (n : ℕ) (_hn : n > 0) :
     rw [h_zero, add_zero]
     congr 1
     ext p
-    simp only [Finset.mem_filter, Finset.mem_antidiagonal]
+    simp only [Finset.mem_filter, Finset.HasAntidiagonal.mem_antidiagonal]
     tauto
   rw [h_filter]
   -- Step 3: Define the image finset and show bijection
   let S := ((Finset.univ : Finset {k : ℤ // k ≠ 0 ∧ pentagonalNumber k ≤ n}).image
     fun k => (n - pentagonalNumber k.val, pentagonalNumber k.val))
   -- Show S equals the filtered antidiagonal
-  have hS_eq : S = (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0 ∧ pentagonalCoeff p.2 ≠ 0) := by
+  have hS_eq : S = (Finset.HasAntidiagonal.antidiagonal n).filter
+      (fun p => p.2 ≠ 0 ∧ pentagonalCoeff p.2 ≠ 0) := by
     ext p
     simp only [S, Finset.mem_image, Finset.mem_univ, true_and, Finset.mem_filter,
-               Finset.mem_antidiagonal]
+               Finset.HasAntidiagonal.mem_antidiagonal]
     constructor
     · intro ⟨⟨k, hk_ne, hk_le⟩, hp⟩
       simp only at hp
@@ -978,8 +983,9 @@ lemma order_stateMonomial (e : ℕ) (p : ℤ) :
   unfold stateMonomial jacobiZPow
   have hT_ne : LaurentPolynomial.T (R := ℤ) p ≠ 0 := by
     intro h
-    have : (LaurentPolynomial.T (R := ℤ) p) p = (0 : LaurentPolynomial ℤ) p := by rw [h]
-    simp only [LaurentPolynomial.T, Finsupp.single_apply, Finsupp.zero_apply] at this
+    have : (LaurentPolynomial.T (R := ℤ) p).coeff p = (0 : LaurentPolynomial ℤ).coeff p := by rw [h]
+    simp only [LaurentPolynomial.T, AddMonoidAlgebra.coeff_single, AddMonoidAlgebra.coeff_zero,
+      Finsupp.single_apply, Finsupp.zero_apply] at this
     exact one_ne_zero this
   have hC_order : (PowerSeries.C (LaurentPolynomial.T p) : JacobiRing).order = 0 := by
     have heq : (0 : ℕ∞) = (0 : ℕ) := rfl
@@ -996,7 +1002,7 @@ lemma order_stateMonomial (e : ℕ) (p : ℤ) :
     · simp only [PowerSeries.coeff_X_pow, ite_true, PowerSeries.coeff_C, ite_true, one_mul]
       exact hT_ne
     · intro b hb hne
-      simp only [Finset.mem_antidiagonal] at hb
+      simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hb
       cases' Nat.eq_zero_or_pos b.2 with h h
       · simp only [h, add_zero] at hb
         exact absurd (Prod.ext hb h) hne
@@ -1004,7 +1010,7 @@ lemma order_stateMonomial (e : ℕ) (p : ℤ) :
     · intro hne
       exfalso
       apply hne
-      simp only [Finset.mem_antidiagonal, add_zero]
+      simp only [Finset.HasAntidiagonal.mem_antidiagonal, add_zero]
   · calc (PowerSeries.X ^ e * PowerSeries.C (LaurentPolynomial.T p) : JacobiRing).order
         ≥ (PowerSeries.X ^ e : JacobiRing).order +
           (PowerSeries.C (LaurentPolynomial.T p) : JacobiRing).order :=
@@ -1027,7 +1033,7 @@ lemma finite_natAbs_sq_eq (n : ℕ) : Set.Finite {ℓ : ℤ | ℓ.natAbs ^ 2 = n
     have hfin : ({↑k, -↑k} : Set ℤ).Finite := Set.toFinite _
     apply hfin.subset
     intro ℓ hℓ
-    simp only [Set.mem_setOf_eq] at hℓ
+    simp only [Set.mem_ofPred_eq] at hℓ
     simp only [Set.mem_insert_iff, Set.mem_singleton_iff]
     have h : ℓ.natAbs = k := by
       have h1 : ℓ.natAbs ^ 2 = k ^ 2 := by rw [hℓ, hk]
@@ -1037,7 +1043,7 @@ lemma finite_natAbs_sq_eq (n : ℕ) : Set.Finite {ℓ : ℤ | ℓ.natAbs ^ 2 = n
     · right; rfl
   · have : {ℓ : ℤ | ℓ.natAbs ^ 2 = n} = ∅ := by
       ext ℓ
-      simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+      simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false]
       intro hℓ
       apply hn
       exact ⟨ℓ.natAbs, hℓ⟩
@@ -1054,16 +1060,16 @@ lemma finite_partition_doubled_eq (n : ℕ) :
     · have : {μ : Σ k, Nat.Partition k | μ.1 = m} ⊆
              (Set.range (fun p : Nat.Partition m => (⟨m, p⟩ : Σ k, Nat.Partition k))) := by
         intro ⟨k, p⟩ hkp
-        simp only [Set.mem_setOf_eq] at hkp
+        simp only [Set.mem_ofPred_eq] at hkp
         subst hkp
         exact ⟨p, rfl⟩
       exact Set.Finite.subset (Set.finite_range _) this
     · intro μ hμ
-      simp only [Set.mem_setOf_eq] at hμ ⊢
+      simp only [Set.mem_ofPred_eq] at hμ ⊢
       omega
   · convert Set.finite_empty
     ext μ
-    simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+    simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false]
     intro hμ
     have : Even n := ⟨μ.1, by linarith⟩
     exact hn this
@@ -1080,10 +1086,10 @@ lemma tsum_sq_indicator (i : ℕ) :
   rw [tsum_eq_sum (s := (finite_natAbs_sq_eq i).toFinset)]
   · apply Finset.sum_congr rfl
     intro ℓ hℓ
-    rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+    rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
     simp [hℓ]
   · intro ℓ hℓ
-    rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+    rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
     simp only [ite_eq_right_iff]
     intro h
     exact (hℓ h.symm).elim
@@ -1102,11 +1108,11 @@ lemma tsum_partition_indicator (j : ℕ) :
     trans (∑ μ ∈ (finite_partition_doubled_eq j).toFinset, (1 : LaurentPolynomial ℤ))
     · apply Finset.sum_congr rfl
       intro μ hμ
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hμ
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hμ
       simp [hμ]
     · simp [Finset.sum_const]
   · intro μ hμ
-    rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hμ
+    rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hμ
     simp only [ite_eq_right_iff, one_ne_zero]
     intro h
     exact hμ h.symm
@@ -1281,23 +1287,23 @@ private lemma finite_pairs_le_degree' (d : ℕ) :
   have h : {pair : ℤ × (Σ n, Nat.Partition n) | pair.1.natAbs ^ 2 + 2 * pair.2.1 ≤ d} ⊆
            {pair : ℤ × (Σ n, Nat.Partition n) | pair.1.natAbs ^ 2 ≤ d ∧ 2 * pair.2.1 ≤ d} := by
     intro pair hp
-    simp only [Set.mem_setOf_eq] at hp ⊢
+    simp only [Set.mem_ofPred_eq] at hp ⊢
     constructor <;> omega
   apply Set.Finite.subset _ h
   have h1 : {pair : ℤ × (Σ n, Nat.Partition n) | pair.1.natAbs ^ 2 ≤ d ∧ 2 * pair.2.1 ≤ d} =
             {ℓ : ℤ | ℓ.natAbs ^ 2 ≤ d} ×ˢ {p : Σ n, Nat.Partition n | 2 * p.1 ≤ d} := by
     ext pair
-    simp only [Set.mem_setOf_eq, Set.mem_prod]
+    simp only [Set.mem_ofPred_eq, Set.mem_prod]
   rw [h1]
   -- Finite set of integers with natAbs² ≤ d
   have hfin_int : Set.Finite {ℓ : ℤ | ℓ.natAbs ^ 2 ≤ d} := by
     apply Set.Finite.subset (Set.finite_Icc (-(d : ℤ)) d)
     intro ℓ hℓ
-    simp only [Set.mem_setOf_eq] at hℓ
+    simp only [Set.mem_ofPred_eq] at hℓ
     simp only [Set.mem_Icc]
     have h1 : ℓ.natAbs ≤ d := by
       by_contra hcontra
-      push_neg at hcontra
+      push Not at hcontra
       have : ℓ.natAbs ^ 2 > d := by nlinarith
       omega
     constructor
@@ -1310,8 +1316,8 @@ private lemma finite_pairs_le_degree' (d : ℕ) :
     have h : {p : Σ n, Nat.Partition n | 2 * p.1 ≤ d} ⊆
              ⋃ n : Fin (d / 2 + 1), {p : Σ m, Nat.Partition m | p.1 = n} := by
       intro p hp
-      simp only [Set.mem_setOf_eq] at hp
-      simp only [Set.mem_iUnion, Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq] at hp
+      simp only [Set.mem_iUnion, Set.mem_ofPred_eq]
       use ⟨p.1, by omega⟩
     apply Set.Finite.subset _ h
     apply Set.finite_iUnion
@@ -1319,7 +1325,7 @@ private lemma finite_pairs_le_degree' (d : ℕ) :
     have h_eq : {p : Σ m, Nat.Partition m | p.1 = n} =
                 (fun part => (⟨n, part⟩ : Σ m, Nat.Partition m)) '' Set.univ := by
       ext ⟨m, part⟩
-      simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_univ, true_and, Sigma.mk.inj_iff]
+      simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_univ, true_and, Sigma.mk.inj_iff]
       constructor
       · intro hp
         use hp ▸ part
@@ -1347,8 +1353,8 @@ private lemma product_summable' :
   intro d
   apply summable_of_ne_finset_zero (s := (finite_pairs_le_degree' d).toFinset)
   intro pair hp
-  rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
-  push_neg at hp
+  rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
+  push Not at hp
   unfold jacobiSumTerm jacobiZPow
   rw [mul_assoc, PowerSeries.coeff_X_pow_mul']
   split_ifs with h
@@ -1365,7 +1371,7 @@ private lemma finite_partition_eq (i : ℕ) : Set.Finite {p : Σ n, Nat.Partitio
   have hfin' : Finite (Nat.Partition i) := inferInstance
   apply Set.Finite.of_surjOn (f := fun (μ : Nat.Partition i) => (⟨i, μ⟩ : Σ n, Nat.Partition n))
   · intro p hp
-    simp only [Set.mem_setOf_eq] at hp
+    simp only [Set.mem_ofPred_eq] at hp
     rcases p with ⟨n, μ⟩; simp only at hp; subst hp
     simp only [Set.mem_image]
     exact ⟨μ, Set.mem_univ _, rfl⟩
@@ -1379,18 +1385,18 @@ private lemma finite_partition_double_eq (j : ℕ) :
     have h : {p : Σ n, Nat.Partition n | 2 * p.1 = j} = {p | p.1 = k} := by ext p; simp [hk]; omega
     rw [h]; exact finite_partition_eq k
   · have h : {p : Σ n, Nat.Partition n | 2 * p.1 = j} = ∅ := by
-      ext p; simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+      ext p; simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false]
       intro h; exact hj ⟨p.1, by omega⟩
     rw [h]; exact Set.finite_empty
 
 /-- For any d, i₀, j₀, summing an indicator function over the antidiagonal gives
     the value at the unique point (i₀, j₀) if i₀ + j₀ = d, and 0 otherwise. -/
 private lemma sum_antidiag_indicator {α : Type*} [AddCommMonoid α] (d : ℕ) (i₀ j₀ : ℕ) (a : α) :
-    ∑ ij ∈ Finset.antidiagonal d, (if ij.1 = i₀ ∧ ij.2 = j₀ then a else 0) =
+    ∑ ij ∈ Finset.HasAntidiagonal.antidiagonal d, (if ij.1 = i₀ ∧ ij.2 = j₀ then a else 0) =
     if d = i₀ + j₀ then a else 0 := by
   by_cases h : d = i₀ + j₀
   · subst h
-    conv_rhs => rw [if_pos rfl]
+    conv_rhs => rw [ite_eq_left rfl]
     rw [Finset.sum_eq_single (i₀, j₀)]
     · norm_num
     · intro ij _ hne
@@ -1401,12 +1407,12 @@ private lemma sum_antidiag_indicator {α : Type*} [AddCommMonoid α] (d : ℕ) (
       · simp only [hi, false_and, ite_false]
     · intro hne
       exfalso
-      rw [Finset.mem_antidiagonal] at hne
+      rw [Finset.HasAntidiagonal.mem_antidiagonal] at hne
       exact hne rfl
   · simp only [h, ite_false]
     apply Finset.sum_eq_zero
     intro ij hij
-    rw [Finset.mem_antidiagonal] at hij
+    rw [Finset.HasAntidiagonal.mem_antidiagonal] at hij
     simp only [ite_eq_right_iff, and_imp]
     intro hi hj
     exfalso
@@ -1452,8 +1458,8 @@ lemma stateGenFun_eq_jacobiRHS'_mul_partitionGenFunJacobi :
       intro n
       apply summable_of_ne_finset_zero (s := (finite_natAbs_sq_eq n).toFinset)
       intro ℓ hℓ
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
-      rw [coeff_jacobiSumTerm, if_neg]
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
+      rw [coeff_jacobiSumTerm, ite_eq_right]
       exact fun h => hℓ h.symm
     exact hsum_jacobiSumTerm.map_tsum (PowerSeries.coeff i)
       (PowerSeries.WithPiTopology.continuous_coeff (LaurentPolynomial ℤ) i)
@@ -1472,7 +1478,7 @@ lemma stateGenFun_eq_jacobiRHS'_mul_partitionGenFunJacobi :
       simp only [ite_eq_right_iff, one_ne_zero]
       intro heq
       have hcontra : (0, p) ∈ (finite_pairs_le_degree' d').toFinset := by
-        rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+        rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
         simp only [Int.natAbs_zero, zero_pow, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
           zero_add, heq, le_refl]
       exact hp (0, p) hcontra rfl
@@ -1514,7 +1520,7 @@ lemma stateGenFun_eq_jacobiRHS'_mul_partitionGenFunJacobi :
   have hfin : Set.Finite {pair : ℤ × (Σ n, Nat.Partition n) | d = pair.1.natAbs ^ 2 + 2 * pair.2.1} := by
     apply Set.Finite.subset (finite_pairs_le_degree' d)
     intro pair hp
-    simp only [Set.mem_setOf_eq] at hp ⊢
+    simp only [Set.mem_ofPred_eq] at hp ⊢
     omega
   -- Convert LHS tsum to finite sum
   have h_lhs_finite : (∑' (pair : ℤ × (Σ n, Nat.Partition n)),
@@ -1523,10 +1529,10 @@ lemma stateGenFun_eq_jacobiRHS'_mul_partitionGenFunJacobi :
     rw [tsum_eq_sum (s := hfin.toFinset)]
     · apply Finset.sum_congr rfl
       intro pair hpair
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hpair
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hpair
       simp only [hpair, ite_true]
     · intro pair hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
       simp only [hp, ite_false]
   rw [h_lhs_finite]
   -- Convert RHS to the same finite sum
@@ -1541,10 +1547,10 @@ lemma stateGenFun_eq_jacobiRHS'_mul_partitionGenFunJacobi :
     rw [tsum_eq_sum (s := (finite_natAbs_sq_eq i).toFinset)]
     · apply Finset.sum_congr rfl
       intro ℓ hℓ
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
       simp only [hℓ, ite_true]
     · intro ℓ hℓ
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
       split_ifs with h
       · exfalso; exact hℓ h.symm
       · rfl
@@ -1554,10 +1560,10 @@ lemma stateGenFun_eq_jacobiRHS'_mul_partitionGenFunJacobi :
     rw [tsum_eq_sum (s := (finite_partition_double_eq j).toFinset)]
     · apply Finset.sum_congr rfl
       intro p hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
       simp only [hp, ite_true]
     · intro p hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
       split_ifs with h
       · exfalso; exact hp h.symm
       · rfl
@@ -1582,9 +1588,10 @@ lemma stateGenFun_eq_jacobiRHS'_mul_partitionGenFunJacobi :
   -- The bijection is ((i,j), ℓ, p) ↦ (ℓ, p) with inverse (ℓ, p) ↦ ((ℓ², 2*p.1), ℓ, p)
   
   -- First, convert the RHS to a single sum over sigma type
-  have h_rhs_sigma : ∑ ij ∈ Finset.antidiagonal d, ∑ ℓ ∈ (finite_natAbs_sq_eq ij.1).toFinset, 
+  have h_rhs_sigma :
+      ∑ ij ∈ Finset.HasAntidiagonal.antidiagonal d, ∑ ℓ ∈ (finite_natAbs_sq_eq ij.1).toFinset,
       ∑ _p ∈ (finite_partition_double_eq ij.2).toFinset, (LaurentPolynomial.T ℓ : LaurentPolynomial ℤ) =
-      ∑ x ∈ (Finset.antidiagonal d).sigma (fun ij => 
+      ∑ x ∈ (Finset.HasAntidiagonal.antidiagonal d).sigma (fun ij =>
         (finite_natAbs_sq_eq ij.1).toFinset ×ˢ (finite_partition_double_eq ij.2).toFinset), 
         LaurentPolynomial.T x.2.1 := by
     rw [Finset.sum_sigma]
@@ -1601,20 +1608,20 @@ lemma stateGenFun_eq_jacobiRHS'_mul_partitionGenFunJacobi :
   apply Finset.sum_nbij' i' j'
   -- hi: ∀ a ∈ LHS, i' a ∈ RHS
   · intro pair hpair
-    simp only [Finset.mem_sigma, Finset.mem_antidiagonal, Finset.mem_product]
-    rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hpair
+    simp only [Finset.mem_sigma, Finset.HasAntidiagonal.mem_antidiagonal, Finset.mem_product]
+    rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hpair
     simp only [i']
     constructor
     · omega
     · constructor
-      · simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
-      · simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+      · simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
+      · simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
   -- hj: ∀ a ∈ RHS, j' a ∈ LHS
   · intro x hx
-    simp only [Finset.mem_sigma, Finset.mem_antidiagonal, Finset.mem_product] at hx
+    simp only [Finset.mem_sigma, Finset.HasAntidiagonal.mem_antidiagonal, Finset.mem_product] at hx
     obtain ⟨hij, hℓ, hp⟩ := hx
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ hp
-    simp only [j', Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ hp
+    simp only [j', Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
     rw [hℓ, hp]
     exact hij.symm
   -- left_inv: ∀ a ∈ LHS, j' (i' a) = a
@@ -1622,9 +1629,9 @@ lemma stateGenFun_eq_jacobiRHS'_mul_partitionGenFunJacobi :
     simp only [i', j']
   -- right_inv: ∀ a ∈ RHS, i' (j' a) = a
   · intro x hx
-    simp only [Finset.mem_sigma, Finset.mem_antidiagonal, Finset.mem_product] at hx
+    simp only [Finset.mem_sigma, Finset.HasAntidiagonal.mem_antidiagonal, Finset.mem_product] at hx
     obtain ⟨_hij, hℓ, hp⟩ := hx
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ hp
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ hp
     simp only [i', j', hℓ, hp]
   -- h: ∀ a ∈ LHS, f a = g (i' a)
   · intro pair _hpair
@@ -1664,7 +1671,7 @@ private lemma coeff_mul_zero_of_odd {R : Type*} [CommSemiring R] (f g : R⟦X⟧
   rw [PowerSeries.coeff_mul]
   apply Finset.sum_eq_zero
   intro ⟨i, j⟩ hij
-  simp only [Finset.mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   by_cases hi : 2 ∣ i
   · have hj : ¬2 ∣ j := by
       intro ⟨k, hk⟩
@@ -1858,6 +1865,7 @@ private lemma jacobi_product_eq_map_int_product_aux :
   intro k
   exact (map_genFun_term_aux k).symm
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The ℤ⟦X⟧ product equals expand 2 (genFun (fun _ _ => 1)). -/
 private lemma int_product_eq_expand_genFun_aux :
     letI : TopologicalSpace ℤ := ⊥
@@ -1915,6 +1923,7 @@ private lemma coeff_jacobi_product_eq_card_partition_aux (n : ℕ) :
   rw [PowerSeries.coeff_expand_mul]
   simp [Nat.Partition.coeff_genFun, algebraMap_int_eq]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Key lemma 2: partitionGenFunJacobi * QProduct = 1 (Euler product identity).
 This is the key cancellation: the partition generating function times the
 Euler product equals 1, which is the classical identity
@@ -2055,7 +2064,7 @@ lemma partitionGenFunJacobi_mul_QProduct_eq_one :
     simp only [PowerSeries.coeff_X_pow]
     split_ifs at hp with hdiv
     · simp only [Finset.mem_map, Finset.mem_univ, true_and, Function.Embedding.coeFn_mk] at hp
-      push_neg at hp
+      push Not at hp
       by_cases hm : d' = 2 * m
       · exfalso
         have hm' : m = d' / 2 := by omega
@@ -2099,7 +2108,7 @@ lemma partitionGenFunJacobi_mul_QProduct_eq_one :
         by_cases hmn : m = n
         · subst hmn
           exfalso
-          push_neg at hp
+          push Not at hp
           exact hp p rfl
         · simp [hmn]
     rw [h_lhs]
@@ -2478,7 +2487,7 @@ This is because the nonnegative elements are exactly P. -/
 lemma finsetPairToStateLevels_finite_nonneg (P N : Finset ℕ) :
     Set.Finite {p : ℤ | p ≥ 0 ∧ p ∈ finsetPairToStateLevels P N} := by
   unfold finsetPairToStateLevels
-  simp only [Set.mem_union, Set.mem_setOf_eq]
+  simp only [Set.mem_union, Set.mem_ofPred_eq]
   apply Set.Finite.subset (Set.finite_range (fun n : P => (n : ℤ)))
   intro p ⟨hp_nonneg, hp_mem⟩
   cases hp_mem with
@@ -2492,7 +2501,7 @@ The missing negative levels are exactly {-n-1 : n ∈ N}. -/
 lemma finsetPairToStateLevels_finite_negative_missing (P N : Finset ℕ) :
     Set.Finite {p : ℤ | p < 0 ∧ p ∉ finsetPairToStateLevels P N} := by
   unfold finsetPairToStateLevels
-  simp only [Set.mem_union, Set.mem_setOf_eq, not_or, not_and, not_not, not_exists]
+  simp only [Set.mem_union, Set.mem_ofPred_eq, not_or, not_and, not_not, not_exists]
   apply Set.Finite.subset (Set.finite_range (fun n : N => (-(n : ℤ) - 1)))
   intro p ⟨hp_neg, hp_nmem⟩
   obtain ⟨h1, h2⟩ := hp_nmem
@@ -2570,7 +2579,7 @@ lemma finite_finsets_sum_le (d : ℕ) :
   have h_elem_bound : ∀ P ∈ {P : Finset ℕ | ∑ n ∈ P, (2 * n + 1 : ℕ) ≤ d},
       ∀ n ∈ P, n ≤ d := by
     intro P hP n hn
-    simp only [Set.mem_setOf_eq] at hP
+    simp only [Set.mem_ofPred_eq] at hP
     have h : 2 * n + 1 ≤ ∑ m ∈ P, (2 * m + 1 : ℕ) :=
       Finset.single_le_sum (f := fun m => 2 * m + 1) (fun m _ => Nat.zero_le _) hn
     have h2 : 2 * n + 1 ≤ d := le_trans h hP
@@ -2578,7 +2587,7 @@ lemma finite_finsets_sum_le (d : ℕ) :
   have h_subset : {P : Finset ℕ | ∑ n ∈ P, (2 * n + 1 : ℕ) ≤ d} ⊆
       {P : Finset ℕ | P ⊆ Finset.range (d + 1)} := by
     intro P hP
-    simp only [Set.mem_setOf_eq] at hP ⊢
+    simp only [Set.mem_ofPred_eq] at hP ⊢
     intro n hn
     simp only [Finset.mem_range]
     have := h_elem_bound P hP n hn
@@ -2586,7 +2595,7 @@ lemma finite_finsets_sum_le (d : ℕ) :
   have h_powerset : {P : Finset ℕ | P ⊆ Finset.range (d + 1)} ⊆
       ((Finset.range (d + 1)).powerset : Set (Finset ℕ)) := by
     intro P hP
-    simp only [Finset.coe_powerset, Set.mem_setOf_eq] at hP ⊢
+    simp only [Finset.coe_powerset, Set.mem_ofPred_eq] at hP ⊢
     exact hP
   exact Set.Finite.subset (Set.Finite.subset (Finset.finite_toSet _) h_powerset) h_subset
 
@@ -2666,8 +2675,8 @@ lemma tprod_one_add_eq_tsum_finset_prod
     intro d
     apply summable_of_ne_finset_zero (s := (finite_finsets_sum_le d).toFinset)
     intro P hP
-    rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hP
-    push_neg at hP
+    rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hP
+    push Not at hP
     have h_ord : (∏ n ∈ P, a n).order ≥ ∑ n ∈ P, (2 * n + 1 : ℕ) := order_finset_prod_ge_sum_odd a h_order P
     have h_lt : (d : ℕ∞) < (∏ n ∈ P, a n).order := by
       calc (d : ℕ∞) < ∑ n ∈ P, (2 * n + 1 : ℕ) := by exact_mod_cast hP
@@ -2728,8 +2737,8 @@ lemma summable_finset_prod_jacobiFactorZ_sub_one :
   intro d
   apply summable_of_ne_finset_zero (s := (finite_finsets_sum_le d).toFinset)
   intro P hP
-  rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hP
-  push_neg at hP
+  rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hP
+  push Not at hP
   have h_ord : (∏ n ∈ P, (jacobiFactorZ n - 1)).order ≥ ∑ n ∈ P, (2 * n + 1 : ℕ) :=
     order_finset_prod_jacobiFactorZ_sub_one P
   have h_lt : (d : ℕ∞) < (∏ n ∈ P, (jacobiFactorZ n - 1)).order := by
@@ -2751,8 +2760,8 @@ lemma summable_finset_prod_jacobiFactorZInv_sub_one :
   intro d
   apply summable_of_ne_finset_zero (s := (finite_finsets_sum_le d).toFinset)
   intro N hN
-  rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hN
-  push_neg at hN
+  rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hN
+  push Not at hN
   have h_ord : (∏ n ∈ N, (jacobiFactorZInv n - 1)).order ≥ ∑ n ∈ N, (2 * n + 1 : ℕ) :=
     order_finset_prod_jacobiFactorZInv_sub_one N
   have h_lt : (d : ℕ∞) < (∏ n ∈ N, (jacobiFactorZInv n - 1)).order := by
@@ -2799,7 +2808,7 @@ private lemma finite_finset_pairs_sum_le (d : ℕ) :
       {P : Finset ℕ | ∑ n ∈ P, (2 * n + 1 : ℕ) ≤ d} ×ˢ
       {N : Finset ℕ | ∑ n ∈ N, (2 * n + 1 : ℕ) ≤ d} := by
     intro ⟨P, N⟩ hPN
-    simp only [Set.mem_setOf_eq, Set.mem_prod] at hPN ⊢
+    simp only [Set.mem_ofPred_eq, Set.mem_prod] at hPN ⊢
     constructor <;> omega
   exact Set.Finite.subset ((finite_finsets_sum_le d).prod (finite_finsets_sum_le d)) h_subset
 
@@ -2832,8 +2841,8 @@ private lemma summable_finset_prod_pair :
   intro d
   apply summable_of_ne_finset_zero (s := (finite_finset_pairs_sum_le d).toFinset)
   intro ⟨P, N⟩ hPN
-  rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hPN
-  push_neg at hPN
+  rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hPN
+  push Not at hPN
   have h_ord := order_prod_pair P N
   have h_lt : (d : ℕ∞) < ((∏ n ∈ P, (jacobiFactorZ n - 1)) *
       (∏ n ∈ N, (jacobiFactorZInv n - 1))).order := by
@@ -3031,8 +3040,10 @@ lemma order_jacobiSumTerm (ell : ℤ) :
   -- order(product) = ℓ² + 0 = ℓ²
   have hT_ne : LaurentPolynomial.T (R := ℤ) ell ≠ 0 := by
     intro h
-    have : (LaurentPolynomial.T (R := ℤ) ell) ell = (0 : LaurentPolynomial ℤ) ell := by rw [h]
-    simp only [LaurentPolynomial.T, Finsupp.single_apply, Finsupp.zero_apply] at this
+    have : (LaurentPolynomial.T (R := ℤ) ell).coeff ell = (0 : LaurentPolynomial ℤ).coeff ell := by
+      rw [h]
+    simp only [LaurentPolynomial.T, AddMonoidAlgebra.coeff_single, AddMonoidAlgebra.coeff_zero,
+      Finsupp.single_apply, Finsupp.zero_apply] at this
     exact one_ne_zero this
   have hC_order : (PowerSeries.C (LaurentPolynomial.T ell) : JacobiRing).order = 0 := by
     have heq : (0 : ℕ∞) = (0 : ℕ) := rfl
@@ -3051,7 +3062,7 @@ lemma order_jacobiSumTerm (ell : ℤ) :
     · simp only [PowerSeries.coeff_X_pow, ite_true, PowerSeries.coeff_C, ite_true, one_mul]
       exact hT_ne
     · intro b hb hne
-      simp only [Finset.mem_antidiagonal] at hb
+      simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hb
       cases' Nat.eq_zero_or_pos b.2 with h h
       · simp only [h, add_zero] at hb
         exact absurd (Prod.ext hb h) hne
@@ -3059,7 +3070,7 @@ lemma order_jacobiSumTerm (ell : ℤ) :
     · intro hne
       exfalso
       apply hne
-      simp only [Finset.mem_antidiagonal, add_zero]
+      simp only [Finset.HasAntidiagonal.mem_antidiagonal, add_zero]
   · -- order ≥ ℓ²: use le_order_mul
     calc (PowerSeries.X ^ ell.natAbs ^ 2 * PowerSeries.C (LaurentPolynomial.T ell) : JacobiRing).order
         ≥ (PowerSeries.X ^ ell.natAbs ^ 2 : JacobiRing).order +
@@ -3082,15 +3093,15 @@ lemma tendsto_order_jacobiSumTerm :
     -- {ℓ : ℤ | ℓ.natAbs ^ 2 ≤ m} is finite
     apply Set.Finite.subset (Set.finite_Icc (-(m : ℤ)) m)
     intro ell hell
-    simp only [Set.mem_setOf_eq] at hell
+    simp only [Set.mem_ofPred_eq] at hell
     -- Convert from ℕ∞ to ℕ
     have hell' : ell.natAbs ^ 2 ≤ m := by
       have : (ell.natAbs ^ 2 : ℕ∞) ≤ (m : ℕ∞) := hell
-      exact ENat.coe_le_coe.mp this
+      exact ENat.natCast_le_natCast.mp this
     simp only [Set.mem_Icc]
     have h : ell.natAbs ≤ m := by
       by_contra hcontra
-      push_neg at hcontra
+      push Not at hcontra
       have h1 : ell.natAbs ^ 2 ≥ ell.natAbs := Nat.le_self_pow (by omega) _
       omega
     constructor
@@ -3115,12 +3126,12 @@ lemma summable_of_tendsto_order_cofinite {R : Type*} [CommRing R]
   rw [ENat.tendsto_nhds_top_iff_natCast_lt] at h
   specialize h n
   rw [Filter.eventually_cofinite] at h
-  refine summable_of_finite_support ?_
+  refine summable_of_hasFiniteSupport ?_
   apply Set.Finite.subset h
   intro ell hell
-  simp only [Function.mem_support, Set.mem_setOf_eq, not_lt] at hell ⊢
+  simp only [Function.mem_support, Set.mem_ofPred_eq, not_lt] at hell ⊢
   by_contra hcontra
-  push_neg at hcontra
+  push Not at hcontra
   exact hell (PowerSeries.coeff_of_lt_order n hcontra)
 
 /-- The Jacobi sum is summable.
@@ -3145,8 +3156,8 @@ lemma summable_coeff_jacobiSumTerm (n : ℕ) :
   haveI : DiscreteTopology (LaurentPolynomial ℤ) := ⟨rfl⟩
   apply summable_of_ne_finset_zero (s := (finite_natAbs_sq_eq n).toFinset)
   intro ℓ hℓ
-  rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
-  rw [coeff_jacobiSumTerm, if_neg]
+  rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
+  rw [coeff_jacobiSumTerm, ite_eq_right]
   exact fun h => hℓ h.symm
 
 -- Note: jacobi_triple_product_fps' is defined later in the file (in section MovedLemmas
@@ -3267,11 +3278,11 @@ lemma partitionGenFunEval_constantCoeff (a : ℤ) (u : ℚ) (ha : a > 0) :
   have hsum : Summable f := by
     rw [hsummable]
     intro d
-    apply summable_of_finite_support
+    apply summable_of_hasFiniteSupport
     have h_supp : Function.support (fun i => PowerSeries.coeff (R := ℚ) d (f i)) ⊆
         {p : Σ n, Nat.Partition n | (2 * a * p.1).toNat = d} := by
       intro p hp
-      simp only [Function.mem_support, ne_eq, Set.mem_setOf_eq] at hp ⊢
+      simp only [Function.mem_support, ne_eq, Set.mem_ofPred_eq] at hp ⊢
       by_contra hne
       apply hp
       show PowerSeries.coeff (R := ℚ) d (f p) = 0
@@ -3297,8 +3308,8 @@ lemma partitionGenFunEval_constantCoeff (a : ℤ) (u : ℚ) (ha : a > 0) :
     have h_subset : {p : Σ n, Nat.Partition n | (2 * a * p.1).toNat = d} ⊆
         ⋃ n : Fin (d + 1), {p : Σ m, Nat.Partition m | p.1 = n} := by
       intro p hp
-      simp only [Set.mem_setOf_eq] at hp
-      simp only [Set.mem_iUnion, Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq] at hp
+      simp only [Set.mem_iUnion, Set.mem_ofPred_eq]
       use ⟨p.1, Nat.lt_succ_of_le (h_n_bound p hp)⟩
     apply Set.Finite.subset _ h_subset
     apply Set.finite_iUnion
@@ -3306,7 +3317,7 @@ lemma partitionGenFunEval_constantCoeff (a : ℤ) (u : ℚ) (ha : a > 0) :
     have h_eq : {p : Σ m, Nat.Partition m | p.1 = (n : ℕ)} =
         (fun part => (⟨n, part⟩ : Σ m, Nat.Partition m)) '' Set.univ := by
       ext p
-      simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_univ, true_and]
+      simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_univ, true_and]
       constructor
       · intro hp
         obtain ⟨m, part⟩ := p
@@ -3351,7 +3362,7 @@ private lemma order_smul_X_pow (c : ℚ) (hc : c ≠ 0) (n : ℕ) :
     simp only [PowerSeries.coeff_smul, PowerSeries.coeff_X_pow, smul_eq_mul,
       PowerSeries.coeff_monomial, eq_comm]
     split_ifs <;> ring
-  rw [h, PowerSeries.order_monomial, if_neg hc]
+  rw [h, PowerSeries.order_monomial, ite_eq_right hc]
 
 /-- The product ∏_{k>0}(1 - u^{2k}·X^{2ak}) is multipliable.
 This is the "Euler product" with parameters, and is key to showing
@@ -3421,17 +3432,17 @@ private lemma finite_partitions_with_exponent' (a : ℤ) (d : ℕ) (ha : a > 0) 
       exact Int.ofNat_inj.mp this
     have h_subset : {p : Σ n, Nat.Partition n | (2 * a * p.1).toNat = d} ⊆
         {p : Σ n, Nat.Partition n | p.1 = n₀} := by
-      intro p hp; simp only [Set.mem_setOf_eq] at hp ⊢; exact h_unique p.1 hp
+      intro p hp; simp only [Set.mem_ofPred_eq] at hp ⊢; exact h_unique p.1 hp
     apply Set.Finite.subset _ h_subset
     have h_eq : {p : Σ n, Nat.Partition n | p.1 = n₀} =
         (fun μ : Nat.Partition n₀ => (⟨n₀, μ⟩ : Σ n, Nat.Partition n)) '' Set.univ := by
-      ext p; simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_univ, true_and]
+      ext p; simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_univ, true_and]
       constructor
       · intro hp; cases p with | mk n μ => simp only at hp; subst hp; exact ⟨μ, rfl⟩
       · intro ⟨μ, hμ⟩; rw [← hμ]
     rw [h_eq]; exact Set.Finite.image _ Set.finite_univ
   · have h_empty : {p : Σ n, Nat.Partition n | (2 * a * p.1).toNat = d} = ∅ := by
-      ext p; simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+      ext p; simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false]
       intro hp; apply h; exact ⟨p.1, hp⟩
     rw [h_empty]; exact Set.finite_empty
 
@@ -3447,12 +3458,12 @@ private lemma summable_partition_terms' (a : ℤ) (u : ℚ) (ha : a > 0) :
   letI := PowerSeries.WithPiTopology.instTopologicalSpace (R := ℚ)
   rw [PowerSeries.WithPiTopology.summable_iff_summable_coeff]
   intro d
-  apply summable_of_finite_support
+  apply summable_of_hasFiniteSupport
   have h_supp : Function.support (fun p => PowerSeries.coeff (R := ℚ) d
       ((u^(2*p.1) : ℚ) • (PowerSeries.X : ℚ⟦X⟧) ^ (2 * a * p.1).toNat)) ⊆
       {p : Σ n, Nat.Partition n | (2 * a * p.1).toNat = d} := by
     intro p hp
-    simp only [Function.mem_support, ne_eq, Set.mem_setOf_eq] at hp ⊢
+    simp only [Function.mem_support, ne_eq, Set.mem_ofPred_eq] at hp ⊢
     by_contra hne
     apply hp
     rw [PowerSeries.coeff_smul, PowerSeries.coeff_X_pow]
@@ -3607,7 +3618,7 @@ private lemma multipliable_geom_sum_param (a : ℤ) (u : ℚ) (ha : a > 0) :
         simp only [PowerSeries.coeff_smul, PowerSeries.coeff_X_pow, smul_eq_mul,
           PowerSeries.coeff_monomial, eq_comm]
         split_ifs <;> ring
-      rw [h, PowerSeries.order_monomial, if_neg hpow]
+      rw [h, PowerSeries.order_monomial, ite_eq_right hpow]
       simp only [Nat.cast_add, Nat.cast_one, le_refl]
   -- Use the order bound for geometric series minus 1
   have horder_diff : ((∑' j : ℕ, (x n) ^ j) - 1).order ≥ (2 * a * (n + 1)).toNat := by
@@ -3712,7 +3723,7 @@ private lemma coeff_geom_series_smul_X_pow (c : ℚ) (e : ℕ) (he : e > 0) (d :
         apply hj
         exact Nat.eq_of_mul_eq_mul_left he h.symm
       simp only [mul_zero, hne, ↓reduceIte]
-  · rw [if_neg hd]
+  · rw [ite_eq_right hd]
     rw [show (0 : ℚ) = ∑' _ : ℕ, (0 : ℚ) from tsum_zero.symm]
     congr 1
     funext j
@@ -3735,12 +3746,12 @@ private lemma summable_partitionGenFunEval_terms (a : ℤ) (u : ℚ) (ha : a > 0
   letI := PowerSeries.WithPiTopology.instTopologicalSpace (R := ℚ)
   rw [PowerSeries.WithPiTopology.summable_iff_summable_coeff]
   intro d
-  apply summable_of_finite_support
+  apply summable_of_hasFiniteSupport
   have h_supp : Function.support (fun p => PowerSeries.coeff (R := ℚ) d
       ((u^(2*p.1) : ℚ) • (PowerSeries.X : ℚ⟦X⟧) ^ (2 * a * p.1).toNat)) ⊆
       {p : Σ n, Nat.Partition n | (2 * a * p.1).toNat = d} := by
     intro p hp
-    simp only [Function.mem_support, ne_eq, Set.mem_setOf_eq] at hp ⊢
+    simp only [Function.mem_support, ne_eq, Set.mem_ofPred_eq] at hp ⊢
     by_contra hne
     apply hp
     rw [PowerSeries.coeff_smul, PowerSeries.coeff_X_pow]
@@ -3764,8 +3775,8 @@ private lemma summable_partitionGenFunEval_terms (a : ℤ) (u : ℚ) (ha : a > 0
   have h_subset : {p : Σ n, Nat.Partition n | (2 * a * p.1).toNat = d} ⊆
       ⋃ n : Fin (d + 1), {p : Σ m, Nat.Partition m | p.1 = n} := by
     intro p hp
-    simp only [Set.mem_setOf_eq] at hp
-    simp only [Set.mem_iUnion, Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq] at hp
+    simp only [Set.mem_iUnion, Set.mem_ofPred_eq]
     use ⟨p.1, Nat.lt_succ_of_le (h_n_bound p hp)⟩
   apply Set.Finite.subset _ h_subset
   apply Set.finite_iUnion
@@ -3773,7 +3784,7 @@ private lemma summable_partitionGenFunEval_terms (a : ℤ) (u : ℚ) (ha : a > 0
   have h_eq : {p : Σ m, Nat.Partition m | p.1 = (n : ℕ)} =
       (fun part => (⟨n, part⟩ : Σ m, Nat.Partition m)) '' Set.univ := by
     ext p
-    simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_univ, true_and]
+    simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_univ, true_and]
     constructor
     · intro hp
       obtain ⟨m, part⟩ := p
@@ -4080,9 +4091,6 @@ private lemma coeff_geom_factor (u : ℚ) (k : ℕ) (e : ℕ) (he : e > 0) (d : 
       rw [← pow_mul]
     rw [h1, PowerSeries.coeff_X_pow]
     ring_nf
-    split_ifs with h
-    · ring
-    · ring
   simp_rw [hterm]
   by_cases hd : e ∣ d
   · obtain ⟨q, rfl⟩ := hd
@@ -4094,7 +4102,7 @@ private lemma coeff_geom_factor (u : ℚ) (k : ℕ) (e : ℕ) (he : e > 0) (d : 
       have hne : e * q ≠ e * j := by
         intro h; apply hj; exact Nat.eq_of_mul_eq_mul_left he h.symm
       simp only [mul_zero, hne, ↓reduceIte]
-  · rw [if_neg hd]
+  · rw [ite_eq_right hd]
     rw [show (0 : ℚ) = ∑' _ : ℕ, (0 : ℚ) from tsum_zero.symm]
     congr 1
     funext j
@@ -4430,12 +4438,12 @@ lemma partitionGenFunEval_mul_eulerProductParam (a : ℤ) (u : ℚ) (ha : a > 0)
           (u^(2*p.1) : ℚ) • (PowerSeries.X : ℚ⟦X⟧) ^ (2 * a * p.1).toNat) := by
         rw [PowerSeries.WithPiTopology.summable_iff_summable_coeff]
         intro d''
-        apply summable_of_finite_support
+        apply summable_of_hasFiniteSupport
         have h_supp : Function.support (fun p => PowerSeries.coeff (R := ℚ) d''
             ((u^(2*p.1) : ℚ) • (PowerSeries.X : ℚ⟦X⟧) ^ (2 * a * p.1).toNat)) ⊆
             {p : Σ n, Nat.Partition n | (2 * a * p.1).toNat = d''} := by
           intro p hp
-          simp only [Function.mem_support, ne_eq, Set.mem_setOf_eq] at hp ⊢
+          simp only [Function.mem_support, ne_eq, Set.mem_ofPred_eq] at hp ⊢
           by_contra hne
           apply hp
           rw [PowerSeries.coeff_smul, PowerSeries.coeff_X_pow]
@@ -4458,8 +4466,8 @@ lemma partitionGenFunEval_mul_eulerProductParam (a : ℤ) (u : ℚ) (ha : a > 0)
         have h_subset : {p : Σ n, Nat.Partition n | (2 * a * p.1).toNat = d''} ⊆
             ⋃ n : Fin (d'' + 1), {p : Σ m, Nat.Partition m | p.1 = n} := by
           intro p hp
-          simp only [Set.mem_setOf_eq] at hp
-          simp only [Set.mem_iUnion, Set.mem_setOf_eq]
+          simp only [Set.mem_ofPred_eq] at hp
+          simp only [Set.mem_iUnion, Set.mem_ofPred_eq]
           use ⟨p.1, Nat.lt_succ_of_le (h_n_bound p hp)⟩
         apply Set.Finite.subset _ h_subset
         apply Set.finite_iUnion
@@ -4467,7 +4475,7 @@ lemma partitionGenFunEval_mul_eulerProductParam (a : ℤ) (u : ℚ) (ha : a > 0)
         have h_eq : {p : Σ m, Nat.Partition m | p.1 = (n : ℕ)} =
             (fun part => (⟨n, part⟩ : Σ m, Nat.Partition m)) '' Set.univ := by
           ext p
-          simp only [Set.mem_setOf_eq, Set.mem_image, Set.mem_univ, true_and]
+          simp only [Set.mem_ofPred_eq, Set.mem_image, Set.mem_univ, true_and]
           constructor
           · intro hp
             obtain ⟨m, part⟩ := p
@@ -4596,7 +4604,7 @@ lemma partitionGenFunEval_mul_eulerProductParam (a : ℤ) (u : ℚ) (ha : a > 0)
             Nat.card (n.Partition) * u^(2*n) := by
           -- The only nonzero terms are those with p.1 = n
           have hsum : Summable (fun p : Σ m, Nat.Partition m => if p.1 = n then u^(2*n) else 0) :=
-            summable_of_finite_support (by
+            summable_of_hasFiniteSupport (by
               apply Set.Finite.subset (Set.finite_range (fun p : n.Partition => (⟨n, p⟩ : Σ m, Nat.Partition m)))
               intro p hp
               simp only [Function.mem_support, ne_eq] at hp
@@ -4667,7 +4675,7 @@ private lemma exponent_nonneg' (a b : ℤ) (ℓ : ℤ) (ha : a > 0) (hab : a ≥
       by_cases hbl : b * ℓ ≥ 0
       · calc b * ℓ ≥ 0 := hbl
           _ ≥ -|b| * |ℓ| := by nlinarith [abs_nonneg b, abs_nonneg ℓ]
-      · push_neg at hbl
+      · push Not at hbl
         rw [neg_mul]
         have : |b * ℓ| = |b| * |ℓ| := abs_mul b ℓ
         linarith [abs_of_neg hbl]
@@ -4687,7 +4695,7 @@ private lemma finite_ell_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab : 
   have h : ∀ ℓ : ℤ, (a * ℓ^2 + b * ℓ).toNat = m → ℓ.natAbs ≤ m + 1 := by
     intro ℓ heq
     by_contra hcontra
-    push_neg at hcontra
+    push Not at hcontra
     have habs : ℓ.natAbs ≥ m + 2 := hcontra
     have hpos : a * ℓ^2 + b * ℓ ≥ 0 := exponent_nonneg' a b ℓ ha hab
     have heq' : (a * ℓ^2 + b * ℓ : ℤ) = m := by
@@ -4703,7 +4711,7 @@ private lemma finite_ell_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab : 
           by_cases hbl : b * ℓ ≥ 0
           · calc b * ℓ ≥ 0 := hbl
               _ ≥ -|b| * |ℓ| := by nlinarith [abs_nonneg b, abs_nonneg ℓ]
-          · push_neg at hbl
+          · push Not at hbl
             rw [neg_mul]
             have : |b * ℓ| = |b| * |ℓ| := abs_mul b ℓ
             linarith [abs_of_neg hbl]
@@ -4742,7 +4750,7 @@ private lemma finite_ell_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab : 
   -- Now the set is contained in {ℓ : ℤ | |ℓ| ≤ m + 1}, which is finite
   apply Set.Finite.subset (Set.finite_Icc (-(m + 1 : ℤ)) (m + 1))
   intro ℓ hℓ
-  simp only [Set.mem_setOf_eq] at hℓ
+  simp only [Set.mem_ofPred_eq] at hℓ
   simp only [Set.mem_Icc]
   have hbound := h ℓ hℓ
   have habs_eq : |ℓ| = ℓ.natAbs := Int.abs_eq_natAbs ℓ
@@ -4786,7 +4794,7 @@ private lemma finite_pairs_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab 
   have h_ell_finite : {ℓ : ℤ | (a * ℓ^2 + b * ℓ).toNat ≤ m}.Finite := by
     apply Set.Finite.subset (Set.finite_Icc (-(m + 1 : ℤ)) (m + 1))
     intro ℓ hℓ
-    simp only [Set.mem_setOf_eq] at hℓ
+    simp only [Set.mem_ofPred_eq] at hℓ
     simp only [Set.mem_Icc]
     -- If a*ℓ² + b*ℓ ≤ m then |ℓ| ≤ m + 1
     by_contra hcontra
@@ -4806,7 +4814,7 @@ private lemma finite_pairs_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab 
           by_cases hbl : b * ℓ ≥ 0
           · calc b * ℓ ≥ 0 := hbl
               _ ≥ -|b| * |ℓ| := by nlinarith [abs_nonneg b, abs_nonneg ℓ]
-          · push_neg at hbl
+          · push Not at hbl
             rw [neg_mul]
             have : |b * ℓ| = |b| * |ℓ| := abs_mul b ℓ
             linarith [abs_of_neg hbl]
@@ -4826,7 +4834,7 @@ private lemma finite_pairs_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab 
           by_cases hbl : b * ℓ ≥ 0
           · calc b * ℓ ≥ 0 := hbl
               _ ≥ -|b| * |ℓ| := by nlinarith [abs_nonneg b, abs_nonneg ℓ]
-          · push_neg at hbl
+          · push Not at hbl
             rw [neg_mul]
             have : |b * ℓ| = |b| * |ℓ| := abs_mul b ℓ
             linarith [abs_of_neg hbl]
@@ -4860,7 +4868,7 @@ private lemma finite_pairs_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab 
     intro ℓ
     apply Set.Finite.subset (Set.finite_Icc 0 m)
     intro n hn
-    simp only [Set.mem_setOf_eq] at hn
+    simp only [Set.mem_ofPred_eq] at hn
     simp only [Set.mem_Icc, Nat.zero_le, true_and]
     -- Need to show n ≤ m
     have h_exp_nonneg : a * (ℓ^2 + 2*(n : ℤ)) + b * ℓ ≥ 0 := by
@@ -4874,7 +4882,7 @@ private lemma finite_pairs_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab 
             by_cases hbl : b * ℓ ≥ 0
             · calc b * ℓ ≥ 0 := hbl
                 _ ≥ -|b| * |ℓ| := by nlinarith [abs_nonneg b, abs_nonneg ℓ]
-            · push_neg at hbl
+            · push Not at hbl
               rw [neg_mul]
               have : |b * ℓ| = |b| * |ℓ| := abs_mul b ℓ
               linarith [abs_of_neg hbl]
@@ -4899,7 +4907,7 @@ private lemma finite_pairs_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab 
             by_cases hbl : b * ℓ ≥ 0
             · calc b * ℓ ≥ 0 := hbl
                 _ ≥ -|b| * |ℓ| := by nlinarith [abs_nonneg b, abs_nonneg ℓ]
-            · push_neg at hbl
+            · push Not at hbl
               rw [neg_mul]
               have : |b * ℓ| = |b| * |ℓ| := abs_mul b ℓ
               linarith [abs_of_neg hbl]
@@ -4924,8 +4932,8 @@ private lemma finite_pairs_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab 
   have h_subset : {pair : ℤ × ℕ | (a * (pair.1^2 + 2*(pair.2 : ℤ)) + b * pair.1).toNat = m} ⊆
       ⋃ ℓ ∈ {ℓ : ℤ | (a * ℓ^2 + b * ℓ).toNat ≤ m}, {ℓ} ×ˢ {n : ℕ | (a * (ℓ^2 + 2*(n : ℤ)) + b * ℓ).toNat = m} := by
     intro ⟨ℓ, n⟩ h
-    simp only [Set.mem_setOf_eq] at h
-    simp only [Set.mem_iUnion, Set.mem_prod, Set.mem_singleton_iff, Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq] at h
+    simp only [Set.mem_iUnion, Set.mem_prod, Set.mem_singleton_iff, Set.mem_ofPred_eq]
     use ℓ
     refine ⟨?_, rfl, h⟩
     -- Need: (a * ℓ^2 + b * ℓ).toNat ≤ m
@@ -4940,7 +4948,7 @@ private lemma finite_pairs_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab 
             by_cases hbl : b * ℓ ≥ 0
             · calc b * ℓ ≥ 0 := hbl
                 _ ≥ -|b| * |ℓ| := by nlinarith [abs_nonneg b, abs_nonneg ℓ]
-            · push_neg at hbl
+            · push Not at hbl
               rw [neg_mul]
               have : |b * ℓ| = |b| * |ℓ| := abs_mul b ℓ
               linarith [abs_of_neg hbl]
@@ -4961,7 +4969,7 @@ private lemma finite_pairs_for_exponent (a b : ℤ) (m : ℕ) (ha : a > 0) (hab 
           by_cases hbl : b * ℓ ≥ 0
           · calc b * ℓ ≥ 0 := hbl
               _ ≥ -|b| * |ℓ| := by nlinarith [abs_nonneg b, abs_nonneg ℓ]
-          · push_neg at hbl
+          · push Not at hbl
             rw [neg_mul]
             have : |b * ℓ| = |b| * |ℓ| := abs_mul b ℓ
             linarith [abs_of_neg hbl]
@@ -5022,12 +5030,12 @@ private lemma summable_jacobiRHSEval_terms (a b : ℤ) (u v : ℚ) (ha : a > 0) 
   letI := PowerSeries.WithPiTopology.instTopologicalSpace (R := ℚ)
   rw [PowerSeries.WithPiTopology.summable_iff_summable_coeff]
   intro d
-  apply summable_of_finite_support
+  apply summable_of_hasFiniteSupport
   have h_supp : Function.support (fun ℓ => PowerSeries.coeff (R := ℚ) d
       ((u^(ℓ^2).natAbs * v^ℓ : ℚ) • (PowerSeries.X : ℚ⟦X⟧) ^ (a * ℓ^2 + b * ℓ).toNat)) ⊆
       {ℓ : ℤ | (a * ℓ^2 + b * ℓ).toNat = d} := by
     intro ℓ hℓ
-    simp only [Function.mem_support, ne_eq, Set.mem_setOf_eq] at hℓ ⊢
+    simp only [Function.mem_support, ne_eq, Set.mem_ofPred_eq] at hℓ ⊢
     by_contra hne
     apply hℓ
     rw [PowerSeries.coeff_smul, PowerSeries.coeff_X_pow]
@@ -5048,7 +5056,7 @@ private lemma summable_product_terms (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab :
   letI := PowerSeries.WithPiTopology.instTopologicalSpace (R := ℚ)
   rw [PowerSeries.WithPiTopology.summable_iff_summable_coeff]
   intro d
-  apply summable_of_finite_support
+  apply summable_of_hasFiniteSupport
   -- The support is contained in pairs with the right exponent
   have h_supp : Function.support (fun pair : ℤ × (Σ n, Nat.Partition n) =>
       PowerSeries.coeff (R := ℚ) d
@@ -5056,7 +5064,7 @@ private lemma summable_product_terms (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab :
          (PowerSeries.X : ℚ⟦X⟧) ^ (a * (pair.1^2 + 2*pair.2.1) + b * pair.1).toNat)) ⊆
       {pair : ℤ × (Σ n, Nat.Partition n) | (a * (pair.1^2 + 2*pair.2.1) + b * pair.1).toNat = d} := by
     intro pair hp
-    simp only [Function.mem_support, ne_eq, Set.mem_setOf_eq] at hp ⊢
+    simp only [Function.mem_support, ne_eq, Set.mem_ofPred_eq] at hp ⊢
     by_contra hne
     apply hp
     rw [PowerSeries.coeff_smul, PowerSeries.coeff_X_pow]
@@ -5072,7 +5080,7 @@ private lemma summable_product_terms (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab :
       ⋃ ℓn ∈ {pair : ℤ × ℕ | (a * (pair.1^2 + 2*(pair.2 : ℤ)) + b * pair.1).toNat = d},
         (fun p : Nat.Partition ℓn.2 => (ℓn.1, (⟨ℓn.2, p⟩ : Σ n, Nat.Partition n))) '' Set.univ := by
     intro ⟨ℓ, ⟨n, p⟩⟩ hp
-    simp only [Set.mem_setOf_eq] at hp
+    simp only [Set.mem_ofPred_eq] at hp
     simp only [Set.mem_iUnion, Set.mem_image, Set.mem_univ, true_and]
     refine ⟨(ℓ, n), hp, p, rfl⟩
   apply Set.Finite.subset _ h_subset
@@ -5165,7 +5173,7 @@ lemma finset_prod_param_aZ (a b : ℤ) (u v : ℚ) (P : Finset ℕ) :
   | @insert a s ha ih =>
     rw [Finset.prod_insert ha, ih]
     rw [Finset.sum_insert ha, Finset.sum_insert ha]
-    simp only [Finset.card_insert_eq_ite, if_neg ha]
+    simp only [Finset.card_insert_eq_ite, ite_eq_right ha]
     rw [smul_mul_smul_comm]
     congr 1
     · ring
@@ -5185,7 +5193,7 @@ lemma finset_prod_param_aZInv (a b : ℤ) (u v : ℚ) (N : Finset ℕ) :
   | @insert a s ha ih =>
     rw [Finset.prod_insert ha, ih]
     rw [Finset.sum_insert ha, Finset.sum_insert ha]
-    simp only [Finset.card_insert_eq_ite, if_neg ha]
+    simp only [Finset.card_insert_eq_ite, ite_eq_right ha]
     rw [smul_mul_smul_comm]
     congr 1
     · ring
@@ -5402,7 +5410,7 @@ private lemma finite_finset_pairs_param_eq (a b : ℤ) (d : ℕ) (ha : a > 0) (h
       ∑ n ∈ p.1, ((2*n + 1) * a + b).toNat + ∑ n ∈ p.2, ((2*n + 1) * a - b).toNat = d} ⊆
       ↑((Finset.range (d + 1)).powerset ×ˢ (Finset.range (d + 1)).powerset) := by
     intro ⟨P, N⟩ hp
-    simp only [Set.mem_setOf_eq] at hp
+    simp only [Set.mem_ofPred_eq] at hp
     simp only [Finset.coe_product, Set.mem_prod]
     constructor
     · simp only [Finset.coe_powerset, Set.mem_preimage, Set.mem_powerset_iff]
@@ -5438,7 +5446,7 @@ private lemma finite_int_partition_pairs_param_eq (a b : ℤ) (d : ℕ) (ha : a 
       ⋃ ℓn ∈ {pair : ℤ × ℕ | (a * (pair.1^2 + 2*(pair.2 : ℤ)) + b * pair.1).toNat = d},
         (fun p : Nat.Partition ℓn.2 => (ℓn.1, (⟨ℓn.2, p⟩ : Σ n, Nat.Partition n))) '' Set.univ := by
     intro ⟨ℓ, ⟨n, p⟩⟩ hp
-    simp only [Set.mem_setOf_eq] at hp
+    simp only [Set.mem_ofPred_eq] at hp
     simp only [Set.mem_iUnion, Set.mem_image, Set.mem_univ, true_and]
     have h_eq : (a * (ℓ.natAbs^2 + 2*n) + b * ℓ).toNat = (a * (ℓ^2 + 2*(n : ℤ)) + b * ℓ).toNat := by
       congr 1
@@ -5524,10 +5532,10 @@ def groundState (ell : ℤ) : State where
     by_cases h : ell ≤ 0
     · convert Set.finite_empty
       ext p
-      simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_and]
+      simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_and]
       intro hp
       linarith
-    · push_neg at h
+    · push Not at h
       apply Set.Finite.subset (Set.finite_Ico 0 ell)
       intro p ⟨hp_nonneg, hp_lt⟩
       simp only [Set.mem_Ico]
@@ -5536,15 +5544,15 @@ def groundState (ell : ℤ) : State where
     by_cases h : ell ≥ 0
     · convert Set.finite_empty
       ext p
-      simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_and]
+      simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_and]
       intro hp
-      push_neg
+      push Not
       linarith
-    · push_neg at h
+    · push Not at h
       apply Set.Finite.subset (Set.finite_Ico ell 0)
       intro p ⟨hp_neg, hp_ge⟩
-      simp only [Set.mem_Ico, Set.mem_setOf_eq] at hp_ge ⊢
-      push_neg at hp_ge
+      simp only [Set.mem_Ico, Set.mem_ofPred_eq] at hp_ge ⊢
+      push Not at hp_ge
       exact ⟨hp_ge, hp_neg⟩
 
 /-- The energy of the ground state G_ℓ is ℓ².
@@ -5573,11 +5581,11 @@ theorem groundState_energy (ell : ℤ) : (groundState ell).energy = ell.natAbs ^
   -- Convert toFinset to Finset.Ico
   have h_nonneg : (groundState ell).finite_nonneg.toFinset = Finset.Ico 0 ell := by
     ext x
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, Finset.mem_Ico, groundState]
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, Finset.mem_Ico, groundState]
   have h_neg_missing : (groundState ell).finite_negative_missing.toFinset = Finset.Ico ell 0 := by
     ext x
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, Finset.mem_Ico,
-               groundState, Set.mem_setOf_eq, not_lt]
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, Finset.mem_Ico,
+               groundState, Set.mem_ofPred_eq, not_lt]
     exact ⟨fun ⟨h1, h2⟩ => ⟨h2, h1⟩, fun ⟨h1, h2⟩ => ⟨h2, h1⟩⟩
   rw [h_nonneg, h_neg_missing]
   -- Sum of first n odd numbers is n²
@@ -5608,7 +5616,7 @@ theorem groundState_energy (ell : ℤ) : (groundState ell).energy = ell.natAbs ^
     have h2 : (ell.natAbs : ℤ) = ell := Int.natAbs_of_nonneg h
     omega
   · -- For ell < 0: nonneg sum = 0, neg_missing sum = ell²
-    push_neg at h
+    push Not at h
     have h_nonneg_empty : Finset.Ico 0 ell = ∅ := by
       simp only [Finset.Ico_eq_empty_iff]
       linarith
@@ -5656,11 +5664,11 @@ theorem groundState_parnum (ell : ℤ) : (groundState ell).parnum = ell := by
   -- Convert toFinset to Finset.Ico
   have h_nonneg : (groundState ell).finite_nonneg.toFinset = Finset.Ico 0 ell := by
     ext x
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, Finset.mem_Ico, groundState]
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, Finset.mem_Ico, groundState]
   have h_neg_missing : (groundState ell).finite_negative_missing.toFinset = Finset.Ico ell 0 := by
     ext x
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, Finset.mem_Ico,
-               groundState, Set.mem_setOf_eq, not_lt]
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, Finset.mem_Ico,
+               groundState, Set.mem_ofPred_eq, not_lt]
     exact ⟨fun ⟨h1, h2⟩ => ⟨h2, h1⟩, fun ⟨h1, h2⟩ => ⟨h2, h1⟩⟩
   rw [h_nonneg, h_neg_missing, Int.card_Ico, Int.card_Ico]
   simp only [sub_zero, zero_sub]
@@ -5669,7 +5677,7 @@ theorem groundState_parnum (ell : ℤ) : (groundState ell).parnum = ell := by
   · have h1 : (ell.toNat : ℤ) = ell := Int.toNat_of_nonneg h
     have h2 : (-ell).toNat = 0 := Int.toNat_of_nonpos (neg_nonpos.mpr h)
     simp only [h1, h2, Nat.cast_zero, sub_zero]
-  · push_neg at h
+  · push Not at h
     have h1 : ell.toNat = 0 := Int.toNat_of_nonpos (le_of_lt h)
     have h2 : ((-ell).toNat : ℤ) = -ell := Int.toNat_of_nonneg (neg_nonneg.mpr (le_of_lt h))
     simp only [h1, h2, Nat.cast_zero, zero_sub, neg_neg]
@@ -5682,7 +5690,7 @@ def jump (S : State) (p : Level) (q : ℕ) (_hp : p ∈ S.levels)
     apply Set.Finite.subset
     · exact S.finite_nonneg.union (Set.finite_singleton (p + q))
     · intro x ⟨hx_nonneg, hx_mem⟩
-      simp only [Set.mem_union, Set.mem_diff, Set.mem_singleton_iff] at hx_mem ⊢
+      simp only [Set.mem_union, Set.mem_sdiff, Set.mem_singleton_iff] at hx_mem ⊢
       cases hx_mem with
       | inl h => left; exact ⟨hx_nonneg, h.1⟩
       | inr h => right; exact h
@@ -5690,7 +5698,7 @@ def jump (S : State) (p : Level) (q : ℕ) (_hp : p ∈ S.levels)
     apply Set.Finite.subset
     · exact S.finite_negative_missing.union (Set.finite_singleton p)
     · intro x ⟨hx_neg, hx_nmem⟩
-      simp only [Set.mem_union, Set.mem_diff, Set.mem_singleton_iff] at hx_nmem ⊢
+      simp only [Set.mem_union, Set.mem_sdiff, Set.mem_singleton_iff] at hx_nmem ⊢
       by_cases hxp : x = p
       · right; exact hxp
       · left
@@ -5704,25 +5712,25 @@ def jump (S : State) (p : Level) (q : ℕ) (_hp : p ∈ S.levels)
 -- Helper lemmas for membership in finite_nonneg and finite_negative_missing
 private lemma mem_finite_nonneg (S : State) (x : Level) :
     x ∈ S.finite_nonneg.toFinset ↔ 0 ≤ x ∧ x ∈ S.levels := by
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, ge_iff_le]
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, ge_iff_le]
 
 private lemma mem_finite_negative_missing (S : State) (x : Level) :
     x ∈ S.finite_negative_missing.toFinset ↔ x < 0 ∧ x ∉ S.levels := by
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
 
 private lemma mem_jump_finite_nonneg (S : State) (p : Level) (q : ℕ) (hp : p ∈ S.levels)
     (hpq : p + q ∉ S.levels) (hq : q > 0) (x : Level) :
     x ∈ (S.jump p q hp hpq hq).finite_nonneg.toFinset ↔
     0 ≤ x ∧ ((x ∈ S.levels ∧ x ≠ p) ∨ x = p + q) := by
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, ge_iff_le, jump,
-             Set.mem_union, Set.mem_diff, Set.mem_singleton_iff]
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, ge_iff_le, jump,
+             Set.mem_union, Set.mem_sdiff, Set.mem_singleton_iff]
 
 private lemma mem_jump_finite_negative_missing (S : State) (p : Level) (q : ℕ) (hp : p ∈ S.levels)
     (hpq : p + q ∉ S.levels) (hq : q > 0) (x : Level) :
     x ∈ (S.jump p q hp hpq hq).finite_negative_missing.toFinset ↔
     x < 0 ∧ ¬((x ∈ S.levels ∧ x ≠ p) ∨ x = p + q) := by
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, jump,
-             Set.mem_union, Set.mem_diff, Set.mem_singleton_iff]
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, jump,
+             Set.mem_union, Set.mem_sdiff, Set.mem_singleton_iff]
 
 /-- A jump preserves the particle number. -/
 theorem jump_parnum (S : State) (p : Level) (q : ℕ) (hp : p ∈ S.levels)
@@ -5940,23 +5948,23 @@ private lemma energy_change_formula (p : ℤ) (q : ℕ) (hq : q > 0) :
   · -- Case p < 0
     rcases lt_trichotomy (p + q) 0 with hpq_neg | hpq_zero | hpq_pos
     · -- Subcase p + q < 0
-      rw [if_neg (not_le.mpr hpq_neg), if_neg (not_le.mpr hp_neg),
-          if_pos hp_neg, if_pos hpq_neg]
+      rw [ite_eq_right (not_le.mpr hpq_neg), ite_eq_right (not_le.mpr hp_neg),
+          ite_eq_left hp_neg, ite_eq_left hpq_neg]
       have h1 : (p.natAbs : ℤ) = -p := Int.ofNat_natAbs_of_nonpos hp_neg.le
       have h2 : ((p + q).natAbs : ℤ) = -(p + q) := Int.ofNat_natAbs_of_nonpos hpq_neg.le
       omega
     · -- Subcase p + q = 0
       have hpq_nonneg : 0 ≤ p + q := by omega
-      rw [if_pos hpq_nonneg, if_neg (not_le.mpr hp_neg),
-          if_pos hp_neg, if_neg (by omega : ¬(p + q < 0))]
+      rw [ite_eq_left hpq_nonneg, ite_eq_right (not_le.mpr hp_neg),
+          ite_eq_left hp_neg, ite_eq_right (by omega : ¬(p + q < 0))]
       have hp_eq : p = -q := by linarith
       have h1 : (p.natAbs : ℤ) = -p := Int.ofNat_natAbs_of_nonpos hp_neg.le
       have h2 : ((p + q).natAbs : ℤ) = 0 := by simp [hpq_zero.symm]
       omega
     · -- Subcase p + q > 0
       have hpq_nonneg : 0 ≤ p + q := hpq_pos.le
-      rw [if_pos hpq_nonneg, if_neg (not_le.mpr hp_neg),
-          if_pos hp_neg, if_neg (not_lt.mpr hpq_pos.le)]
+      rw [ite_eq_left hpq_nonneg, ite_eq_right (not_le.mpr hp_neg),
+          ite_eq_left hp_neg, ite_eq_right (not_lt.mpr hpq_pos.le)]
       have h1 : (p.natAbs : ℤ) = -p := Int.ofNat_natAbs_of_nonpos hp_neg.le
       have h2 : ((p + q).natAbs : ℤ) = p + q := Int.ofNat_natAbs_of_nonneg hpq_pos.le
       omega
@@ -5964,7 +5972,7 @@ private lemma energy_change_formula (p : ℤ) (q : ℕ) (hq : q > 0) :
     subst hp_zero
     simp only [zero_add]
     have hq_nonneg : 0 ≤ (q : ℤ) := hq'.le
-    rw [if_pos hq_nonneg, if_pos (le_refl 0), if_neg (not_lt.mpr (le_refl 0)), if_neg (not_lt.mpr hq_nonneg)]
+    rw [ite_eq_left hq_nonneg, ite_eq_left (le_refl 0), ite_eq_right (not_lt.mpr (le_refl 0)), ite_eq_right (not_lt.mpr hq_nonneg)]
     have h1 : ((0 : ℤ).natAbs : ℤ) = 0 := by simp
     have h2 : ((q : ℤ).natAbs : ℤ) = q := Int.ofNat_natAbs_of_nonneg hq_nonneg
     omega
@@ -5972,8 +5980,8 @@ private lemma energy_change_formula (p : ℤ) (q : ℕ) (hq : q > 0) :
     have hp_nonneg : 0 ≤ p := hp_pos.le
     have hpq_pos : p + q > 0 := by linarith
     have hpq_nonneg : 0 ≤ p + q := hpq_pos.le
-    rw [if_pos hpq_nonneg, if_pos hp_nonneg,
-        if_neg (not_lt.mpr hp_pos.le), if_neg (not_lt.mpr hpq_pos.le)]
+    rw [ite_eq_left hpq_nonneg, ite_eq_left hp_nonneg,
+        ite_eq_right (not_lt.mpr hp_pos.le), ite_eq_right (not_lt.mpr hpq_pos.le)]
     have h1 : (p.natAbs : ℤ) = p := Int.ofNat_natAbs_of_nonneg hp_pos.le
     have h2 : ((p + q).natAbs : ℤ) = p + q := Int.ofNat_natAbs_of_nonneg hpq_pos.le
     omega
@@ -5981,40 +5989,40 @@ private lemma energy_change_formula (p : ℤ) (q : ℕ) (hq : q > 0) :
 /-- Helper: if p ≥ 0 and p ∈ S, then p is in the nonneg finset. -/
 private lemma mem_nonneg_of_nonneg_mem (S : State) (p : Level) (hp_nonneg : p ≥ 0) (hp : p ∈ S.levels) :
     p ∈ S.finite_nonneg.toFinset := by
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
   exact ⟨hp_nonneg, hp⟩
 
 /-- Helper: if p < 0 and p ∉ S, then p is in the negative_missing finset. -/
 private lemma mem_neg_missing_of_neg_nmem (S : State) (p : Level) (hp_neg : p < 0) (hp : p ∉ S.levels) :
     p ∈ S.finite_negative_missing.toFinset := by
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
   exact ⟨hp_neg, hp⟩
 
 /-- Helper: if p ≥ 0, then p is not in the negative_missing finset. -/
 private lemma not_mem_neg_missing_of_nonneg (S : State) (p : Level) (hp_nonneg : p ≥ 0) :
     p ∉ S.finite_negative_missing.toFinset := by
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
   intro ⟨hp_neg, _⟩
   exact absurd hp_nonneg (not_le.mpr hp_neg)
 
 /-- Helper: if p < 0 and p ∈ S, then p is not in the negative_missing finset. -/
 private lemma not_mem_neg_missing_of_mem (S : State) (p : Level) (hp : p ∈ S.levels) :
     p ∉ S.finite_negative_missing.toFinset := by
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
   intro ⟨_, hp_nmem⟩
   exact hp_nmem hp
 
 /-- Helper: if p < 0, then p is not in the nonneg finset. -/
 private lemma not_mem_nonneg_of_neg (S : State) (p : Level) (hp_neg : p < 0) :
     p ∉ S.finite_nonneg.toFinset := by
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
   intro ⟨hp_nonneg, _⟩
   exact absurd hp_neg (not_lt.mpr hp_nonneg)
 
 /-- Helper: if p ∉ S, then p is not in the nonneg finset. -/
 private lemma not_mem_nonneg_of_nmem (S : State) (p : Level) (hp : p ∉ S.levels) :
     p ∉ S.finite_nonneg.toFinset := by
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
   intro ⟨_, hp_mem⟩
   exact hp hp_mem
 
@@ -6275,7 +6283,7 @@ def excitedStateLevels (ell : ℤ) {n : ℕ} (mu : Nat.Partition n) : Set Level 
 theorem excitedStateLevels_finite_nonneg (ell : ℤ) {n : ℕ} (mu : Nat.Partition n) :
     Set.Finite {p : Level | p ≥ 0 ∧ p ∈ excitedStateLevels ell mu} := by
   unfold excitedStateLevels
-  simp only [Set.mem_union, Set.mem_setOf_eq]
+  simp only [Set.mem_union, Set.mem_ofPred_eq]
   let parts := mu.parts.sort (· ≥ ·)
   let k := parts.length
   -- The first set {p | p ≥ 0 ∧ p < ell - k} is finite
@@ -6292,7 +6300,7 @@ theorem excitedStateLevels_finite_nonneg (ell : ℤ) {n : ℕ} (mu : Nat.Partiti
   -- The target set is a subset of the union
   apply Set.Finite.subset (h1.union h2)
   intro p ⟨hp_nonneg, hp_mem⟩
-  simp only [Set.mem_union, Set.mem_setOf_eq]
+  simp only [Set.mem_union, Set.mem_ofPred_eq]
   cases hp_mem with
   | inl h => left; exact ⟨hp_nonneg, h⟩
   | inr h => right; exact h
@@ -6307,10 +6315,10 @@ theorem excitedStateLevels_finite_negative_missing (ell : ℤ) {n : ℕ} (mu : N
   apply Set.Finite.subset
   · exact Set.finite_Icc (ell - ↑((mu.parts.sort (· ≥ ·)).length)) (-1) |>.image (fun x => x)
   · intro p hp
-    simp only [Set.mem_setOf_eq] at hp
+    simp only [Set.mem_ofPred_eq] at hp
     obtain ⟨hp_neg, hp_nmem⟩ := hp
     unfold excitedStateLevels at hp_nmem
-    simp only [Set.mem_union, Set.mem_setOf_eq, not_or, not_exists, not_lt] at hp_nmem
+    simp only [Set.mem_union, Set.mem_ofPred_eq, not_or, not_exists, not_lt] at hp_nmem
     simp only [Set.mem_image, Set.mem_Icc]
     use p
     constructor
@@ -6340,7 +6348,7 @@ lemma intermediateStateLevels_zero (ell : ℤ) (parts : List ℕ) (h : 0 ≤ par
     intermediateStateLevels ell parts 0 h = {p : ℤ | p < ell} := by
   unfold intermediateStateLevels
   ext p
-  simp only [Nat.cast_zero, sub_zero, Set.mem_union, Set.mem_setOf_eq]
+  simp only [Nat.cast_zero, sub_zero, Set.mem_union, Set.mem_ofPred_eq]
   constructor
   · intro hp
     cases hp with
@@ -6353,7 +6361,7 @@ lemma source_in_intermediate (ell : ℤ) (parts : List ℕ) (i : ℕ) (hi : i �
     ell - 1 - i ∈ intermediateStateLevels ell parts i hi := by
   unfold intermediateStateLevels
   left
-  simp only [Set.mem_setOf_eq]
+  simp only [Set.mem_ofPred_eq]
   omega
 
 /-- The target level (ell - 1 - i + parts[i]) is NOT in the intermediate state after i jumps,
@@ -6363,13 +6371,13 @@ lemma target_not_in_intermediate (ell : ℤ) (parts : List ℕ) (i : ℕ) (hi : 
     (hsorted : parts.Pairwise (· ≥ ·)) :
     ell - 1 - i + parts.get ⟨i, hi⟩ ∉ intermediateStateLevels ell parts i (le_of_lt hi) := by
   unfold intermediateStateLevels
-  simp only [Set.mem_union, Set.mem_setOf_eq, not_or]
+  simp only [Set.mem_union, Set.mem_ofPred_eq, not_or]
   constructor
   · -- Not in base part: need ell - 1 - i + parts[i] ≥ ell - i
-    push_neg
+    push Not
     omega
   · -- Not in excited part: need target ≠ any previous target
-    push_neg
+    push Not
     intro j heq
     -- We have: ell - 1 - i + parts[i] = ell - 1 - j + parts[j]
     -- So: parts[i] - i = parts[j] - j
@@ -6399,7 +6407,7 @@ lemma intermediateStateLevels_succ (ell : ℤ) (parts : List ℕ) (i : ℕ) (hi 
     {ell - 1 - i + parts.get ⟨i, hi⟩} := by
   unfold intermediateStateLevels
   ext p
-  simp only [Set.mem_union, Set.mem_setOf_eq, Set.mem_diff, Set.mem_singleton_iff]
+  simp only [Set.mem_union, Set.mem_ofPred_eq, Set.mem_sdiff, Set.mem_singleton_iff]
   constructor
   · intro hp
     cases hp with
@@ -6450,7 +6458,7 @@ lemma intermediateStateLevels_succ (ell : ℤ) (parts : List ℕ) (i : ℕ) (hi 
       | inl hp_base =>
         by_cases hp_lt : p < ell - i - 1
         · left; omega
-        · push_neg at hp_lt
+        · push Not at hp_lt
           have : p = ell - 1 - i := by omega
           exact absurd this hp_ne
       | inr hp_excited =>
@@ -6465,7 +6473,7 @@ lemma intermediateStateLevels_succ (ell : ℤ) (parts : List ℕ) (i : ℕ) (hi 
 lemma intermediateStateLevels_finite_nonneg (ell : ℤ) (parts : List ℕ) (i : ℕ) (hi : i ≤ parts.length) :
     Set.Finite {p : ℤ | p ≥ 0 ∧ p ∈ intermediateStateLevels ell parts i hi} := by
   unfold intermediateStateLevels
-  simp only [Set.mem_union, Set.mem_setOf_eq]
+  simp only [Set.mem_union, Set.mem_ofPred_eq]
   have h1 : Set.Finite {p : ℤ | p ≥ 0 ∧ p < ell - i} := Set.finite_Ico 0 (ell - i)
   have h2 : Set.Finite {p : ℤ | ∃ j : Fin i, p = ell - 1 - j + parts.get ⟨j.val, Nat.lt_of_lt_of_le j.isLt hi⟩} := by
     apply Set.Finite.subset (Set.finite_range (fun j : Fin i => ell - 1 - j + parts.get ⟨j.val, Nat.lt_of_lt_of_le j.isLt hi⟩))
@@ -6481,7 +6489,7 @@ lemma intermediateStateLevels_finite_nonneg (ell : ℤ) (parts : List ℕ) (i : 
 lemma intermediateStateLevels_finite_neg_missing (ell : ℤ) (parts : List ℕ) (i : ℕ) (hi : i ≤ parts.length) :
     Set.Finite {p : ℤ | p < 0 ∧ p ∉ intermediateStateLevels ell parts i hi} := by
   unfold intermediateStateLevels
-  simp only [Set.mem_union, Set.mem_setOf_eq, not_or, not_exists, not_lt]
+  simp only [Set.mem_union, Set.mem_ofPred_eq, not_or, not_exists, not_lt]
   apply Set.Finite.subset (Set.finite_Ico (ell - i) 0)
   intro p ⟨hp_neg, hp_ge, _⟩
   exact ⟨hp_ge, hp_neg⟩
@@ -6561,7 +6569,7 @@ theorem excitedState_reachable (ell : ℤ) {n : ℕ} (mu : Nat.Partition n) :
       have h' : (mu.parts.sort (· ≥ ·)).length = 0 := h
       simp only [h', Nat.cast_zero, sub_zero]
       ext p
-      simp only [Set.mem_union, Set.mem_setOf_eq]
+      simp only [Set.mem_union, Set.mem_ofPred_eq]
       constructor
       · intro hp
         cases hp with
@@ -6667,7 +6675,7 @@ theorem excitedState_reachable_with_total (ell : ℤ) {n : ℕ} (mu : Nat.Partit
       have h' : (mu.parts.sort (· ≥ ·)).length = 0 := h
       simp only [h', Nat.cast_zero, sub_zero]
       ext p
-      simp only [Set.mem_union, Set.mem_setOf_eq]
+      simp only [Set.mem_union, Set.mem_ofPred_eq]
       constructor
       · intro hp
         cases hp with
@@ -6842,7 +6850,7 @@ lemma ell_minus_k_not_mem (ell : ℤ) {n : ℕ} (mu : Nat.Partition n) :
     (ell - (mu.parts.sort (· ≥ ·)).length : ℤ) ∉ excitedStateLevels ell mu := by
   intro hmem
   let k := (mu.parts.sort (· ≥ ·)).length
-  simp only [excitedStateLevels, Set.mem_union, Set.mem_setOf_eq] at hmem
+  simp only [excitedStateLevels, Set.mem_union, Set.mem_ofPred_eq] at hmem
   cases hmem with
   | inl h => exact (lt_irrefl _) h
   | inr h =>
@@ -6862,7 +6870,7 @@ lemma ell_minus_k_not_mem (ell : ℤ) {n : ℕ} (mu : Nat.Partition n) :
 /-- The level ell - k - 1 IS in the excited state levels. -/
 lemma ell_minus_k_minus_one_mem (ell : ℤ) {n : ℕ} (mu : Nat.Partition n) :
     (ell - (mu.parts.sort (· ≥ ·)).length - 1 : ℤ) ∈ excitedStateLevels ell mu := by
-  left; simp only [Set.mem_setOf_eq, sub_sub]
+  left; simp only [Set.mem_ofPred_eq, sub_sub]
   have : ((mu.parts.sort (· ≥ ·)).length : ℤ) + 1 > 0 := by positivity
   linarith
 
@@ -6874,10 +6882,10 @@ lemma excitedStateLevels_eq_length (ell : ℤ) {n₁ n₂ : ℕ} (mu₁ : Nat.Pa
   let k₂ := (mu₂.parts.sort (· ≥ ·)).length
   by_contra hne
   wlog hlt : k₁ < k₂ generalizing mu₁ mu₂ n₁ n₂ k₁ k₂
-  · push_neg at hlt; exact this mu₂ mu₁ h.symm (Ne.symm hne) (Nat.lt_of_le_of_ne hlt (Ne.symm hne))
+  · push Not at hlt; exact this mu₂ mu₁ h.symm (Ne.symm hne) (Nat.lt_of_le_of_ne hlt (Ne.symm hne))
   have hmem₁ : (ell - k₁ - 1 : ℤ) ∈ excitedStateLevels ell mu₁ := ell_minus_k_minus_one_mem ell mu₁
   rw [h] at hmem₁
-  simp only [excitedStateLevels, Set.mem_union, Set.mem_setOf_eq] at hmem₁
+  simp only [excitedStateLevels, Set.mem_union, Set.mem_ofPred_eq] at hmem₁
   cases hmem₁ with
   | inl h' =>
     have hk : (k₁ : ℤ) + 1 ≤ k₂ := by exact_mod_cast hlt
@@ -6885,7 +6893,7 @@ lemma excitedStateLevels_eq_length (ell : ℤ) {n₁ n₂ : ℕ} (mu₁ : Nat.Pa
   | inr h' =>
     have hnotmem₂ : (ell - k₂ : ℤ) ∉ excitedStateLevels ell mu₂ := ell_minus_k_not_mem ell mu₂
     have hmem₁' : (ell - k₂ : ℤ) ∈ excitedStateLevels ell mu₁ := by
-      left; simp only [Set.mem_setOf_eq]
+      left; simp only [Set.mem_ofPred_eq]
       have hk : (k₂ : ℤ) > k₁ := by exact_mod_cast hlt
       linarith
     rw [h] at hmem₁'; exact hnotmem₂ hmem₁'
@@ -6932,13 +6940,13 @@ theorem excitedState_injective (ell : ℤ) {n₁ n₂ : ℕ} (mu₁ : Nat.Partit
       -- x = parts₁[i] - i
       -- The level ell - 1 - i + parts₁[i] is in excitedStateLevels ell mu₁
       have hp_mem₁ : (ell - 1 - i + (mu₁.parts.sort (· ≥ ·)).get i : ℤ) ∈ excitedStateLevels ell mu₁ := by
-        simp only [excitedStateLevels, Set.mem_union, Set.mem_setOf_eq]
+        simp only [excitedStateLevels, Set.mem_union, Set.mem_ofPred_eq]
         right
         use i
         have : (i.cast (by omega) : Fin k) = i := by ext; rfl
         simp only [this]
       rw [hlev] at hp_mem₁
-      simp only [excitedStateLevels, Set.mem_union, Set.mem_setOf_eq] at hp_mem₁
+      simp only [excitedStateLevels, Set.mem_union, Set.mem_ofPred_eq] at hp_mem₁
       cases hp_mem₁ with
       | inl h =>
         -- Contradiction
@@ -6962,14 +6970,14 @@ theorem excitedState_injective (ell : ℤ) {n₁ n₂ : ℕ} (mu₁ : Nat.Partit
         linarith
     · intro ⟨i, hi⟩
       have hp_mem₂ : (ell - 1 - i + (mu₂.parts.sort (· ≥ ·)).get (i.cast hk) : ℤ) ∈ excitedStateLevels ell mu₂ := by
-        simp only [excitedStateLevels, Set.mem_union, Set.mem_setOf_eq]
+        simp only [excitedStateLevels, Set.mem_union, Set.mem_ofPred_eq]
         right
         use i.cast hk
         have : ((i.cast hk).cast (by omega) : Fin (mu₂.parts.sort (· ≥ ·)).length) = i.cast hk := by ext; simp
         have hi_cast_val : ((i.cast hk) : ℤ) = (i : ℤ) := by simp
         simp only [this, hi_cast_val]
       rw [← hlev] at hp_mem₂
-      simp only [excitedStateLevels, Set.mem_union, Set.mem_setOf_eq] at hp_mem₂
+      simp only [excitedStateLevels, Set.mem_union, Set.mem_ofPred_eq] at hp_mem₂
       cases hp_mem₂ with
       | inl h =>
         exfalso
@@ -7035,7 +7043,7 @@ theorem excitedState_injective (ell : ℤ) {n₁ n₂ : ℕ} (mu₁ : Nat.Partit
               obtain ⟨j, hj⟩ := hf_in
               have hgj_lt : f₂ j < f₂ i' := by rw [hj]; exact hf_lt
               have hj_gt : j > i' := by
-                by_contra h; push_neg at h
+                by_contra h; push Not at h
                 rcases eq_or_lt_of_le h with rfl | hlt
                 · exact (lt_irrefl _) hgj_lt
                 · exact absurd hgj_lt (not_lt.mpr (le_of_lt (hf₂ hlt)))
@@ -7055,7 +7063,7 @@ theorem excitedState_injective (ell : ℤ) {n₁ n₂ : ℕ} (mu₁ : Nat.Partit
                   _ < f₂ i' := hg_lt
                   _ = f₁ i' := hih.symm
               have hm_gt : m' > i' := by
-                by_contra h; push_neg at h
+                by_contra h; push Not at h
                 rcases eq_or_lt_of_le h with rfl | hlt
                 · exact (lt_irrefl _) hfm_lt
                 · exact absurd hfm_lt (not_lt.mpr (le_of_lt (hf₁ hlt)))
@@ -7115,14 +7123,14 @@ lemma baseLevel_not_mem (S : State) : baseLevel S ∉ S.levels := by
       have : p ∈ {q : ℤ | q ∉ S.levels} := hp
       rw [h] at this; exact this
     have heq : {p : Level | p ≥ 0 ∧ p ∈ S.levels} = {p : Level | p ≥ 0} := by
-      ext p; simp only [Set.mem_setOf_eq]; exact ⟨And.left, fun hp => ⟨hp, hall p⟩⟩
+      ext p; simp only [Set.mem_ofPred_eq]; exact ⟨And.left, fun hp => ⟨hp, hall p⟩⟩
     have hfin := S.finite_nonneg
     rw [heq] at hfin
     have hinf : Set.Infinite {p : Level | p ≥ 0} := by
       intro hfin'
       have hinj : Function.Injective (fun n : ℕ => (n : ℤ)) := fun _ _ h => Int.ofNat.inj h
       have hrange : Set.range (fun n : ℕ => (n : ℤ)) ⊆ {p : Level | p ≥ 0} := by
-        intro x ⟨n, hn⟩; simp only [Set.mem_setOf_eq]; rw [← hn]; exact Int.natCast_nonneg n
+        intro x ⟨n, hn⟩; simp only [Set.mem_ofPred_eq]; rw [← hn]; exact Int.natCast_nonneg n
       have hfin'' : Set.Finite (Set.range (fun n : ℕ => (n : ℤ))) := hfin'.subset hrange
       have : Finite ℕ := by rw [← Set.finite_range_iff hinj]; exact hfin''
       exact not_finite ℕ
@@ -7135,7 +7143,7 @@ lemma baseLevel_not_mem (S : State) : baseLevel S ∉ S.levels := by
       · have hmem : p ∈ S.finite_negative_missing.toFinset := by
           rw [Set.Finite.mem_toFinset]; exact ⟨hp_neg, hp⟩
         exact Finset.min'_le _ _ hmem
-      · push_neg at hp_neg
+      · push Not at hp_neg
         have hmin_neg : S.finite_negative_missing.toFinset.min' h < 0 := by
           have := Finset.min'_mem S.finite_negative_missing.toFinset h
           rw [Set.Finite.mem_toFinset] at this; exact this.1
@@ -7147,7 +7155,7 @@ lemma baseLevel_not_mem (S : State) : baseLevel S ∉ S.levels := by
       · have hmem : p ∈ S.finite_negative_missing.toFinset := by
           rw [Set.Finite.mem_toFinset]; exact ⟨hp_neg, hp⟩
         rw [h] at hmem; simp at hmem
-      · push_neg at hp_neg; exact hp_neg
+      · push Not at hp_neg; exact hp_neg
   exact Int.csInf_mem h_nonempty h_bdd
 
 /-- All levels below the base level are in the state. -/
@@ -7162,7 +7170,7 @@ lemma mem_of_lt_baseLevel (S : State) (p : ℤ) (hp : p < baseLevel S) : p ∈ S
       · have hmem' : q ∈ S.finite_negative_missing.toFinset := by
           rw [Set.Finite.mem_toFinset]; exact ⟨hq_neg, hq⟩
         exact Finset.min'_le _ _ hmem'
-      · push_neg at hq_neg
+      · push Not at hq_neg
         have hmin_neg : S.finite_negative_missing.toFinset.min' hne < 0 := by
           have := Finset.min'_mem S.finite_negative_missing.toFinset hne
           rw [Set.Finite.mem_toFinset] at this; exact this.1
@@ -7174,7 +7182,7 @@ lemma mem_of_lt_baseLevel (S : State) (p : ℤ) (hp : p < baseLevel S) : p ∈ S
       · have hmem' : q ∈ S.finite_negative_missing.toFinset := by
           rw [Set.Finite.mem_toFinset]; exact ⟨hq_neg, hq⟩
         rw [hne] at hmem'; simp at hmem'
-      · push_neg at hq_neg; exact hq_neg
+      · push Not at hq_neg; exact hq_neg
   have hle := csInf_le h_bdd hmem
   unfold baseLevel at hp
   omega
@@ -7190,13 +7198,13 @@ lemma excitedLevelsSet_finite (S : State) : Set.Finite (excitedLevelsSet S) := b
   · have hsub : S.levels ∩ {p | p ≥ baseLevel S} ⊆ {p | p ≥ 0 ∧ p ∈ S.levels} := by
       intro p ⟨hp_mem, hp_ge⟩; exact ⟨le_trans h hp_ge, hp_mem⟩
     exact Set.Finite.subset S.finite_nonneg hsub
-  · push_neg at h
+  · push Not at h
     have h1 : S.levels ∩ {p | p ≥ baseLevel S} ⊆
               {p | p ≥ 0 ∧ p ∈ S.levels} ∪ Set.Ico (baseLevel S) 0 := by
       intro p ⟨hp_mem, hp_ge⟩
       by_cases hp_nonneg : p ≥ 0
       · left; exact ⟨hp_nonneg, hp_mem⟩
-      · push_neg at hp_nonneg; right; simp only [Set.mem_Ico]; exact ⟨hp_ge, hp_nonneg⟩
+      · push Not at hp_nonneg; right; simp only [Set.mem_Ico]; exact ⟨hp_ge, hp_nonneg⟩
     apply Set.Finite.subset _ h1
     exact Set.Finite.union S.finite_nonneg (Set.finite_Ico (baseLevel S) 0)
 
@@ -7209,12 +7217,12 @@ lemma levels_eq_base_union_excited (S : State) :
     S.levels = {p | p < baseLevel S} ∪ excitedLevelsSet S := by
   unfold excitedLevelsSet
   ext p
-  simp only [Set.mem_union, Set.mem_setOf_eq, Set.mem_inter_iff]
+  simp only [Set.mem_union, Set.mem_ofPred_eq, Set.mem_inter_iff]
   constructor
   · intro hp
     by_cases h : p < baseLevel S
     · left; exact h
-    · push_neg at h; right; exact ⟨hp, h⟩
+    · push Not at h; right; exact ⟨hp, h⟩
   · intro hp
     cases hp with
     | inl h => exact mem_of_lt_baseLevel S p h
@@ -7260,7 +7268,7 @@ private lemma sorted_ge_lower_bound (L : List ℤ) (m : ℤ)
 lemma excitedLevel_gt_baseLevel (S : State) (e : ℤ) (he : e ∈ excitedLevelsSet S) :
     e > baseLevel S := by
   unfold excitedLevelsSet at he
-  simp only [Set.mem_inter_iff, Set.mem_setOf_eq] at he
+  simp only [Set.mem_inter_iff, Set.mem_ofPred_eq] at he
   have hge := he.2
   have hmem := he.1
   have hne : e ≠ baseLevel S := fun heq => by
@@ -7273,17 +7281,17 @@ lemma parnum_eq_baseLevel_add_excitedCard (S : State) :
     S.parnum = baseLevel S + (excitedLevelsFinset S).card := by
   -- First, characterize membership in finite_nonneg.toFinset
   have h_nonneg_mem : ∀ x, x ∈ S.finite_nonneg.toFinset ↔ x ≥ 0 ∧ x ∈ S.levels := by
-    intro x; simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, ge_iff_le]
+    intro x; simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, ge_iff_le]
 
   -- Characterize membership in finite_negative_missing.toFinset
   have h_neg_miss_mem : ∀ x, x ∈ S.finite_negative_missing.toFinset ↔ x < 0 ∧ x ∉ S.levels := by
-    intro x; simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+    intro x; simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
 
   -- Characterize membership in excitedLevelsFinset
   have h_E_mem : ∀ x, x ∈ excitedLevelsFinset S ↔ x ∈ S.levels ∧ x ≥ baseLevel S := by
     intro x
     simp only [excitedLevelsFinset, Set.Finite.mem_toFinset, excitedLevelsSet,
-               Set.mem_inter_iff, Set.mem_setOf_eq, ge_iff_le]
+               Set.mem_inter_iff, Set.mem_ofPred_eq, ge_iff_le]
 
   -- Key decomposition: S.levels = {p | p < baseLevel S} ∪ excitedLevelsSet S
   have h_levels := levels_eq_base_union_excited S
@@ -7314,7 +7322,7 @@ lemma parnum_eq_baseLevel_add_excitedCard (S : State) :
       constructor
       · intro ⟨hx_nonneg, hx_mem⟩
         rw [h_levels] at hx_mem
-        simp only [Set.mem_union, Set.mem_setOf_eq, excitedLevelsSet, Set.mem_inter_iff] at hx_mem
+        simp only [Set.mem_union, Set.mem_ofPred_eq, excitedLevelsSet, Set.mem_inter_iff] at hx_mem
         cases hx_mem with
         | inl h => left; exact ⟨hx_nonneg, h⟩
         | inr h => right; exact h
@@ -7331,7 +7339,7 @@ lemma parnum_eq_baseLevel_add_excitedCard (S : State) :
     simp only [ht_toNat]
 
   · -- Case 2: baseLevel S < 0
-    push_neg at ht
+    push Not at ht
 
     -- For finite_nonneg: p ≥ 0 ∧ p ∈ S.levels
     have h_nonneg_eq : S.finite_nonneg.toFinset =
@@ -7353,7 +7361,7 @@ lemma parnum_eq_baseLevel_add_excitedCard (S : State) :
       · intro ⟨hx_neg, hx_nmem⟩
         have hx_ge_t : x ≥ baseLevel S := by
           by_contra h
-          push_neg at h
+          push Not at h
           exact hx_nmem (mem_of_lt_baseLevel S x h)
         refine ⟨⟨hx_ge_t, hx_neg⟩, ?_⟩
         intro ⟨hx_mem, _⟩
@@ -7376,7 +7384,7 @@ lemma parnum_eq_baseLevel_add_excitedCard (S : State) :
         · intro hx
           by_cases hx_nonneg : x ≥ 0
           · left; exact ⟨hx, hx_nonneg⟩
-          · push_neg at hx_nonneg; right; exact ⟨hx, hx_nonneg⟩
+          · push Not at hx_nonneg; right; exact ⟨hx, hx_nonneg⟩
         · intro hx
           cases hx with
           | inl h => exact h.1
@@ -7475,6 +7483,7 @@ private lemma strictDecr_diff_ge (L : List ℤ) (hstrict : L.Pairwise (· > ·))
     simp only [Nat.succ_eq_add_one] at hstep ⊢
     omega
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Every state with particle number ℓ can be written as an excited state.
 This is the "unjumping" operation: given S with parnum = ℓ, we find the unique
 partition μ such that E_{ℓ,μ} = S by comparing S to the ground state G_ℓ
@@ -7665,7 +7674,7 @@ theorem excitedState_surjective (ell : ℤ) (S : State) (hS : S.parnum = ell) :
   
   -- Use ext to prove set equality
   ext p
-  simp only [excitedStateLevels, Set.mem_union, Set.mem_setOf_eq]
+  simp only [excitedStateLevels, Set.mem_union, Set.mem_ofPred_eq]
   
   -- The sorted parts of mu equals parts
   have hparts_eq : mu.parts.sort (· ≥ ·) = parts := hmu_sort_eq
@@ -7681,7 +7690,7 @@ theorem excitedState_surjective (ell : ℤ) (S : State) (hS : S.parnum = ell) :
       -- So p < ell - k = t = S.baseLevel
       rw [levels_eq_base_union_excited]
       left
-      simp only [Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq]
       linarith [hell_minus_k]
     | inr hex =>
       -- p = ell - 1 - i + (mu.parts.sort)[i] for some i
@@ -7728,7 +7737,7 @@ theorem excitedState_surjective (ell : ℤ) (S : State) (hS : S.parnum = ell) :
         simp only [List.get_eq_getElem] at hmem
         exact (excitedLevelsSet_finite S).mem_toFinset.mp hmem
       unfold excitedLevelsSet at hmem_set
-      simp only [Set.mem_inter_iff, Set.mem_setOf_eq] at hmem_set
+      simp only [Set.mem_inter_iff, Set.mem_ofPred_eq] at hmem_set
       rw [levels_eq_base_union_excited]
       right
       rw [hp_eq]
@@ -7740,7 +7749,7 @@ theorem excitedState_surjective (ell : ℤ) (S : State) (hS : S.parnum = ell) :
       -- p < t = ell - k
       left
       rw [hlen_eq]
-      simp only [Set.mem_setOf_eq] at hlt ⊢
+      simp only [Set.mem_ofPred_eq] at hlt ⊢
       linarith [hell_minus_k]
     | inr hex =>
       -- p ∈ excitedLevelsSet S
@@ -7749,7 +7758,7 @@ theorem excitedState_surjective (ell : ℤ) (S : State) (hS : S.parnum = ell) :
       -- p ∈ S.levels and p ≥ t, so p ∈ E
       have hp_in_E : p ∈ E := by
         simp only [E, excitedLevelsFinset, Set.Finite.mem_toFinset, excitedLevelsSet,
-                   Set.mem_inter_iff, Set.mem_setOf_eq]
+                   Set.mem_inter_iff, Set.mem_ofPred_eq]
         exact ⟨hp_mem, hp_ge⟩
       -- p = sorted_E[i] for some i
       have hp_in_sorted : p ∈ sorted_E := (Finset.mem_sort (· ≥ ·)).mpr hp_in_E
@@ -7898,7 +7907,7 @@ def fromFinsetPair (P N : Finset ℕ) : State where
     have hP : Set.Finite ((fun n : ℕ => (n : ℤ)) '' (P : Set ℕ)) := P.finite_toSet.image _
     apply Set.Finite.subset hP
     intro p ⟨hp_nonneg, hp_in⟩
-    simp only [Set.mem_setOf_eq, Set.mem_image, Finset.mem_coe] at hp_in ⊢
+    simp only [Set.mem_ofPred_eq, Set.mem_image, Finset.mem_coe] at hp_in ⊢
     rcases hp_in with ⟨_, hp_P⟩ | ⟨hp_neg, _⟩
     · use p.toNat, hp_P; exact Int.toNat_of_nonneg hp_nonneg
     · linarith
@@ -7906,8 +7915,8 @@ def fromFinsetPair (P N : Finset ℕ) : State where
     have hN : Set.Finite ((fun n : ℕ => -(n : ℤ) - 1) '' (N : Set ℕ)) := N.finite_toSet.image _
     apply Set.Finite.subset hN
     intro p ⟨hp_neg, hp_nmem⟩
-    simp only [Set.mem_setOf_eq, Set.mem_image, Finset.mem_coe] at hp_nmem ⊢
-    push_neg at hp_nmem
+    simp only [Set.mem_ofPred_eq, Set.mem_image, Finset.mem_coe] at hp_nmem ⊢
+    push Not at hp_nmem
     have hp_N := hp_nmem.2 hp_neg
     have h : -p - 1 ≥ 0 := by linarith
     use (-p - 1).toNat
@@ -7947,7 +7956,7 @@ private lemma neg_sub_one_injective : Function.Injective (fun n : ℕ => -(n : �
 private lemma fromFinsetPair_finite_nonneg_eq (P N : Finset ℕ) :
     (fromFinsetPair P N).finite_nonneg.toFinset = P.map ⟨(↑· : ℕ → ℤ), Nat.cast_injective⟩ := by
   ext p
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, Finset.mem_map,
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, Finset.mem_map,
              Function.Embedding.coeFn_mk, fromFinsetPair]
   constructor
   · intro ⟨hp_nonneg, hp_in⟩
@@ -7964,11 +7973,11 @@ private lemma fromFinsetPair_finite_negative_missing_eq (P N : Finset ℕ) :
     (fromFinsetPair P N).finite_negative_missing.toFinset = 
     N.map ⟨(fun n : ℕ => -(n : ℤ) - 1), neg_sub_one_injective⟩ := by
   ext p
-  simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, Finset.mem_map,
+  simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, Finset.mem_map,
              Function.Embedding.coeFn_mk, fromFinsetPair]
   constructor
   · intro ⟨hp_neg, hp_nmem⟩
-    push_neg at hp_nmem
+    push Not at hp_nmem
     have hp_N := hp_nmem.2 hp_neg
     use (-p - 1).toNat
     constructor
@@ -7983,7 +7992,7 @@ private lemma fromFinsetPair_finite_negative_missing_eq (P N : Finset ℕ) :
     constructor
     · rw [← hn_eq]; exact hp_neg
     · rw [← hn_eq]
-      push_neg
+      push Not
       constructor
       · intro h
         have hn_ge : (n : ℤ) ≥ 0 := Nat.cast_nonneg n
@@ -8025,7 +8034,7 @@ lemma fromFinsetPair_finite_nonneg_card (P N : Finset ℕ) :
   have h_eq : (fromFinsetPair P N).finite_nonneg.toFinset = 
               P.map ⟨(↑· : ℕ → ℤ), Nat.cast_injective⟩ := by
     ext p
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, Finset.mem_map,
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, Finset.mem_map,
                Function.Embedding.coeFn_mk, fromFinsetPair]
     constructor
     · intro ⟨hp_nonneg, hp_in⟩
@@ -8087,18 +8096,18 @@ theorem fromFinsetPair_toP_toN (S : State) : fromFinsetPair (toP S) (toN S) = S 
   apply state_ext
   -- Need to show: (fromFinsetPair (toP S) (toN S)).levels = S.levels
   ext p
-  simp only [fromFinsetPair, toP, toN, Set.mem_setOf_eq]
+  simp only [fromFinsetPair, toP, toN, Set.mem_ofPred_eq]
   constructor
   · intro h
     rcases h with ⟨hp_nonneg, hp_in_toP⟩ | ⟨hp_neg, hp_nin_toN⟩
     · -- p ≥ 0 and p.toNat ∈ toP S
-      simp only [Set.Finite.mem_toFinset, Finset.mem_image, Set.mem_setOf_eq] at hp_in_toP
+      simp only [Set.Finite.mem_toFinset, Finset.mem_image, Set.mem_ofPred_eq] at hp_in_toP
       obtain ⟨q, ⟨hq_nonneg, hq_in⟩, hq_eq⟩ := hp_in_toP
       have hp_eq : p = q := int_eq_of_toNat_eq_of_nonneg hp_nonneg hq_nonneg hq_eq.symm
       rw [hp_eq]
       exact hq_in
     · -- p < 0 and (-p-1).toNat ∉ toN S
-      simp only [Set.Finite.mem_toFinset, Finset.mem_image, Set.mem_setOf_eq, not_exists,
+      simp only [Set.Finite.mem_toFinset, Finset.mem_image, Set.mem_ofPred_eq, not_exists,
                  not_and] at hp_nin_toN
       by_contra hp_nmem
       specialize hp_nin_toN p ⟨hp_neg, hp_nmem⟩
@@ -8107,12 +8116,12 @@ theorem fromFinsetPair_toP_toN (S : State) : fromFinsetPair (toP S) (toN S) = S 
     by_cases hp_nonneg : p ≥ 0
     · left
       refine ⟨hp_nonneg, ?_⟩
-      simp only [Set.Finite.mem_toFinset, Finset.mem_image, Set.mem_setOf_eq]
+      simp only [Set.Finite.mem_toFinset, Finset.mem_image, Set.mem_ofPred_eq]
       exact ⟨p, ⟨hp_nonneg, hp_in⟩, rfl⟩
-    · push_neg at hp_nonneg
+    · push Not at hp_nonneg
       right
       refine ⟨hp_nonneg, ?_⟩
-      simp only [Finset.mem_image, Set.Finite.mem_toFinset, Set.mem_setOf_eq, not_exists, not_and]
+      simp only [Finset.mem_image, Set.Finite.mem_toFinset, Set.mem_ofPred_eq, not_exists, not_and]
       intro q ⟨hq_neg, hq_nmem⟩ h_eq
       -- We have q < 0, so -q - 1 ≥ 0. Similarly p < 0, so -p - 1 ≥ 0.
       simp only [Level] at hp_nonneg hq_neg
@@ -8130,7 +8139,7 @@ theorem toP_fromFinsetPair (P N : Finset ℕ) : toP (fromFinsetPair P N) = P := 
   have h_eq : (fromFinsetPair P N).finite_nonneg.toFinset = 
               P.map ⟨(↑· : ℕ → ℤ), Nat.cast_injective⟩ := by
     ext p
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, Finset.mem_map,
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, Finset.mem_map,
                Function.Embedding.coeFn_mk, fromFinsetPair]
     constructor
     · intro ⟨hp_nonneg, hp_in⟩
@@ -8241,7 +8250,7 @@ theorem finite_states_energy (d : ℕ) : Set.Finite {S : State | S.energy = d} :
       (fun pair : ℤ × (Σ n, Nat.Partition n) => excitedState pair.1 pair.2.2) '' 
         {pair : ℤ × (Σ n, Nat.Partition n) | pair.1.natAbs ^ 2 + 2 * pair.2.1 = d} := by
     intro S hS
-    simp only [Set.mem_setOf_eq] at hS
+    simp only [Set.mem_ofPred_eq] at hS
     -- S has some parnum ℓ
     let ℓ := S.parnum
     -- By excitedState_surjective, S = excitedState ℓ μ for some μ
@@ -8250,7 +8259,7 @@ theorem finite_states_energy (d : ℕ) : Set.Finite {S : State | S.energy = d} :
     have h_energy : S.energy = ℓ.natAbs ^ 2 + 2 * n := by
       rw [← hμ]; exact excitedState_energy ℓ μ
     rw [hS] at h_energy
-    simp only [Set.mem_image, Set.mem_setOf_eq]
+    simp only [Set.mem_image, Set.mem_ofPred_eq]
     use (ℓ, ⟨n, μ⟩)
     exact ⟨h_energy.symm, hμ⟩
   apply Set.Finite.subset _ h
@@ -8260,7 +8269,7 @@ theorem finite_states_energy (d : ℕ) : Set.Finite {S : State | S.energy = d} :
       pair.1.natAbs ^ 2 + 2 * pair.2.1 = d} := by
     apply Set.Finite.subset (finite_pairs_le_degree' d)
     intro pair hp
-    simp only [Set.mem_setOf_eq] at hp ⊢
+    simp only [Set.mem_ofPred_eq] at hp ⊢
     omega
   exact h_finite
 
@@ -8350,7 +8359,7 @@ theorem finsetPair_sum_eq_partition_sum (d : ℕ) (f : ℤ → LaurentPolynomial
     apply Finset.sum_bij (fun pair _ => fromFinsetPair pair.1 pair.2)
     -- hi: fromFinsetPair maps to states with energy d
     · intro pair hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp ⊢
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp ⊢
       rw [fromFinsetPair_energy]
       exact hp
     -- i_inj: fromFinsetPair is injective
@@ -8364,9 +8373,9 @@ theorem finsetPair_sum_eq_partition_sum (d : ℕ) (f : ℤ → LaurentPolynomial
       exact ⟨h1.trans h2.symm, h3.trans h4.symm⟩
     -- i_surj: every state with energy d comes from some (P, N)
     · intro S hS
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hS
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hS
       refine ⟨(toP S, toN S), ?_, ?_⟩
-      · rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+      · rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
         have h := fromFinsetPair_energy (toP S) (toN S)
         rw [fromFinsetPair_toP_toN] at h
         rw [← h]; exact hS
@@ -8381,7 +8390,7 @@ theorem finsetPair_sum_eq_partition_sum (d : ℕ) (f : ℤ → LaurentPolynomial
     apply Finset.sum_bij (fun pair _ => excitedState pair.1 pair.2.2)
     -- hi: excitedState maps to states with energy d
     · intro ⟨ℓ, ⟨n, μ⟩⟩ hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp ⊢
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp ⊢
       rw [excitedState_energy]
       exact hp
     -- i_inj: excitedState is injective
@@ -8405,10 +8414,10 @@ theorem finsetPair_sum_eq_partition_sum (d : ℕ) (f : ℤ → LaurentPolynomial
         exact hinj
     -- i_surj: every state with energy d comes from some (ℓ, μ)
     · intro S hS
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hS
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hS
       obtain ⟨n, μ, hμ⟩ := excitedState_surjective S.parnum S rfl
       refine ⟨(S.parnum, ⟨n, μ⟩), ?_, ?_⟩
-      · rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+      · rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
         have h := excitedState_energy S.parnum μ
         rw [hμ] at h
         rw [← h]; exact hS
@@ -8443,7 +8452,7 @@ theorem finsetPair_sum_eq_partition_sum' {R : Type*} [AddCommMonoid R] (d : ℕ)
     apply Finset.sum_bij (fun pair _ => fromFinsetPair pair.1 pair.2)
     -- hi: fromFinsetPair maps to states with energy d
     · intro pair hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp ⊢
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp ⊢
       rw [fromFinsetPair_energy]
       exact hp
     -- i_inj: fromFinsetPair is injective
@@ -8457,9 +8466,9 @@ theorem finsetPair_sum_eq_partition_sum' {R : Type*} [AddCommMonoid R] (d : ℕ)
       exact ⟨h1.trans h2.symm, h3.trans h4.symm⟩
     -- i_surj: every state with energy d comes from some (P, N)
     · intro S hS
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hS
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hS
       refine ⟨(toP S, toN S), ?_, ?_⟩
-      · rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+      · rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
         have h := fromFinsetPair_energy (toP S) (toN S)
         rw [fromFinsetPair_toP_toN] at h
         rw [← h]; exact hS
@@ -8474,7 +8483,7 @@ theorem finsetPair_sum_eq_partition_sum' {R : Type*} [AddCommMonoid R] (d : ℕ)
     apply Finset.sum_bij (fun pair _ => excitedState pair.1 pair.2.2)
     -- hi: excitedState maps to states with energy d
     · intro ⟨ℓ, ⟨n, μ⟩⟩ hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp ⊢
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp ⊢
       rw [excitedState_energy]
       exact hp
     -- i_inj: excitedState is injective
@@ -8498,10 +8507,10 @@ theorem finsetPair_sum_eq_partition_sum' {R : Type*} [AddCommMonoid R] (d : ℕ)
         exact hinj
     -- i_surj: every state with energy d comes from some (ℓ, μ)
     · intro S hS
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hS
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hS
       obtain ⟨n, μ, hμ⟩ := excitedState_surjective S.parnum S rfl
       refine ⟨(S.parnum, ⟨n, μ⟩), ?_, ?_⟩
-      · rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+      · rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
         have h := excitedState_energy S.parnum μ
         rw [hμ] at h
         rw [← h]; exact hS
@@ -8572,7 +8581,7 @@ theorem finsetPair_sum_eq_partition_sum_param (a b : ℤ) (ha : a > 0) (hab : a 
       have h : {S : State | S.energy ≤ (d + 1) ^ 2} = 
           ⋃ e : Fin ((d + 1) ^ 2 + 1), {S : State | S.energy = e} := by
         ext S
-        simp only [Set.mem_setOf_eq, Set.mem_iUnion]
+        simp only [Set.mem_ofPred_eq, Set.mem_iUnion]
         constructor
         · intro hS
           use ⟨S.energy, Nat.lt_succ_of_le hS⟩
@@ -8586,7 +8595,7 @@ theorem finsetPair_sum_eq_partition_sum_param (a b : ℤ) (ha : a > 0) (hab : a 
     -- Step 2: Show {S | expFn S = d} ⊆ {S | S.energy ≤ (d+1)^2}
     apply Set.Finite.subset h_le_finite
     intro S hS
-    simp only [Set.mem_setOf_eq, expFn] at hS ⊢
+    simp only [Set.mem_ofPred_eq, expFn] at hS ⊢
     -- We have: (a * S.energy + b * S.parnum).toNat = d
     -- And: S.parnum.natAbs ^ 2 ≤ S.energy (from energy_eq_parnum_sq_add_even)
     have h_sq : (S.parnum.natAbs : ℤ) ^ 2 ≤ S.energy := by
@@ -8630,7 +8639,7 @@ theorem finsetPair_sum_eq_partition_sum_param (a b : ℤ) (ha : a > 0) (hab : a 
       have h3 : S.energy ≤ d := by omega
       calc S.energy ≤ d := h3
         _ ≤ (d + 1) ^ 2 := by nlinarith
-    · push_neg at h_bp
+    · push Not at h_bp
       have h1 : a * S.energy = d + |b * S.parnum| := by
         have : |b * S.parnum| = -(b * S.parnum) := abs_of_neg h_bp
         linarith [h_eq]
@@ -8656,7 +8665,7 @@ theorem finsetPair_sum_eq_partition_sum_param (a b : ℤ) (ha : a > 0) (hab : a 
         linarith
       have h_p_le : |S.parnum| ≤ d + 1 := by
         by_contra h
-        push_neg at h
+        push Not at h
         have hp_ge : |S.parnum| ≥ d + 2 := by omega
         have h10 : |S.parnum| * (|S.parnum| - 1) ≥ (d + 2) * (d + 1) := by
           have hp_pos : |S.parnum| ≥ 0 := abs_nonneg S.parnum
@@ -8686,7 +8695,7 @@ theorem finsetPair_sum_eq_partition_sum_param (a b : ℤ) (ha : a > 0) (hab : a 
     apply Finset.sum_bij (fun pair _ => fromFinsetPair pair.1 pair.2)
     -- hi: fromFinsetPair maps to states with exponent d
     · intro ⟨P, N⟩ hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp ⊢
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp ⊢
       simp only [expFn]
       have h := exponent_preserved_by_bijection a b ha hab P N
       simp only at h
@@ -8705,9 +8714,9 @@ theorem finsetPair_sum_eq_partition_sum_param (a b : ℤ) (ha : a > 0) (hab : a 
       exact ⟨h1.trans h2.symm, h3.trans h4.symm⟩
     -- i_surj: every state with exponent d comes from some (P, N)
     · intro S hS
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hS
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hS
       refine ⟨(toP S, toN S), ?_, ?_⟩
-      · rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+      · rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
         -- Use exponent_formula to relate the LHS exponent to (a * energy + b * parnum).toNat
         have h := exponent_formula a b ha hab (toP S) (toN S)
         -- h says: ∑ n ∈ toP S, ... + ∑ n ∈ toN S, ... = (a * energy + b * parnum).toNat
@@ -8737,7 +8746,7 @@ theorem finsetPair_sum_eq_partition_sum_param (a b : ℤ) (ha : a > 0) (hab : a 
     apply Finset.sum_bij (fun pair _ => excitedState pair.1 pair.2.2)
     -- hi: excitedState maps to states with exponent d
     · intro ⟨ℓ, ⟨n, μ⟩⟩ hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp ⊢
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp ⊢
       simp only [expFn]
       rw [excitedState_energy, excitedState_parnum]
       exact hp
@@ -8759,10 +8768,10 @@ theorem finsetPair_sum_eq_partition_sum_param (a b : ℤ) (ha : a > 0) (hab : a 
         exact hinj
     -- i_surj: every state with exponent d comes from some (ℓ, μ)
     · intro S hS
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hS
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hS
       obtain ⟨n, μ, hμ⟩ := excitedState_surjective S.parnum S rfl
       refine ⟨(S.parnum, ⟨n, μ⟩), ?_, ?_⟩
-      · rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+      · rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
         have h := excitedState_energy S.parnum μ
         rw [hμ] at h
         simp only [expFn] at hS
@@ -9248,7 +9257,7 @@ lemma jacobiLHS_mul_partitionGenFun (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : 
         have h_ord_prod : (∏ m ∈ P, aZ m).order ≥ (aZ n).order := by
           have h1 : (∏ m ∈ P, aZ m).order ≥ ∑ m ∈ P, (aZ m).order := order_finset_prod_ge_sum aZ P
           have h2 : ∑ m ∈ P, (aZ m).order ≥ (aZ n).order := by
-            apply Finset.single_le_sum (fun m _ => zero_le _) hn_mem
+            apply Finset.single_le_sum (fun m _ => zero_le) hn_mem
           exact le_trans h2 h1
         have h_lt : (d' : ℕ∞) < (∏ m ∈ P, aZ m).order := by
           calc (d' : ℕ∞) < n := by exact_mod_cast hn_not_range
@@ -9271,7 +9280,7 @@ lemma jacobiLHS_mul_partitionGenFun (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : 
         have h_ord_prod : (∏ m ∈ N, aZInv m).order ≥ (aZInv n).order := by
           have h1 : (∏ m ∈ N, aZInv m).order ≥ ∑ m ∈ N, (aZInv m).order := order_finset_prod_ge_sum aZInv N
           have h2 : ∑ m ∈ N, (aZInv m).order ≥ (aZInv n).order := by
-            apply Finset.single_le_sum (fun m _ => zero_le _) hn_mem
+            apply Finset.single_le_sum (fun m _ => zero_le) hn_mem
           exact le_trans h2 h1
         have h_lt : (d' : ℕ∞) < (∏ m ∈ N, aZInv m).order := by
           calc (d' : ℕ∞) < n := by exact_mod_cast hn_not_range
@@ -9326,7 +9335,7 @@ lemma jacobiLHS_mul_partitionGenFun (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : 
           have h_ord_prod : (∏ m ∈ P, aZ m).order ≥ (aZ n).order := by
             have h1 : (∏ m ∈ P, aZ m).order ≥ ∑ m ∈ P, (aZ m).order := order_finset_prod_ge_sum aZ P
             have h2 : ∑ m ∈ P, (aZ m).order ≥ (aZ n).order := by
-              apply Finset.single_le_sum (fun m _ => zero_le _) hn_mem
+              apply Finset.single_le_sum (fun m _ => zero_le) hn_mem
             exact le_trans h2 h1
           have h_ord_total : ((∏ m ∈ P, aZ m) * (∏ m ∈ N, aZInv m)).order ≥ (aZ n).order := by
             calc ((∏ m ∈ P, aZ m) * (∏ m ∈ N, aZInv m)).order 
@@ -9347,7 +9356,7 @@ lemma jacobiLHS_mul_partitionGenFun (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : 
             have h1 : (∏ m ∈ N, aZInv m).order ≥ ∑ m ∈ N, (aZInv m).order := 
               order_finset_prod_ge_sum aZInv N
             have h2 : ∑ m ∈ N, (aZInv m).order ≥ (aZInv n).order := by
-              apply Finset.single_le_sum (fun m _ => zero_le _) hn_mem
+              apply Finset.single_le_sum (fun m _ => zero_le) hn_mem
             exact le_trans h2 h1
           have h_ord_total : ((∏ m ∈ P, aZ m) * (∏ m ∈ N, aZInv m)).order ≥ (aZInv n).order := by
             calc ((∏ m ∈ P, aZ m) * (∏ m ∈ N, aZInv m)).order 
@@ -9430,7 +9439,7 @@ lemma jacobiLHS_mul_partitionGenFun (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : 
                 u^(∑ n ∈ pair.1, (2*n + 1) + ∑ n ∈ pair.2, (2*n + 1)) * v^((pair.1.card : ℤ) - pair.2.card) := by
             apply Finset.sum_congr rfl
             intro pair hp
-            rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+            rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
             simp only [hp, ↓reduceIte]
           -- Need to convert between pair.1^2 and pair.1.natAbs^2 (they're equal for ℤ)
           have h_rhs_simp : ∑ pair ∈ h_rhs_finite.toFinset,
@@ -9439,7 +9448,7 @@ lemma jacobiLHS_mul_partitionGenFun (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : 
               ∑ pair ∈ h_rhs_finite.toFinset, u^((pair.1^2).natAbs + 2*pair.2.1) * v^pair.1 := by
             apply Finset.sum_congr rfl
             intro pair hp
-            rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+            rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
             -- hp uses natAbs^2, but the condition uses pair.1^2; convert
             have h_cond_eq : (a * (pair.1^2 + 2*pair.2.1) + b * pair.1).toNat = 
                              (a * (pair.1.natAbs^2 + 2*pair.2.1) + b * pair.1).toNat := by
@@ -9461,7 +9470,7 @@ lemma jacobiLHS_mul_partitionGenFun (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : 
           -- - Both bijections preserve energy and parnum, so the sums are equal
           exact finsetPair_sum_eq_partition_sum_param' a b ha hab d u v hv h_lhs_finite h_rhs_finite
         · intro pair hp
-          rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+          rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
           split_ifs with h
           · -- Need to convert between pair.1^2 and pair.1.natAbs^2
             have h_conv : (a * (pair.1^2 + 2*pair.2.1) + b * pair.1).toNat = 
@@ -9472,7 +9481,7 @@ lemma jacobiLHS_mul_partitionGenFun (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : 
             exact absurd (h_conv ▸ h.symm) hp
           · rfl
       · intro pair hp
-        rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+        rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
         split_ifs with h
         · exact absurd h.symm hp
         · rfl
@@ -9609,13 +9618,14 @@ noncomputable def evalLaurentCoeff (b : ℤ) (v : ℚ) (c : LaurentPolynomial �
   letI : TopologicalSpace ℚ := ⊥
   haveI : DiscreteTopology ℚ := ⟨rfl⟩
   letI := PowerSeries.WithPiTopology.instTopologicalSpace (R := ℚ)
-  c.support.sum fun ℓ => ((c ℓ : ℚ) * v^ℓ) • PowerSeries.X ^ (b * ℓ).toNat
+  c.coeff.support.sum fun ℓ => ((c.coeff ℓ : ℚ) * v^ℓ) • PowerSeries.X ^ (b * ℓ).toNat
 
 /-- evalLaurentCoeff sends T^1 to v·X^b. -/
 lemma evalLaurentCoeff_T_one (b : ℤ) (v : ℚ) (_hb : b ≥ 0) :
     evalLaurentCoeff b v (LaurentPolynomial.T 1) = v • PowerSeries.X ^ b.toNat := by
   unfold evalLaurentCoeff
-  simp only [LaurentPolynomial.T, Finsupp.support_single_ne_zero _ one_ne_zero,
+  simp only [LaurentPolynomial.T, AddMonoidAlgebra.coeff_single,
+    Finsupp.support_single _ one_ne_zero,
              Finset.sum_singleton, Finsupp.single_apply, zpow_one, mul_one]
   simp only [ite_true, Int.cast_one, one_mul]
 
@@ -9623,7 +9633,8 @@ lemma evalLaurentCoeff_T_one (b : ℤ) (v : ℚ) (_hb : b ≥ 0) :
 lemma evalLaurentCoeff_T_neg_one (b : ℤ) (v : ℚ) (_hb : b ≤ 0) :
     evalLaurentCoeff b v (LaurentPolynomial.T (-1)) = v⁻¹ • PowerSeries.X ^ (-b).toNat := by
   unfold evalLaurentCoeff
-  simp only [LaurentPolynomial.T, Finsupp.support_single_ne_zero _ one_ne_zero,
+  simp only [LaurentPolynomial.T, AddMonoidAlgebra.coeff_single,
+    Finsupp.support_single _ one_ne_zero,
              Finset.sum_singleton, Finsupp.single_apply]
   simp only [ite_true, Int.cast_one, one_mul, zpow_neg_one]
   have : b * (-1) = -b := by ring
@@ -9633,9 +9644,10 @@ lemma evalLaurentCoeff_T_neg_one (b : ℤ) (v : ℚ) (_hb : b ≤ 0) :
 lemma evalLaurentCoeff_one (b : ℤ) (v : ℚ) :
     evalLaurentCoeff b v 1 = 1 := by
   unfold evalLaurentCoeff
-  have h1 : (1 : LaurentPolynomial ℤ) = Finsupp.single 0 1 := rfl
+  have h1 : (1 : LaurentPolynomial ℤ) = AddMonoidAlgebra.single 0 1 := rfl
   rw [h1]
-  simp only [Finsupp.support_single_ne_zero _ one_ne_zero, Finset.sum_singleton,
+  simp only [AddMonoidAlgebra.coeff_single, Finsupp.support_single _ one_ne_zero,
+    Finset.sum_singleton,
              Finsupp.single_apply, ite_true, Int.cast_one, zpow_zero, mul_one,
              mul_zero, Int.toNat_zero, pow_zero, one_smul]
 
@@ -9643,13 +9655,14 @@ lemma evalLaurentCoeff_one (b : ℤ) (v : ℚ) :
 lemma evalLaurentCoeff_add (b : ℤ) (v : ℚ) (c₁ c₂ : LaurentPolynomial ℤ) :
     evalLaurentCoeff b v (c₁ + c₂) = evalLaurentCoeff b v c₁ + evalLaurentCoeff b v c₂ := by
   unfold evalLaurentCoeff
-  -- The support of c₁ + c₂ is a subset of c₁.support ∪ c₂.support
-  -- We'll extend both sums to c₁.support ∪ c₂.support
-  have h_subset : (c₁ + c₂).support ⊆ c₁.support ∪ c₂.support := Finsupp.support_add
+  -- The support of c₁ + c₂ is a subset of c₁.coeff.support ∪ c₂.coeff.support
+  -- We'll extend both sums to c₁.coeff.support ∪ c₂.coeff.support
+  have h_subset : (c₁ + c₂).coeff.support ⊆ c₁.coeff.support ∪ c₂.coeff.support :=
+      Finsupp.support_add
   -- First, extend the LHS sum to the union
-  have h_lhs : (c₁ + c₂).support.sum (fun ℓ => ((↑((c₁ + c₂) ℓ) : ℚ) * v ^ ℓ) •
+  have h_lhs : (c₁ + c₂).coeff.support.sum (fun ℓ => ((↑((c₁ + c₂).coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (b * ℓ).toNat) =
-      (c₁.support ∪ c₂.support).sum (fun ℓ => ((↑((c₁ + c₂) ℓ) : ℚ) * v ^ ℓ) •
+      (c₁.coeff.support ∪ c₂.coeff.support).sum (fun ℓ => ((↑((c₁ + c₂).coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (b * ℓ).toNat) := by
     apply Finset.sum_subset h_subset
     intro ℓ _ hℓ
@@ -9657,17 +9670,17 @@ lemma evalLaurentCoeff_add (b : ℤ) (v : ℚ) (c₁ c₂ : LaurentPolynomial �
     simp only [hℓ, Int.cast_zero, zero_mul, zero_smul]
   rw [h_lhs]
   -- Now extend the RHS sums to the union
-  have h_rhs1 : c₁.support.sum (fun ℓ => ((↑(c₁ ℓ) : ℚ) * v ^ ℓ) •
+  have h_rhs1 : c₁.coeff.support.sum (fun ℓ => ((↑(c₁.coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (b * ℓ).toNat) =
-      (c₁.support ∪ c₂.support).sum (fun ℓ => ((↑(c₁ ℓ) : ℚ) * v ^ ℓ) •
+      (c₁.coeff.support ∪ c₂.coeff.support).sum (fun ℓ => ((↑(c₁.coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (b * ℓ).toNat) := by
     apply Finset.sum_subset Finset.subset_union_left
     intro ℓ _ hℓ
     simp only [Finsupp.mem_support_iff, ne_eq, not_not] at hℓ
     simp only [hℓ, Int.cast_zero, zero_mul, zero_smul]
-  have h_rhs2 : c₂.support.sum (fun ℓ => ((↑(c₂ ℓ) : ℚ) * v ^ ℓ) •
+  have h_rhs2 : c₂.coeff.support.sum (fun ℓ => ((↑(c₂.coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (b * ℓ).toNat) =
-      (c₁.support ∪ c₂.support).sum (fun ℓ => ((↑(c₂ ℓ) : ℚ) * v ^ ℓ) •
+      (c₁.coeff.support ∪ c₂.coeff.support).sum (fun ℓ => ((↑(c₂.coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (b * ℓ).toNat) := by
     apply Finset.sum_subset Finset.subset_union_right
     intro ℓ _ hℓ
@@ -9678,7 +9691,7 @@ lemma evalLaurentCoeff_add (b : ℤ) (v : ℚ) (c₁ c₂ : LaurentPolynomial �
   apply Finset.sum_congr rfl
   intro ℓ _
   -- (c₁ + c₂) ℓ = c₁ ℓ + c₂ ℓ
-  rw [Finsupp.coe_add, Pi.add_apply]
+  rw [AddMonoidAlgebra.coeff_add, Finsupp.coe_add, Pi.add_apply]
   push_cast
   rw [add_mul, add_smul]
 
@@ -9687,7 +9700,8 @@ This is the key evaluation formula for Laurent monomials. -/
 lemma evalLaurentCoeff_T (b : ℤ) (v : ℚ) (ℓ : ℤ) :
     evalLaurentCoeff b v (LaurentPolynomial.T ℓ) = (v^ℓ : ℚ) • PowerSeries.X ^ (b * ℓ).toNat := by
   unfold evalLaurentCoeff
-  simp only [LaurentPolynomial.T, Finsupp.support_single_ne_zero _ one_ne_zero,
+  simp only [LaurentPolynomial.T, AddMonoidAlgebra.coeff_single,
+    Finsupp.support_single _ one_ne_zero,
              Finset.sum_singleton, Finsupp.single_apply]
   simp only [ite_true, Int.cast_one, one_mul]
 
@@ -9731,14 +9745,15 @@ noncomputable def evalLaurentCoeffShifted (a b : ℤ) (v : ℚ) (e : ℕ) (c : L
   letI : TopologicalSpace ℚ := ⊥
   haveI : DiscreteTopology ℚ := ⟨rfl⟩
   letI := PowerSeries.WithPiTopology.instTopologicalSpace (R := ℚ)
-  c.support.sum fun ℓ => ((c ℓ : ℚ) * v^ℓ) • PowerSeries.X ^ (a * e + b * ℓ).toNat
+  c.coeff.support.sum fun ℓ => ((c.coeff ℓ : ℚ) * v^ℓ) • PowerSeries.X ^ (a * e + b * ℓ).toNat
 
 /-- evalLaurentCoeffShifted sends T^ℓ to v^ℓ·X^{(a·e + b·ℓ).toNat}. -/
 lemma evalLaurentCoeffShifted_T (a b : ℤ) (v : ℚ) (e : ℕ) (ℓ : ℤ) :
     evalLaurentCoeffShifted a b v e (LaurentPolynomial.T ℓ) = 
     (v^ℓ : ℚ) • PowerSeries.X ^ (a * e + b * ℓ).toNat := by
   unfold evalLaurentCoeffShifted
-  simp only [LaurentPolynomial.T, Finsupp.support_single_ne_zero _ one_ne_zero,
+  simp only [LaurentPolynomial.T, AddMonoidAlgebra.coeff_single,
+    Finsupp.support_single _ one_ne_zero,
              Finset.sum_singleton, Finsupp.single_apply]
   simp only [ite_true, Int.cast_one, one_mul]
 
@@ -9759,27 +9774,28 @@ lemma evalLaurentCoeffShifted_add (a b : ℤ) (v : ℚ) (e : ℕ) (c₁ c₂ : L
     evalLaurentCoeffShifted a b v e (c₁ + c₂) = 
     evalLaurentCoeffShifted a b v e c₁ + evalLaurentCoeffShifted a b v e c₂ := by
   unfold evalLaurentCoeffShifted
-  have h_subset : (c₁ + c₂).support ⊆ c₁.support ∪ c₂.support := Finsupp.support_add
-  have h_lhs : (c₁ + c₂).support.sum (fun ℓ => ((↑((c₁ + c₂) ℓ) : ℚ) * v ^ ℓ) •
+  have h_subset : (c₁ + c₂).coeff.support ⊆ c₁.coeff.support ∪ c₂.coeff.support :=
+      Finsupp.support_add
+  have h_lhs : (c₁ + c₂).coeff.support.sum (fun ℓ => ((↑((c₁ + c₂).coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (a * e + b * ℓ).toNat) =
-      (c₁.support ∪ c₂.support).sum (fun ℓ => ((↑((c₁ + c₂) ℓ) : ℚ) * v ^ ℓ) •
+      (c₁.coeff.support ∪ c₂.coeff.support).sum (fun ℓ => ((↑((c₁ + c₂).coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (a * e + b * ℓ).toNat) := by
     apply Finset.sum_subset h_subset
     intro ℓ _ hℓ
     simp only [Finsupp.mem_support_iff, ne_eq, not_not] at hℓ
     simp only [hℓ, Int.cast_zero, zero_mul, zero_smul]
   rw [h_lhs]
-  have h_rhs1 : c₁.support.sum (fun ℓ => ((↑(c₁ ℓ) : ℚ) * v ^ ℓ) •
+  have h_rhs1 : c₁.coeff.support.sum (fun ℓ => ((↑(c₁.coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (a * e + b * ℓ).toNat) =
-      (c₁.support ∪ c₂.support).sum (fun ℓ => ((↑(c₁ ℓ) : ℚ) * v ^ ℓ) •
+      (c₁.coeff.support ∪ c₂.coeff.support).sum (fun ℓ => ((↑(c₁.coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (a * e + b * ℓ).toNat) := by
     apply Finset.sum_subset Finset.subset_union_left
     intro ℓ _ hℓ
     simp only [Finsupp.mem_support_iff, ne_eq, not_not] at hℓ
     simp only [hℓ, Int.cast_zero, zero_mul, zero_smul]
-  have h_rhs2 : c₂.support.sum (fun ℓ => ((↑(c₂ ℓ) : ℚ) * v ^ ℓ) •
+  have h_rhs2 : c₂.coeff.support.sum (fun ℓ => ((↑(c₂.coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (a * e + b * ℓ).toNat) =
-      (c₁.support ∪ c₂.support).sum (fun ℓ => ((↑(c₂ ℓ) : ℚ) * v ^ ℓ) •
+      (c₁.coeff.support ∪ c₂.coeff.support).sum (fun ℓ => ((↑(c₂.coeff ℓ) : ℚ) * v ^ ℓ) •
       (PowerSeries.X : ℚ⟦X⟧) ^ (a * e + b * ℓ).toNat) := by
     apply Finset.sum_subset Finset.subset_union_right
     intro ℓ _ hℓ
@@ -9788,7 +9804,7 @@ lemma evalLaurentCoeffShifted_add (a b : ℤ) (v : ℚ) (e : ℕ) (c₁ c₂ : L
   rw [h_rhs1, h_rhs2, ← Finset.sum_add_distrib]
   apply Finset.sum_congr rfl
   intro ℓ _
-  rw [Finsupp.coe_add, Pi.add_apply]
+  rw [AddMonoidAlgebra.coeff_add, Finsupp.coe_add, Pi.add_apply]
   push_cast
   rw [add_mul, add_smul]
 
@@ -9866,7 +9882,7 @@ lemma evalJacobiCorrect_jacobiSumTerm (a b : ℤ) (u v : ℚ) (ℓ : ℤ) :
   have h_eq : ℓ.natAbs ^ 2 = (ℓ^2).natAbs := by rw [Int.natAbs_pow]
   -- The tsum is just the single term at e = ℓ.natAbs^2
   rw [tsum_eq_single (ℓ.natAbs^2)]
-  · rw [coeff_jacobiSumTerm, if_pos rfl, evalLaurentCoeffShifted_T]
+  · rw [coeff_jacobiSumTerm, ite_eq_left rfl, evalLaurentCoeffShifted_T]
     rw [smul_smul]
     congr 1
     · rw [h_eq]
@@ -9880,7 +9896,8 @@ lemma evalJacobiCorrect_jacobiSumTerm (a b : ℤ) (u v : ℚ) (ℓ : ℤ) :
     rw [coeff_jacobiSumTerm]
     split_ifs with h
     · exfalso; exact he h
-    · simp only [evalLaurentCoeffShifted, Finsupp.support_zero, Finset.sum_empty, smul_zero]
+    · simp only [evalLaurentCoeffShifted, AddMonoidAlgebra.coeff_zero, Finsupp.support_zero,
+        Finset.sum_empty, smul_zero]
 
 /-- Key identity: ℓ.natAbs² = (ℓ²).natAbs for any integer ℓ.
 This is used in the reindexing argument for evalJacobiCorrect_jacobiRHS'. -/
@@ -9981,10 +9998,10 @@ lemma coeff_tsum_evalJacobiCorrect_eq_finsum (a b : ℤ) (u v : ℚ) (ha : a > 0
   rw [tsum_eq_sum (s := (finite_ell_for_exponent a b n ha hab).toFinset)]
   · apply Finset.sum_congr rfl
     intro ℓ hℓ
-    rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+    rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
     simp only [hℓ, ↓reduceIte]
   · intro ℓ hℓ
-    rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+    rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
     simp only [hℓ, ↓reduceIte]
 
 lemma evalJacobiCorrect_jacobiRHS' (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : a ≥ |b|) (_hv : v ≠ 0) :
@@ -10080,11 +10097,11 @@ lemma evalJacobiCorrect_jacobiRHS' (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : a
       rw [tsum_eq_sum (s := (finite_natAbs_sq_eq e).toFinset)]
       · apply Finset.sum_congr rfl
         intro ℓ hℓ
-        rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
-        rw [coeff_jacobiSumTerm, if_pos hℓ.symm]
+        rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
+        rw [coeff_jacobiSumTerm, ite_eq_left hℓ.symm]
       · intro ℓ hℓ
-        rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
-        rw [coeff_jacobiSumTerm, if_neg]
+        rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
+        rw [coeff_jacobiSumTerm, ite_eq_right]
         exact fun h => hℓ h.symm
     
     -- Now prove equality by PowerSeries.ext
@@ -10123,10 +10140,10 @@ lemma evalJacobiCorrect_jacobiRHS' (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : a
       rw [tsum_eq_sum (s := h_rhs_finite.toFinset)]
       · apply Finset.sum_congr rfl
         intro ℓ hℓ
-        rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+        rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
         simp only [hℓ, ↓reduceIte]
       · intro ℓ hℓ
-        rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+        rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
         simp only [hℓ, ↓reduceIte]
     
     -- Now compute LHS coefficient
@@ -10157,7 +10174,7 @@ lemma evalJacobiCorrect_jacobiRHS' (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : a
       rw [h_coeff_sum, Finset.mul_sum, Finset.sum_filter]
       apply Finset.sum_congr rfl
       intro ℓ hℓ
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
       rw [coeff_evalLaurentCoeffShifted_T]
       have h_exp : (a * ↑e + b * ℓ).toNat = (a * ℓ^2 + b * ℓ).toNat := by
         congr 1
@@ -10175,7 +10192,7 @@ lemma evalJacobiCorrect_jacobiRHS' (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : a
       rw [h_lhs_term_coeff]
       apply Finset.sum_eq_zero
       intro ℓ hℓ
-      rw [Finset.mem_filter, Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+      rw [Finset.mem_filter, Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
       -- ℓ.natAbs² = e and (a*ℓ² + b*ℓ).toNat = n, so ℓ ∈ h_rhs_finite.toFinset
       -- But then e = ℓ.natAbs² ∈ e_set, contradiction
       exfalso
@@ -10183,7 +10200,7 @@ lemma evalJacobiCorrect_jacobiRHS' (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : a
       simp only [Finset.mem_image, e_set]
       use ℓ
       constructor
-      · rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+      · rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
         exact hℓ.2
       · exact hℓ.1
     
@@ -10213,7 +10230,7 @@ lemma evalJacobiCorrect_jacobiRHS' (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : a
       rw [h_coeff_sum', Finset.mul_sum]
       apply Finset.sum_eq_zero
       intro ℓ hℓ
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
       rw [coeff_evalLaurentCoeffShifted_T]
       have h_exp : (a * ↑e + b * ℓ).toNat = (a * ℓ^2 + b * ℓ).toNat := by
         congr 1
@@ -10229,7 +10246,7 @@ lemma evalJacobiCorrect_jacobiRHS' (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : a
         simp only [Finset.mem_image]
         use ℓ
         constructor
-        · rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+        · rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
           exact h_eq
         · exact hℓ
       · simp only [h_eq, ↓reduceIte, mul_zero]
@@ -10265,7 +10282,7 @@ lemma evalJacobiCorrect_jacobiRHS' (a b : ℤ) (u v : ℚ) (ha : a > 0) (hab : a
       apply Finset.sum_congr
       · -- Show the index sets are equal
         ext ℓ
-        simp only [Finset.mem_filter, Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+        simp only [Finset.mem_filter, Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
         constructor
         · intro ⟨h1, h2⟩
           exact ⟨h2, h1⟩
@@ -10311,7 +10328,7 @@ lemma finite_statesWithEnergy (d : ℕ) : (statesWithEnergy d).Finite := by
         {P : Finset ℕ | ∑ n ∈ P, (2 * n + 1 : ℕ) ≤ d} ×ˢ
         {N : Finset ℕ | ∑ n ∈ N, (2 * n + 1 : ℕ) ≤ d} := by
       intro ⟨P, N⟩ hPN
-      simp only [Set.mem_setOf_eq, Set.mem_prod] at hPN ⊢
+      simp only [Set.mem_ofPred_eq, Set.mem_prod] at hPN ⊢
       constructor <;> omega
     exact Set.Finite.subset ((finite_finsets_sum_le d).prod (finite_finsets_sum_le d)) h_subset
   apply Set.Finite.of_surjOn (fun (pair : Finset ℕ × Finset ℕ) => State.fromFinsetPair pair.1 pair.2)
@@ -10321,11 +10338,11 @@ lemma finite_statesWithEnergy (d : ℕ) : (statesWithEnergy d).Finite := by
     obtain ⟨⟨P, N⟩, hPN⟩ := hsurj S
     have h1 : S.energy = ∑ n ∈ P, (2 * n + 1) + ∑ n ∈ N, (2 * n + 1) := by
       rw [← hPN, State.fromFinsetPair_energy]
-    simp only [statesWithEnergy, Set.mem_setOf_eq] at hS
+    simp only [statesWithEnergy, Set.mem_ofPred_eq] at hS
     rw [hS] at h1
     have hmem : (P, N) ∈ {pair : Finset ℕ × Finset ℕ | 
         ∑ n ∈ pair.1, (2 * n + 1 : ℕ) + ∑ n ∈ pair.2, (2 * n + 1 : ℕ) ≤ d} := by
-      simp only [Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq]
       exact le_of_eq h1.symm
     exact ⟨(P, N), hmem, hPN⟩
 
@@ -10348,13 +10365,13 @@ lemma sum_finsetPair_eq_sum_states (d : ℕ)
     apply Finset.sum_congr rfl
     intro pair hp
     rw [Set.Finite.mem_toFinset] at hp
-    simp only [Set.mem_setOf_eq] at hp
+    simp only [Set.mem_ofPred_eq] at hp
     simp only [hp, ite_true]
   rw [h_simp]
   apply Finset.sum_bij (fun pair _ => State.fromFinsetPair pair.1 pair.2)
   · intro ⟨P, N⟩ hp
     rw [Set.Finite.mem_toFinset] at hp ⊢
-    simp only [Set.mem_setOf_eq, statesWithEnergy] at hp ⊢
+    simp only [Set.mem_ofPred_eq, statesWithEnergy] at hp ⊢
     rw [State.fromFinsetPair_energy, hp]
   · intro ⟨P₁, N₁⟩ hp₁ ⟨P₂, N₂⟩ hp₂ heq
     have hinj := State.finsetPair_bijective.1
@@ -10363,11 +10380,11 @@ lemma sum_finsetPair_eq_sum_states (d : ℕ)
     ext <;> simp only [this.1, this.2]
   · intro S hS
     rw [Set.Finite.mem_toFinset] at hS
-    simp only [Set.mem_setOf_eq, statesWithEnergy] at hS
+    simp only [Set.mem_ofPred_eq, statesWithEnergy] at hS
     use (State.toP S, State.toN S)
     refine ⟨?_, ?_⟩
     · rw [Set.Finite.mem_toFinset]
-      simp only [Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq]
       rw [← hS, State.toP_toN_energy S]
     · simp only
       exact State.fromFinsetPair_toP_toN S
@@ -10393,13 +10410,13 @@ lemma sum_intPartition_eq_sum_states (d : ℕ)
     apply Finset.sum_congr rfl
     intro pair hp
     rw [Set.Finite.mem_toFinset] at hp
-    simp only [Set.mem_setOf_eq] at hp
+    simp only [Set.mem_ofPred_eq] at hp
     simp only [hp, ite_true]
   rw [h_simp]
   apply Finset.sum_bij (fun pair _ => State.excitedState pair.1 pair.2.2)
   · intro ⟨ℓ, n, μ⟩ hp
     rw [Set.Finite.mem_toFinset] at hp ⊢
-    simp only [Set.mem_setOf_eq, statesWithEnergy] at hp ⊢
+    simp only [Set.mem_ofPred_eq, statesWithEnergy] at hp ⊢
     rw [State.excitedState_energy, hp]
   · intro ⟨ℓ₁, n₁, μ₁⟩ hp₁ ⟨ℓ₂, n₂, μ₂⟩ hp₂ heq
     have hinj := State.intPartitionToState_bijective.1
@@ -10411,13 +10428,13 @@ lemma sum_intPartition_eq_sum_states (d : ℕ)
     · exact this.2.2
   · intro S hS
     rw [Set.Finite.mem_toFinset] at hS
-    simp only [Set.mem_setOf_eq, statesWithEnergy] at hS
+    simp only [Set.mem_ofPred_eq, statesWithEnergy] at hS
     obtain ⟨⟨ℓ, n, μ⟩, hμ⟩ := State.intPartitionToState_bijective.2 S
     simp only at hμ
     use (ℓ, ⟨n, μ⟩)
     refine ⟨?_, ?_⟩
     · rw [Set.Finite.mem_toFinset]
-      simp only [Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq]
       rw [← hS, ← hμ, State.excitedState_energy]
     · simp only
       exact hμ
@@ -10802,7 +10819,7 @@ theorem jacobiLHSEval_3_1_1_neg1_eq_eulerProduct_sq :
     · simp_rw [order_neg_pow]
       apply ENat.tendsto_nhds_top_iff_natCast_lt.mpr
       intro n; refine Filter.eventually_atTop.mpr ⟨n, fun m hm => ?_⟩
-      simp only [ENat.coe_lt_coe]; omega
+      simp only [ENat.natCast_lt_natCast]; omega
   -- LHS is multipliable (product of three multipliable sequences)
   have lhs_mult : Multipliable fun k =>
       (1 - PowerSeries.X ^ (6*k + 2) : ℚ⟦X⟧) *
@@ -10815,7 +10832,7 @@ theorem jacobiLHSEval_3_1_1_neg1_eq_eulerProduct_sq :
       · simp_rw [order_neg_pow]
         apply ENat.tendsto_nhds_top_iff_natCast_lt.mpr
         intro n; refine Filter.eventually_atTop.mpr ⟨n, fun m hm => ?_⟩
-        simp only [ENat.coe_lt_coe]; omega
+        simp only [ENat.natCast_lt_natCast]; omega
     have h2 : Multipliable fun k => (1 - PowerSeries.X ^ (6*k + 4) : ℚ⟦X⟧) := by
       have h := @PowerSeries.WithPiTopology.multipliable_one_add_of_tendsto_order_atTop_nhds_top
         ℚ _ _ ℕ _ _ (fun k => -PowerSeries.X ^ (6*k + 4)) ?_
@@ -10823,7 +10840,7 @@ theorem jacobiLHSEval_3_1_1_neg1_eq_eulerProduct_sq :
       · simp_rw [order_neg_pow]
         apply ENat.tendsto_nhds_top_iff_natCast_lt.mpr
         intro n; refine Filter.eventually_atTop.mpr ⟨n, fun m hm => ?_⟩
-        simp only [ENat.coe_lt_coe]; omega
+        simp only [ENat.natCast_lt_natCast]; omega
     have h3 : Multipliable fun k => (1 - PowerSeries.X ^ (6*k + 6) : ℚ⟦X⟧) := by
       have h := @PowerSeries.WithPiTopology.multipliable_one_add_of_tendsto_order_atTop_nhds_top
         ℚ _ _ ℕ _ _ (fun k => -PowerSeries.X ^ (6*k + 6)) ?_
@@ -10831,7 +10848,7 @@ theorem jacobiLHSEval_3_1_1_neg1_eq_eulerProduct_sq :
       · simp_rw [order_neg_pow]
         apply ENat.tendsto_nhds_top_iff_natCast_lt.mpr
         intro n; refine Filter.eventually_atTop.mpr ⟨n, fun m hm => ?_⟩
-        simp only [ENat.coe_lt_coe]; omega
+        simp only [ENat.natCast_lt_natCast]; omega
     exact (h1.mul h2).mul h3
   -- The key: both tprods are limits of their partial products, and partial products are equal
   have tendsto_lhs := lhs_mult.tendsto_prod_tprod_nat
@@ -11044,7 +11061,7 @@ private lemma finite_preimage_of_quadratic (n : ℕ) :
     Set.Finite {ℓ : ℤ | (3 * ℓ^2 + ℓ).toNat = n} := by
   have h : {ℓ : ℤ | (3 * ℓ^2 + ℓ).toNat = n} ⊆ Set.Icc (-(n : ℤ)) n := by
     intro ℓ hℓ
-    simp only [Set.mem_setOf_eq] at hℓ
+    simp only [Set.mem_ofPred_eq] at hℓ
     simp only [Set.mem_Icc]
     have h1 : (3 * ℓ^2 + ℓ).toNat ≤ n := by rw [hℓ]
     have h2 : 3 * ℓ^2 + ℓ ≤ n := by
@@ -11065,10 +11082,10 @@ private lemma summable_coeff_jacobiRHS (n : ℕ) :
   haveI : DiscreteTopology ℚ := ⟨rfl⟩
   apply summable_of_ne_finset_zero (s := (finite_preimage_of_quadratic n).toFinset)
   intro ℓ hℓ
-  rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+  rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
   have key : PowerSeries.coeff n (((-1 : ℚ)^ℓ) • (PowerSeries.X : ℚ⟦X⟧) ^ (3 * ℓ^2 + ℓ).toNat) =
       if n = (3 * ℓ^2 + ℓ).toNat then (-1 : ℚ)^ℓ else 0 := by simp [PowerSeries.coeff_X_pow]
-  rw [key, if_neg]
+  rw [key, ite_eq_right]
   exact fun h => hℓ h.symm
 
 -- Helper: summability of the power series themselves
@@ -11166,7 +11183,7 @@ theorem jacobiRHSEval_3_1_1_neg1_eq_pentagonalSeries_sq :
   · -- n is even: n = 2m for some m
     have hn2' := hn2
     obtain ⟨m, hm⟩ := hn2'
-    rw [if_pos hn2, hm, Nat.mul_div_cancel_left _ (by norm_num : 0 < 2)]
+    rw [ite_eq_left hn2, hm, Nat.mul_div_cancel_left _ (by norm_num : 0 < 2)]
     -- Rewrite condition using three_sq_plus_toNat
     have eq_cond : ∀ ℓ : ℤ, (2 * m = (3 * ℓ^2 + ℓ).toNat) ↔ (m = pentagonalNumber (-ℓ)) := by
       intro ℓ; rw [three_sq_plus_toNat]; omega
@@ -11195,14 +11212,14 @@ theorem jacobiRHSEval_3_1_1_neg1_eq_pentagonalSeries_sq :
       letI : TopologicalSpace ℚ := ⊥
       haveI : DiscreteTopology ℚ := ⟨rfl⟩
       rw [tsum_eq_single (-k) (fun b hb => by simp [hb])]
-      simp only [if_true]
+      simp only [ite_true]
       rw [neg_one_pow_eq_natAbs]
       simp only [neg_neg]
       norm_cast
   · -- n is odd: the coefficient is 0
-    rw [if_neg hn2]
+    rw [ite_eq_right hn2]
     have h : ∀ ℓ : ℤ, (if n = (3 * ℓ^2 + ℓ).toNat then ((-1 : ℚ)^ℓ) else 0) = 0 := by
-      intro ℓ; rw [if_neg]; intro heq; exact hn2 (heq ▸ all_even ℓ)
+      intro ℓ; rw [ite_eq_right]; intro heq; exact hn2 (heq ▸ all_even ℓ)
     simp_rw [h, tsum_zero]
 
 /-- Euler's pentagonal theorem for ℚ⟦X⟧, derived from Jacobi's triple product.
@@ -11281,7 +11298,8 @@ theorem partition_recursive (n : ℕ) (hn : n > 0) :
   -- Split the antidiagonal sum: p(n) + Σ_{b≠0} p(n-b) * pentagonalCoeff(b) = 0
   rw [antidiagonal_sum_eq n hn] at h2
   -- Solve for p(n): p(n) = -Σ_{b≠0} p(n-b) * pentagonalCoeff(b)
-  have h3 : (partitionCount n : ℤ) = -∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0),
+  have h3 : (partitionCount n : ℤ) =
+      -∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.2 ≠ 0),
       (partitionCount p.1 : ℤ) * pentagonalCoeff p.2 := by
     linarith
   rw [h3]
@@ -11306,7 +11324,7 @@ lemma coeff_pentagonalSeries (n : ℕ) :
 
 /-- Coefficient of the derivative of the pentagonal series. -/
 lemma coeff_deriv_pentagonalSeries (n : ℕ) :
-    PowerSeries.coeff n ((PowerSeries.derivative ℤ) (pentagonalSeries : ℤ⟦X⟧)) =
+    PowerSeries.coeff n ((PowerSeries.derivative (R := ℤ)) (pentagonalSeries : ℤ⟦X⟧)) =
     (n + 1) * pentagonalCoeff (n + 1) := by
   rw [PowerSeries.coeff_derivative]
   simp only [coeff_pentagonalSeries]
@@ -11315,7 +11333,8 @@ lemma coeff_deriv_pentagonalSeries (n : ℕ) :
 /-- Coefficient of x times the derivative of the pentagonal series.
 For n > 0, this equals n * pentagonalCoeff n. For n = 0, this is 0. -/
 lemma coeff_X_mul_deriv_pentagonalSeries (n : ℕ) :
-    PowerSeries.coeff n (PowerSeries.X * (PowerSeries.derivative ℤ) (pentagonalSeries : ℤ⟦X⟧)) =
+    PowerSeries.coeff n
+      (PowerSeries.X * (PowerSeries.derivative (R := ℤ)) (pentagonalSeries : ℤ⟦X⟧)) =
     n * pentagonalCoeff n := by
   cases n with
   | zero =>
@@ -11333,7 +11352,8 @@ lemma coeff_X_mul_deriv_pentagonalSeries (n : ℕ) :
 /-- Express the coefficient of x * Q' in terms of pentagonalNumberInverse.
 The coefficient is (-1)^|k| * n if n = w_k for some k, and 0 otherwise. -/
 lemma coeff_X_mul_deriv_pentagonal_match (n : ℕ) :
-    PowerSeries.coeff n (PowerSeries.X * (PowerSeries.derivative ℤ) (pentagonalSeries : ℤ⟦X⟧)) =
+    PowerSeries.coeff n
+      (PowerSeries.X * (PowerSeries.derivative (R := ℤ)) (pentagonalSeries : ℤ⟦X⟧)) =
     match pentagonalNumberInverse n with
     | some k => (-1 : ℤ) ^ k.natAbs * n
     | none => 0 := by
@@ -11381,6 +11401,7 @@ private lemma partition_sum_count_mul_Icc (n : ℕ) (p : Nat.Partition n) :
         simp [hd.2]
     _ = n := by rw [add_zero, h]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- **Key Combinatorial Identity**: n * p(n) = ∑_{k=1}^n σ_1(k) * p(n-k)
 
 This identity relates the partition function p(n) to the sum of divisors function σ_1.
@@ -11426,7 +11447,7 @@ infrastructure for power series logarithms.
 -/
 lemma partition_sigma_identity (n : ℕ) :
     (n : ℤ) * partitionCount n =
-    ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.1 ≠ 0), (σ 1 p.1 : ℤ) * partitionCount p.2 := by
+    ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.1 ≠ 0), (σ 1 p.1 : ℤ) * partitionCount p.2 := by
   -- The proof uses a combinatorial bijection between:
   -- - Marked partitions: pairs (λ, i) where λ partitions n and i ∈ {1,...,n}
   -- - Extended partitions: quadruples (d, m, j, μ) where d|md, m≥1, j∈{1,...,d}, μ partitions n-md
@@ -11440,13 +11461,14 @@ lemma partition_sigma_identity (n : ℕ) :
   -- This bijection is well-defined and invertible, establishing the identity.
   --
   -- Step 1: Convert RHS to use Icc 1 n
-  have h_rhs_eq : ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.1 ≠ 0),
+  have h_rhs_eq : ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.1 ≠ 0),
       (σ 1 p.1 : ℤ) * partitionCount p.2 =
       ∑ k ∈ Finset.Icc 1 n, (σ 1 k : ℤ) * partitionCount (n - k) := by
-    have h_eq : (Finset.antidiagonal n).filter (fun p => p.1 ≠ 0) =
+    have h_eq : (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.1 ≠ 0) =
         (Finset.Icc 1 n).map ⟨fun k => (k, n - k), fun a b h => by simp at h; exact h.1⟩ := by
       ext ⟨a, b⟩
-      simp only [Finset.mem_filter, Finset.mem_antidiagonal, ne_eq, Finset.mem_map, Finset.mem_Icc,
+      simp only [Finset.mem_filter, Finset.HasAntidiagonal.mem_antidiagonal, ne_eq, Finset.mem_map,
+        Finset.mem_Icc,
                  Function.Embedding.coeFn_mk, Prod.mk.injEq]
       constructor
       · intro ⟨hab, ha⟩
@@ -11512,9 +11534,9 @@ lemma partition_sigma_identity (n : ℕ) :
       · intro ⟨k, ⟨hk_lo, hk_hi⟩, hdm_eq, hk_ne⟩
         subst hdm_eq
         have hd_pos : 0 < d := by
-          by_contra h; push_neg at h; simp only [Nat.le_zero] at h; simp [h] at hk_ne
+          by_contra h; push Not at h; simp only [Nat.le_zero] at h; simp [h] at hk_ne
         have hm_pos : 0 < m := by
-          by_contra h; push_neg at h; simp only [Nat.le_zero] at h; simp [h] at hk_ne
+          by_contra h; push Not at h; simp only [Nat.le_zero] at h; simp [h] at hk_ne
         exact ⟨⟨⟨hd_pos, le_trans (Nat.le_mul_of_pos_right d hm_pos) hk_hi⟩,
                ⟨hm_pos, le_trans (Nat.le_mul_of_pos_left m hd_pos) hk_hi⟩⟩, hk_hi⟩
       · intro ⟨⟨⟨hd_lo, _⟩, ⟨hm_lo, _⟩⟩, hdm_le⟩
@@ -11593,7 +11615,7 @@ lemma partition_sigma_identity (n : ℕ) :
     intro m
     have h := Finset.sum_multiset_map_count m id
     convert h using 2 with x
-    simp
+    all_goals simp
   -- Extend to sum over Icc 1 n (count is 0 for parts not in the partition)
   have h_sum_extend : ∀ p : Nat.Partition n,
       (∑ x ∈ p.parts.toFinset, (p.parts.count x * x : ℤ)) =
@@ -11756,11 +11778,12 @@ Since P = ∏_{k≥1} 1/(1-x^k), we have:
   X * d/dx log(P) = ∑_{k≥1} ∑_{m≥1} k * x^{km} = ∑_{n≥1} σ(n) * x^n = S
 Since d/dx log(P) = P'/P, we get X * P'/P = S, i.e., X * P' = S * P. -/
 lemma X_mul_deriv_partitionGenFun_eq :
-    PowerSeries.X * (PowerSeries.derivative ℤ) partitionGenFun = sigmaSeries * partitionGenFun := by
+    PowerSeries.X * (PowerSeries.derivative (R := ℤ)) partitionGenFun =
+      sigmaSeries * partitionGenFun := by
   -- We prove this by showing both sides have the same coefficients
   ext n
   -- Coefficient of X * P' at n is n * p(n)
-  have h_lhs : PowerSeries.coeff (R := ℤ) n (PowerSeries.X * (PowerSeries.derivative ℤ) partitionGenFun) =
+  have h_lhs : PowerSeries.coeff (R := ℤ) n (PowerSeries.X * (PowerSeries.derivative (R := ℤ)) partitionGenFun) =
       n * partitionCount n := by
     cases n with
     | zero =>
@@ -11777,11 +11800,12 @@ lemma X_mul_deriv_partitionGenFun_eq :
       ring
   -- Coefficient of S * P at n is ∑_{k=1}^n σ(k) * p(n-k)
   have h_rhs : PowerSeries.coeff (R := ℤ) n (sigmaSeries * partitionGenFun) =
-      ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.1 ≠ 0), (σ 1 p.1 : ℤ) * partitionCount p.2 := by
+      ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.1 ≠ 0), (σ 1 p.1 : ℤ) * partitionCount p.2 := by
     rw [PowerSeries.coeff_mul]
-    rw [← Finset.sum_filter_add_sum_filter_not (Finset.antidiagonal n) (fun p => p.1 ≠ 0)]
+    rw [← Finset.sum_filter_add_sum_filter_not (Finset.HasAntidiagonal.antidiagonal n)
+      (fun p => p.1 ≠ 0)]
     simp only [ne_eq, not_not]
-    have h1 : ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.1 = 0),
+    have h1 : ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.1 = 0),
               (PowerSeries.coeff p.1) sigmaSeries * (PowerSeries.coeff p.2) partitionGenFun = 0 := by
       apply Finset.sum_eq_zero
       intro p hp
@@ -11806,40 +11830,41 @@ P'Q + PQ' = 0, so Q' = -P'Q/P. Multiplying by x: xQ' = -xP'Q/P = -SQ (using xP' 
 Note: This lemma depends on `euler_pentagonal_number_theorem` and `partition_generating_function`
 which are being proved separately. -/
 theorem pentagonal_deriv_identity :
-    PowerSeries.X * (PowerSeries.derivative ℤ) (pentagonalSeries : ℤ⟦X⟧) =
+    PowerSeries.X * (PowerSeries.derivative (R := ℤ)) (pentagonalSeries : ℤ⟦X⟧) =
     -(pentagonalSeries : ℤ⟦X⟧) * sigmaSeries := by
   -- From P * Q = 1, take derivative
   have h1 := partitionGenFun_mul_pentagonalSeries
   -- D(P * Q) = D(1) = 0
-  have h2 : (PowerSeries.derivative ℤ) (partitionGenFun * pentagonalSeries) = 0 := by
+  have h2 : (PowerSeries.derivative (R := ℤ)) (partitionGenFun * pentagonalSeries) = 0 := by
     rw [h1]
     exact Derivation.map_one_eq_zero _
   -- Leibniz rule: P' * Q + P * Q' = 0
   rw [Derivation.leibniz] at h2
   simp only [smul_eq_mul] at h2
   -- So P * Q' = -Q * P'
-  have h3 : partitionGenFun * (PowerSeries.derivative ℤ) pentagonalSeries =
-            -pentagonalSeries * (PowerSeries.derivative ℤ) partitionGenFun := by
+  have h3 : partitionGenFun * (PowerSeries.derivative (R := ℤ)) pentagonalSeries =
+            -pentagonalSeries * (PowerSeries.derivative (R := ℤ)) partitionGenFun := by
     have heq := add_eq_zero_iff_eq_neg.mp h2
     rw [heq]; ring
   -- Multiply by X and rearrange
-  have h5 : PowerSeries.X * partitionGenFun * (PowerSeries.derivative ℤ) pentagonalSeries =
-            -pentagonalSeries * (PowerSeries.X * (PowerSeries.derivative ℤ) partitionGenFun) := by
-    calc PowerSeries.X * partitionGenFun * (PowerSeries.derivative ℤ) pentagonalSeries
-        = PowerSeries.X * (partitionGenFun * (PowerSeries.derivative ℤ) pentagonalSeries) := by ring
-      _ = PowerSeries.X * (-pentagonalSeries * (PowerSeries.derivative ℤ) partitionGenFun) := by rw [h3]
-      _ = -pentagonalSeries * (PowerSeries.X * (PowerSeries.derivative ℤ) partitionGenFun) := by ring
+  have h5 : PowerSeries.X * partitionGenFun * (PowerSeries.derivative (R := ℤ)) pentagonalSeries =
+            -pentagonalSeries * (PowerSeries.X * (PowerSeries.derivative (R := ℤ)) partitionGenFun) := by
+    calc PowerSeries.X * partitionGenFun * (PowerSeries.derivative (R := ℤ)) pentagonalSeries
+        = PowerSeries.X * (partitionGenFun * (PowerSeries.derivative (R := ℤ)) pentagonalSeries) := by ring
+      _ = PowerSeries.X * (-pentagonalSeries * (PowerSeries.derivative (R := ℤ)) partitionGenFun) := by rw [h3]
+      _ = -pentagonalSeries * (PowerSeries.X * (PowerSeries.derivative (R := ℤ)) partitionGenFun) := by ring
   -- Use X * P' = S * P
   rw [X_mul_deriv_partitionGenFun_eq] at h5
   -- Now h5 : X * P * Q' = -Q * S * P
-  have h6 : PowerSeries.X * partitionGenFun * (PowerSeries.derivative ℤ) pentagonalSeries =
+  have h6 : PowerSeries.X * partitionGenFun * (PowerSeries.derivative (R := ℤ)) pentagonalSeries =
             -pentagonalSeries * sigmaSeries * partitionGenFun := by
     rw [h5]; ring
   -- Rearrange: (X * Q') * P = (-Q * S) * P
-  have h7 : (PowerSeries.X * (PowerSeries.derivative ℤ) pentagonalSeries) * partitionGenFun =
+  have h7 : (PowerSeries.X * (PowerSeries.derivative (R := ℤ)) pentagonalSeries) * partitionGenFun =
             (-pentagonalSeries * sigmaSeries) * partitionGenFun := by
-    calc (PowerSeries.X * (PowerSeries.derivative ℤ) pentagonalSeries) * partitionGenFun
-        = PowerSeries.X * partitionGenFun * (PowerSeries.derivative ℤ) pentagonalSeries := by ring
+    calc (PowerSeries.X * (PowerSeries.derivative (R := ℤ)) pentagonalSeries) * partitionGenFun
+        = PowerSeries.X * partitionGenFun * (PowerSeries.derivative (R := ℤ)) pentagonalSeries := by
+          ring
       _ = -pentagonalSeries * sigmaSeries * partitionGenFun := h6
       _ = (-pentagonalSeries * sigmaSeries) * partitionGenFun := by ring
   -- P is a unit because p(0) = 1
@@ -11866,12 +11891,13 @@ pentagonalCoeff(a) * σ(b), where σ(0) = 0 by convention.
 Since σ(0) = 0, only terms with b > 0 (i.e., a < n) contribute. -/
 lemma coeff_pentagonalSeries_mul_sigmaSeries (n : ℕ) :
     PowerSeries.coeff n ((pentagonalSeries : ℤ⟦X⟧) * sigmaSeries) =
-    ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0),
+    ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.2 ≠ 0),
       pentagonalCoeff p.1 * (σ 1 p.2 : ℤ) := by
   rw [PowerSeries.coeff_mul]
-  rw [← Finset.sum_filter_add_sum_filter_not (Finset.antidiagonal n) (fun p => p.2 ≠ 0)]
+  rw [← Finset.sum_filter_add_sum_filter_not (Finset.HasAntidiagonal.antidiagonal n)
+    (fun p => p.2 ≠ 0)]
   simp only [ne_eq, not_not]
-  have h1 : ∑ p ∈ Finset.filter (fun p => p.2 = 0) (Finset.antidiagonal n),
+  have h1 : ∑ p ∈ Finset.filter (fun p => p.2 = 0) (Finset.HasAntidiagonal.antidiagonal n),
             (PowerSeries.coeff p.1 pentagonalSeries) * (PowerSeries.coeff p.2 sigmaSeries) = 0 := by
     apply Finset.sum_eq_zero
     intro p hp
@@ -11915,7 +11941,7 @@ private lemma neg_one_pow_ne_zero_int (n : ℕ) : (-1 : ℤ) ^ n ≠ 0 := by
 The sum over the antidiagonal (with second component nonzero) of pentagonalCoeff times σ
 equals the sum over pentagonal indices k with w_k < n. -/
 private lemma sum_antidiagonal_eq_tsum_pentagonal (n : ℕ) :
-    ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0),
+    ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.2 ≠ 0),
       pentagonalCoeff p.1 * (σ 1 p.2 : ℤ) =
     ∑' k : {k : ℤ // pentagonalNumber k < n},
       (-1 : ℤ) ^ k.val.natAbs * (σ 1 (n - pentagonalNumber k.val) : ℤ) := by
@@ -11926,14 +11952,15 @@ private lemma sum_antidiagonal_eq_tsum_pentagonal (n : ℕ) :
   -- Key insight: pentagonalCoeff a = 0 unless a is a pentagonal number
   -- So we can filter the LHS to only pentagonal a
   -- Step 1: Show that non-pentagonal terms contribute 0
-  have h_filter : ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0),
+  have h_filter : ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.2 ≠ 0),
       pentagonalCoeff p.1 * (σ 1 p.2 : ℤ) =
-      ∑ p ∈ (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0 ∧ pentagonalCoeff p.1 ≠ 0),
+      ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal n).filter
+          (fun p => p.2 ≠ 0 ∧ pentagonalCoeff p.1 ≠ 0),
       pentagonalCoeff p.1 * (σ 1 p.2 : ℤ) := by
     -- Split into two sums and show the difference is 0
     rw [← Finset.sum_filter_add_sum_filter_not _ (fun p => pentagonalCoeff p.1 ≠ 0)]
     simp only [not_not]
-    have h_zero : ∑ p ∈ ((Finset.antidiagonal n).filter (fun p => p.2 ≠ 0)).filter
+    have h_zero : ∑ p ∈ ((Finset.HasAntidiagonal.antidiagonal n).filter (fun p => p.2 ≠ 0)).filter
         (fun p => pentagonalCoeff p.1 = 0), pentagonalCoeff p.1 * (σ 1 p.2 : ℤ) = 0 := by
       apply Finset.sum_eq_zero
       intro p hp
@@ -11942,7 +11969,7 @@ private lemma sum_antidiagonal_eq_tsum_pentagonal (n : ℕ) :
     rw [h_zero, add_zero]
     congr 1
     ext p
-    simp only [Finset.mem_filter, Finset.mem_antidiagonal]
+    simp only [Finset.mem_filter, Finset.HasAntidiagonal.mem_antidiagonal]
     tauto
   rw [h_filter]
   -- Step 2: For each k with w_k < n, the pair (w_k, n - w_k) is in the filtered set
@@ -11951,10 +11978,11 @@ private lemma sum_antidiagonal_eq_tsum_pentagonal (n : ℕ) :
   let S := ((Finset.univ : Finset {k : ℤ // pentagonalNumber k < n}).image
     fun k => (pentagonalNumber k.val, n - pentagonalNumber k.val))
   -- Show S equals the filtered antidiagonal
-  have hS_eq : S = (Finset.antidiagonal n).filter (fun p => p.2 ≠ 0 ∧ pentagonalCoeff p.1 ≠ 0) := by
+  have hS_eq : S = (Finset.HasAntidiagonal.antidiagonal n).filter
+      (fun p => p.2 ≠ 0 ∧ pentagonalCoeff p.1 ≠ 0) := by
     ext p
     simp only [S, Finset.mem_image, Finset.mem_univ, true_and, Finset.mem_filter,
-               Finset.mem_antidiagonal]
+               Finset.HasAntidiagonal.mem_antidiagonal]
     constructor
     · intro ⟨⟨k, hk⟩, hp⟩
       simp only at hp
@@ -12071,7 +12099,7 @@ theorem euler_sum_divisors_recursive (n : ℕ) (_hn : n > 0) :
   have h2 := coeff_neg_pentagonal_mul_sigma n
   have h3 := pentagonal_deriv_identity
   -- Since x*Q' = -Q*S, their n-th coefficients are equal
-  have h4 : PowerSeries.coeff n (PowerSeries.X * (PowerSeries.derivative ℤ) (pentagonalSeries : ℤ⟦X⟧)) =
+  have h4 : PowerSeries.coeff n (PowerSeries.X * (PowerSeries.derivative (R := ℤ)) (pentagonalSeries : ℤ⟦X⟧)) =
             PowerSeries.coeff n (-(pentagonalSeries : ℤ⟦X⟧) * sigmaSeries) := by rw [h3]
   rw [h1, h2] at h4
   -- Now h4 relates the LHS and RHS through negation
@@ -12136,12 +12164,12 @@ lemma coeff_zero_jacobiProductTerm' (n : ℕ) : PowerSeries.coeff 0 (jacobiProdu
   have h1 : PowerSeries.coeff 0 (jacobiFactorZ n * jacobiFactorZInv n) =
             PowerSeries.coeff 0 (jacobiFactorZ n) * PowerSeries.coeff 0 (jacobiFactorZInv n) := by
     rw [PowerSeries.coeff_mul]
-    simp only [Finset.antidiagonal_zero, Finset.sum_singleton]
+    simp only [Finset.Nat.antidiagonal_zero, Finset.sum_singleton]
   have h2 : PowerSeries.coeff 0 (jacobiFactorZ n * jacobiFactorZInv n * jacobiFactorQ n) =
             PowerSeries.coeff 0 (jacobiFactorZ n * jacobiFactorZInv n) *
             PowerSeries.coeff 0 (jacobiFactorQ n) := by
     rw [PowerSeries.coeff_mul]
-    simp only [Finset.antidiagonal_zero, Finset.sum_singleton]
+    simp only [Finset.Nat.antidiagonal_zero, Finset.sum_singleton]
   rw [h2, h1, coeff_zero_jacobiFactorZ', coeff_zero_jacobiFactorZInv', coeff_zero_jacobiFactorQ']
   ring
 
@@ -12210,7 +12238,7 @@ lemma coeff_jacobiRHS'_perfect_square {k : ℕ} (hk : k > 0) :
         exact hℓk (h_sq.mp heq).symm
       simp only [hne, ite_false]
       have hnor : ¬(ℓ = k ∨ ℓ = -k) := by
-        push_neg
+        push Not
         constructor
         · intro heq; apply hℓk; omega
         · intro heq; apply hℓk; omega
@@ -12227,12 +12255,12 @@ lemma coeff_jacobiRHS'_perfect_square {k : ℕ} (hk : k > 0) :
   · have hk_ne_nk : (k : ℤ) ≠ -(k : ℤ) := by omega
     have hfs : hfin.toFinset = {(k : ℤ), -(k : ℤ)} := by
       ext x
-      simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, Finset.mem_insert,
+      simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, Finset.mem_insert,
         Finset.mem_singleton]
     rw [hfs, Finset.sum_pair hk_ne_nk]
     simp only [or_true, true_or, ite_true]
   · intro ℓ hℓ
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hℓ
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hℓ
     simp only [hℓ, ite_false]
 
 /-- The coefficient of q^n in jacobiRHS' for a non-perfect-square n.
@@ -12250,7 +12278,7 @@ lemma coeff_jacobiRHS'_non_square {n : ℕ} (hn : ∀ k : ℕ, k^2 ≠ n) :
   have h : ∀ ℓ : ℤ, PowerSeries.coeff n (jacobiSumTerm ℓ) = 0 := by
     intro ℓ
     rw [coeff_jacobiSumTerm]
-    rw [if_neg]
+    rw [ite_eq_right]
     intro heq
     exact hn ℓ.natAbs heq.symm
   simp_rw [h]
@@ -12319,8 +12347,8 @@ lemma coeff_double_sum_eq_coeff_stateGenFun (d : ℕ) :
       intro d'
       apply summable_of_ne_finset_zero (s := (finite_pairs_le_degree' d').toFinset)
       intro pair hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
-      push_neg at hp
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
+      push Not at hp
       rw [coeff_stateMonomial]
       simp only [ite_eq_right_iff]
       intro heq
@@ -12337,13 +12365,13 @@ lemma coeff_double_sum_eq_coeff_stateGenFun (d : ℕ) :
       d = ∑ n ∈ pair.1, (2 * n + 1) + ∑ n ∈ pair.2, (2 * n + 1)} := by
     apply Set.Finite.subset (finite_finset_pairs_sum_le d)
     intro pair hp
-    simp only [Set.mem_setOf_eq] at hp ⊢
+    simp only [Set.mem_ofPred_eq] at hp ⊢
     omega
   have h_rhs_finite : Set.Finite {pair : ℤ × (Σ n, Nat.Partition n) |
       d = pair.1.natAbs ^ 2 + 2 * pair.2.1} := by
     apply Set.Finite.subset (finite_pairs_le_degree' d)
     intro pair hp
-    simp only [Set.mem_setOf_eq] at hp ⊢
+    simp only [Set.mem_ofPred_eq] at hp ⊢
     omega
   -- Convert both tsums to finite sums
   rw [tsum_eq_sum (s := h_lhs_finite.toFinset)]
@@ -12355,7 +12383,7 @@ lemma coeff_double_sum_eq_coeff_stateGenFun (d : ℕ) :
           ∑ pair ∈ h_lhs_finite.toFinset, LaurentPolynomial.T ((pair.1.card : ℤ) - pair.2.card) := by
         apply Finset.sum_congr rfl
         intro pair hp
-        rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+        rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
         simp only [hp, ↓reduceIte]
       -- Simplify RHS: the if condition is always true for elements in h_rhs_finite.toFinset
       have h_rhs_simp : ∑ pair ∈ h_rhs_finite.toFinset,
@@ -12363,7 +12391,7 @@ lemma coeff_double_sum_eq_coeff_stateGenFun (d : ℕ) :
           ∑ pair ∈ h_rhs_finite.toFinset, LaurentPolynomial.T pair.1 := by
         apply Finset.sum_congr rfl
         intro pair hp
-        rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+        rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
         simp only [hp, ↓reduceIte]
       rw [h_lhs_simp, h_rhs_simp]
       -- Convert h_lhs_finite to the form expected by finsetPair_sum_eq_partition_sum
@@ -12379,17 +12407,17 @@ lemma coeff_double_sum_eq_coeff_stateGenFun (d : ℕ) :
       -- Show the finsets are equal
       have h_lhs_eq : h_lhs_finite.toFinset = h_lhs_finite'.toFinset := by
         ext p
-        simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, eq_comm]
+        simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, eq_comm]
       have h_rhs_eq : h_rhs_finite.toFinset = h_rhs_finite'.toFinset := by
         ext p
-        simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, eq_comm]
+        simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, eq_comm]
       rw [h_lhs_eq, h_rhs_eq]
       exact finsetPair_sum_eq_partition_sum d LaurentPolynomial.T h_lhs_finite' h_rhs_finite'
     · intro pair hp
-      rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+      rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
       simp only [hp, ite_false]
   · intro pair hp
-    rw [Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+    rw [Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
     simp only [hp, ite_false]
 
 /-- Key lemma 3: ZZProduct = stateGenFun (binary expansion).

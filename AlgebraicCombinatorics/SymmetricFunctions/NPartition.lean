@@ -361,6 +361,7 @@ instance instPartialOrder : PartialOrder (NPartition N) where
 
 /-! ## Fintype instances for bounded partitions -/
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The set of N-partitions with entries bounded by M is finite.
     This is useful for cardinality arguments in symmetric function theory. -/
 noncomputable instance instFintypeBounded (M : ℕ) :
@@ -533,7 +534,7 @@ private lemma filter_ne_zero_sum (m : Multiset ℕ) : (m.filter (· ≠ 0)).sum 
     simp only [Multiset.filter_cons, Multiset.sum_cons]
     split_ifs with ha
     · simp [ih]
-    · push_neg at ha; simp [ha, ih]
+    · push Not at ha; simp [ha, ih]
 
 /-- Convert a partition (as a `Nat.Partition`) to an N-partition by padding with zeros.
     Requires that the partition has at most N parts.
@@ -574,6 +575,7 @@ def toPartition (μ : NPartition N) : Nat.Partition μ.size where
     rw [← h]
     exact filter_ne_zero_sum _
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The size of ofPartition p equals n (the sum of the original partition).
     (Proposition prop.sf.Npar-as-par, well-definedness)
 
@@ -748,6 +750,7 @@ instance youngDiagram_decidableMem (μ : NPartition N) :
     DecidablePred (· ∈ μ.youngDiagram) := fun c =>
   decidable_of_iff (c.2 < μ.parts c.1) mem_youngDiagram.symm
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The total number of cells in the Young diagram equals the size of the partition. -/
 theorem youngDiagram_card (μ : NPartition N) : μ.youngDiagram.card = μ.size := by
   simp only [size]
@@ -786,7 +789,7 @@ theorem le_iff_youngDiagram_subset {μ ν : NPartition N} :
     exact lt_of_lt_of_le hc (h c.1)
   · intro h i
     by_contra hne
-    push_neg at hne
+    push Not at hne
     have hmem : (i, ν.parts i) ∈ μ.youngDiagram := by
       rw [mem_youngDiagram]
       exact hne
@@ -884,6 +887,7 @@ instance skewYoungDiagram_decidableMem (lam mu : NPartition N) :
     DecidablePred (· ∈ skewYoungDiagram lam mu) := fun c =>
   decidable_of_iff (mu.parts c.1 ≤ c.2 ∧ c.2 < lam.parts c.1) mem_skewYoungDiagram.symm
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The cardinality of a skew Young diagram. -/
 theorem skewYoungDiagram_card (lam mu : NPartition N) :
     (skewYoungDiagram lam mu).card = ∑ i, (lam.parts i - mu.parts i) := by
@@ -927,7 +931,7 @@ theorem skewYoungDiagram_eq_empty_iff {lam mu : NPartition N} :
   constructor
   · intro h i
     by_contra hne
-    push_neg at hne
+    push Not at hne
     have : (i, mu.parts i) ∈ skewYoungDiagram lam mu := by
       rw [mem_skewYoungDiagram]
       exact ⟨le_refl _, hne⟩

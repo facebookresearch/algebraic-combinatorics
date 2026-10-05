@@ -156,7 +156,7 @@ theorem prodRule_claim3 {I : Type*} (p : I → ℕ → PowerSeries K) (n : ℕ)
   by_contra h
   apply hnotin
   simp only [CoeffSupportSetUnion, Set.mem_iUnion, Finset.mem_range, CoeffSupportSet,
-    Set.mem_setOf_eq]
+    Set.mem_ofPred_eq]
   exact ⟨m, Nat.lt_succ_of_le hm, hk, h⟩
 
 /-!
@@ -173,7 +173,7 @@ theorem prodRule_claim4 {I : Type*} (p : I → ℕ → PowerSeries K)
     {i : I | p i (k i) ≠ 1}.Finite := by
   apply Set.Finite.subset hk
   intro i hi
-  simp only [Set.mem_setOf_eq] at hi ⊢
+  simp only [Set.mem_ofPred_eq] at hi ⊢
   intro hki
   apply hi
   rw [hki, hp0]
@@ -233,7 +233,7 @@ theorem prodRule_claim6 {I : Type*} [DecidableEq I] (p : I → ℕ → PowerSeri
   have hnotin : (j, k j) ∉ CoeffSupportSetUnion p n := by
     intro hcontra
     apply hj_notin
-    simp only [IndexSetIn, Set.mem_setOf_eq]
+    simp only [IndexSetIn, Set.mem_ofPred_eq]
     exact ⟨k j, hcontra⟩
   exact prodRule_claim5 p n k hk hp0 j hkj hnotin
 
@@ -249,7 +249,7 @@ private lemma coeff_mul_zero_of_low_degree_zero' {f g : PowerSeries K} {n : ℕ}
   rw [coeff_mul]
   apply Finset.sum_eq_zero
   intro ⟨i, j⟩ hij
-  simp only [Finset.mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   have hi : i ≤ n := by omega
   simp [hf i hi]
 
@@ -307,7 +307,7 @@ theorem prodRule_claim7 {I : Type*} [DecidableEq I] (p : I → ℕ → PowerSeri
     intro i hi
     by_contra h
     simp only [Kn0, Finset.mem_union, Finset.mem_singleton] at h
-    push_neg at h
+    push Not at h
     have hki_ne0 : k i ≠ 0 := h.2
     have hki_notKn : k i ∉ hKn_finite.toFinset := h.1
     have hcoeff_zero : ∀ m ≤ n, coeff m (p i (k i)) = 0 := by
@@ -315,9 +315,9 @@ theorem prodRule_claim7 {I : Type*} [DecidableEq I] (p : I → ℕ → PowerSeri
       by_contra hne
       apply hki_notKn
       rw [Set.Finite.mem_toFinset]
-      simp only [ValueSetKn, Set.mem_setOf_eq]
+      simp only [ValueSetKn, Set.mem_ofPred_eq]
       use i
-      simp only [CoeffSupportSetUnion, Set.mem_iUnion, Finset.mem_range, CoeffSupportSet, Set.mem_setOf_eq]
+      simp only [CoeffSupportSetUnion, Set.mem_iUnion, Finset.mem_range, CoeffSupportSet, Set.mem_ofPred_eq]
       exact ⟨m, Nat.lt_succ_of_le hm, hki_ne0, hne⟩
     have h_zero := @coeff_prod_zero_of_factor_low_degree_zero' K _ I _ In (fun j => p j (k j)) n i hi hcoeff_zero
     exact hk_coeff h_zero
@@ -427,7 +427,7 @@ theorem prodRule_claim9 {I : Type*} (p : I → ℕ → PowerSeries K) (n : ℕ)
   have hnotin : (i, k) ∉ CoeffSupportSetUnion p n := by
     intro hcontra
     apply hi
-    simp only [IndexSetIn, Set.mem_setOf_eq]
+    simp only [IndexSetIn, Set.mem_ofPred_eq]
     exact ⟨k, hcontra⟩
   exact prodRule_claim3 p n i k hk.2 hnotin m hm
 
@@ -660,7 +660,7 @@ theorem xnEquiv_comp {n : ℕ} {f₁ f₂ g : PowerSeries K}
         _ ≤ (g^d).order := hpowOrd
     simp [this]
   · -- When d ≤ k, we have d ≤ n, so coeff d f₁ = coeff d f₂
-    push_neg at hd
+    push Not at hd
     have hdn : d ≤ n := le_trans hd hk
     rw [hf d hdn]
 
@@ -781,7 +781,7 @@ theorem coeff_zero_of_dvd {n : ℕ} {u v : PowerSeries K}
   apply Finset.sum_eq_zero
   intro ⟨i, j⟩ hij
   -- i + j = m ≤ n, so i ≤ n
-  simp only [Finset.mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   have hi : i ≤ n := by omega
   rw [hu i hi]
   ring

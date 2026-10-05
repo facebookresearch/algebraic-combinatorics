@@ -134,7 +134,7 @@ theorem alternatingSum_superset_eq_iverson_b {P Q : Finset α} (hPQ : P ⊆ Q) :
       simp only [mem_sdiff, mem_union]
       constructor
       · intro ⟨hxQ, hxPJ⟩
-        push_neg at hxPJ
+        push Not at hxPJ
         exact ⟨⟨hxQ, hxPJ.1⟩, hxPJ.2⟩
       · intro ⟨⟨hxQ, hxP⟩, hxJ⟩
         exact ⟨hxQ, fun h => h.elim hxP hxJ⟩

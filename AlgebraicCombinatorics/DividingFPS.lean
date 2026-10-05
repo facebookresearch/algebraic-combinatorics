@@ -492,7 +492,7 @@ theorem fps_onePlusX_pow_neg' {F : Type*} [Field F] [BinomialRing F] (n : ℕ) :
     have h := Ring.map_choose (algebraMap ℤ F) (-(n : ℤ)) k
     simp only [map_neg, map_natCast] at h
     convert h using 2
-    norm_cast
+    all_goals simp
   -- binomialSeries F (n : ℤ) = (1 + X)^n
   have h_nat : PowerSeries.binomialSeries F (n : ℤ) =
       (1 + PowerSeries.X : PowerSeries F) ^ n :=
@@ -710,7 +710,7 @@ theorem fps_coeff_mul_eq_of_coeff_eq (a f g : PowerSeries K) (n : ℕ)
   apply Finset.sum_congr rfl
   intro ⟨i, j⟩ hij
   -- For (i, j) in antidiagonal m, we have i + j = m
-  simp only [Finset.mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   -- So j ≤ m ≤ n
   have hj : j ≤ n := by omega
   rw [h j hj]
@@ -729,7 +729,7 @@ theorem fps_coeff_zero_of_multiple (u v : PowerSeries K) (n : ℕ)
   apply Finset.sum_eq_zero
   intro p hp
   -- p is in antidiagonal m means p.1 + p.2 = m
-  simp only [Finset.mem_antidiagonal] at hp
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hp
   -- Since p.1 + p.2 = m ≤ n, we have p.1 ≤ n
   have hp1 : p.1 ≤ n := by omega
   -- So u.coeff p.1 = 0

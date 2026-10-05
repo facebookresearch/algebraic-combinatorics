@@ -142,7 +142,7 @@ def Path.subpath {D : SimpleDigraph V} (p : Path D) (i j : ℕ) (hij : i ≤ j)
   vertices := (p.vertices.drop i).take (j - i + 1)
   nonempty := by
     simp only [ne_eq, List.take_eq_nil_iff, List.drop_eq_nil_iff]
-    push_neg
+    push Not
     constructor <;> omega
   arcs_valid := by
     intro k hk
@@ -206,7 +206,7 @@ lemma Path.vertices_nodup_of_acyclic {D : SimpleDigraph V} (hac : D.IsAcyclic)
     -- So j - i + 1 = 1, i.e., j = i
     omega
   · -- Case j < i: symmetric
-    push_neg at hij
+    push Not at hij
     have hij' : j ≤ i := le_of_lt hij
     let sp := p.subpath j i hij' hi
     have hcycle : sp.start = sp.finish := by
@@ -477,13 +477,13 @@ theorem integerLattice_pathFinite : integerLattice.IsPathFinite := by
   · -- Case 1: No paths exist (would need to go backwards)
     convert Set.finite_empty
     ext p
-    simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_and]
+    simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_and]
     intro hstart hfinish
     have hle := integerLattice_path_start_le_finish p
     rw [hstart, hfinish] at hle
     omega
   · -- Case 2: Paths exist but are finite
-    push_neg at h
+    push Not at h
     -- Define the path length and bounding box
     let n := (v.1 - u.1 + v.2 - u.2 + 1).toNat
     let box : Finset (ℤ × ℤ) := (Finset.Icc u.1 v.1) ×ˢ (Finset.Icc u.2 v.2)
@@ -674,7 +674,7 @@ lemma pathWeightAux_append {D : SimpleDigraph V} (w : ArcWeight D K)
       have ih_applied := ih l2 h1_tail_ne h2_ne h_join_tail arcs1_tail arcs2 arcs_concat_tail
       have h_eq : pathWeightAux w (v2 :: (vs2 ++ l2.tail)) arcs_concat_tail = 
                   pathWeightAux w (v2 :: vs2) arcs1_tail * pathWeightAux w l2 arcs2 := by
-        convert ih_applied using 1
+        convert ih_applied using 1; rfl
       simp only [pathWeightAux, h_eq]
       ring
 
@@ -772,8 +772,9 @@ noncomputable def nipatSet {V : Type*} [DecidableEq V] {D : SimpleDigraph V} {k 
     (A B : kVertex V k) : Set (PathTuple D k A B) :=
   {pt | pt.isNonIntersecting}
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The set of nipats is finite (follows from path-finiteness) -/
-noncomputable def nipatSetFinite {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
+theorem nipatSetFinite {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
     (hpf : D.IsPathFinite) {k : ℕ} (A B : kVertex V k) : Set.Finite (nipatSet (D := D) A B) := by
   -- The set of all path tuples from A to B is finite
   have h_all_finite : Set.Finite {pt : PathTuple D k A B | True} := by
@@ -838,12 +839,12 @@ noncomputable def pathTupleEquivPiFinset {V : Type*} [DecidableEq V] {D : Simple
   case toFun =>
     intro pt
     refine ⟨pt.paths, ?_⟩
-    simp only [Fintype.mem_piFinset, pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+    simp only [Fintype.mem_piFinset, pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
     intro j
     exact ⟨pt.starts j, pt.finishes j⟩
   case invFun =>
     intro ⟨f, hf⟩
-    simp only [Fintype.mem_piFinset, pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hf
+    simp only [Fintype.mem_piFinset, pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hf
     exact ⟨f, fun j => (hf j).1, fun j => (hf j).2⟩
   case left_inv =>
     intro pt
@@ -884,7 +885,7 @@ theorem PathTuple.isIntersecting_iff_exists_crowded {D : SimpleDigraph V} {k : �
     {A B : kVertex V k} (pt : PathTuple D k A B) :
     pt.isIntersecting ↔ ∃ v, pt.isCrowded v := by
   unfold isIntersecting isNonIntersecting isCrowded pathsIntersect
-  push_neg
+  push Not
   constructor
   · intro ⟨i, j, hij, v, hvi, hvj⟩
     exact ⟨v, i, j, hij, hvi, hvj⟩
@@ -923,14 +924,14 @@ private lemma findIdx_eq_of_first_satisfies {α : Type*} (l : List α) (p : α �
     cases n with
     | zero =>
       simp only [List.findIdx_cons, List.getElem_cons_zero] at *
-      simp only [h_at_n, cond_true]
+      simp only [h_at_n, ↓reduceIte]
     | succ m =>
       simp only [List.findIdx_cons]
       have h_not_px : p x = false := by
         have := h_before 0 (Nat.zero_lt_succ m)
         simp only [List.getElem_cons_zero] at this
         exact this
-      simp only [h_not_px, cond_false]
+      simp only [h_not_px, Bool.false_eq_true, ↓reduceIte]
       apply congrArg (· + 1)
       have hm_lt : m < xs.length := by
         simp only [List.length_cons] at hn; omega
@@ -958,14 +959,14 @@ private lemma findIdx_le_of_mem (l : List V) (i : ℕ) (hi : i < l.length)
     cases i with
     | zero => 
       simp only [List.getElem_cons_zero] at hp
-      simp only [List.findIdx_cons, hp, cond_true, le_refl]
+      simp only [List.findIdx_cons, hp, le_refl, ↓reduceIte]
     | succ j =>
       simp only [List.findIdx_cons]
       simp only [List.getElem_cons_succ] at hp
       cases hx : pred x with
       | true => simp
       | false => 
-        simp only [cond_false]
+        simp only [Bool.false_eq_true, ↓reduceIte]
         simp at hi
         have := ih j (by omega : j < xs.length) hp
         omega
@@ -1185,13 +1186,13 @@ noncomputable def SimpleDigraph.Path.concat {D : SimpleDigraph V} (p q : SimpleD
     by_cases h : i + 1 < p.vertices.length
     · rw [List.getElem_append_left (by omega), List.getElem_append_left h]
       exact p.arcs_valid i h
-    · push_neg at h
+    · push Not at h
       by_cases h' : i < p.vertices.length
       · have hi_eq : i = p.vertices.length - 1 := by omega
         have hq_len : 1 < q.vertices.length := by
           have hq_ne := q.nonempty
           by_contra hq_short
-          push_neg at hq_short
+          push Not at hq_short
           have htail_len : q.vertices.tail.length = 0 := by simp only [List.length_tail]; omega
           omega
         rw [List.getElem_append_left h', List.getElem_append_right (by omega)]
@@ -1204,7 +1205,7 @@ noncomputable def SimpleDigraph.Path.concat {D : SimpleDigraph V} (p q : SimpleD
         have hq_arc := q.arcs_valid 0 hq_len
         simp only [List.get_eq_getElem, SimpleDigraph.Path.start, List.head_eq_getElem] at hq_arc ⊢
         exact hq_arc
-      · push_neg at h'
+      · push Not at h'
         have hi1 : i - p.vertices.length < q.vertices.tail.length := by simp; omega
         have hi2 : i + 1 - p.vertices.length < q.vertices.tail.length := by simp; omega
         rw [List.getElem_append_right (by omega), List.getElem_append_right (by omega)]
@@ -1512,9 +1513,9 @@ private lemma splitAt_head_findIdx_eq (l : List V) (v : V) (hv : v ∈ l) :
     exact ⟨l.findIdx (· = v), by rw [h_len]; omega, h_head_getElem⟩
   have h_head_lt := List.findIdx_lt_length_of_exists (p := (· = v)) ⟨v, hv_mem_head, by simp⟩
   have h_le : (l.take (l.findIdx (· = v) + 1)).findIdx (· = v) ≤ l.findIdx (· = v) := by
-    by_contra h_neg; push_neg at h_neg; omega
+    by_contra h_neg; push Not at h_neg; omega
   have h_ge : l.findIdx (· = v) ≤ (l.take (l.findIdx (· = v) + 1)).findIdx (· = v) := by
-    by_contra h_neg; push_neg at h_neg
+    by_contra h_neg; push Not at h_neg
     have h_found : (l.take (l.findIdx (· = v) + 1))[(l.take (l.findIdx (· = v) + 1)).findIdx (· = v)]'h_head_lt = v := by
       have := @List.findIdx_getElem V (· = v) (l.take (l.findIdx (· = v) + 1)) h_head_lt
       simp only [decide_eq_true_eq] at this; exact this
@@ -1854,7 +1855,7 @@ lemma PathTuple.crowded_vertex_other_paths_gt {D : SimpleDigraph V} {k : ℕ}
   simp only [crowdedVerticesOnPath, Finset.mem_filter, List.mem_toFinset] at hv
   obtain ⟨hvi, j', hij', hvj'⟩ := hv
   by_contra h
-  push_neg at h
+  push Not at h
   have hj_lt : j < i := lt_of_le_of_ne h hjne
   have hj_crowded : j ∈ pt.crowdedPathIndices := by
     simp only [crowdedPathIndices, Finset.mem_filter, Finset.mem_univ, true_and]
@@ -2373,7 +2374,7 @@ private lemma findIdx_eq_of_first {α : Type*} (l : List α) (p : α → Bool)
         have := h_first 0 (Nat.zero_lt_succ n')
         simp at this
         exact this
-      simp only [h_not_x, cond_false]
+      simp only [h_not_x, Bool.false_eq_true, ↓reduceIte]
       have hn' : n' < xs.length := by simp at hn; omega
       have h_first' : ∀ m : ℕ, ∀ hm : m < n', ¬p (xs[m]'(Nat.lt_trans hm hn')) := by
         intro m hm
@@ -2473,7 +2474,7 @@ private lemma vertices_before_v_not_crowded_in_sp' {D : SimpleDigraph V} (hac : 
         -- Use the fact that findIdx returns the first index satisfying the predicate
         -- If element at m satisfies it, findIdx must be ≤ m
         by_contra h_gt
-        push_neg at h_gt
+        push Not at h_gt
         -- All elements before findIdx don't satisfy the predicate
         -- In particular, element at m doesn't satisfy it (since m < findIdx)
         have h_not_p : ¬ (fun v => v ∈ sp.2.crowdedVerticesOnPath i) (sp.2.paths i).vertices[m] := by
@@ -2503,7 +2504,7 @@ private lemma vertices_before_v_not_crowded_in_sp' {D : SimpleDigraph V} (hac : 
   
   simp only [PathTuple.crowdedVerticesOnPath, Finset.mem_filter, List.mem_toFinset, not_and]
   intro hw_in_sp'_i
-  push_neg
+  push Not
   intro l hl
   
   -- Case analysis on l
@@ -2705,7 +2706,7 @@ lemma signReversing_canonical_eq {D : SimpleDigraph V} (hac : D.IsAcyclic) {k : 
     · apply Finset.le_min'
       intro l hl
       by_contra h
-      push_neg at h
+      push Not at h
       exact h_no_smaller_crowded l h hl
     · exact Finset.min'_le sp'.2.crowdedPathIndices i hi'_crowded
   
@@ -3366,8 +3367,9 @@ def allPathTupleSet {V : Type*} [DecidableEq V] {D : SimpleDigraph V} {k : ℕ}
     (A B : kVertex V k) : Set (PathTuple D k A B) :=
   Set.univ
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The set of all path tuples is finite (follows from path-finiteness) -/
-noncomputable def allPathTupleSetFinite {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
+theorem allPathTupleSetFinite {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
     (hpf : D.IsPathFinite) {k : ℕ} (A B : kVertex V k) : 
     Set.Finite (allPathTupleSet (D := D) A B) := by
   -- The proof is essentially the same as nipatSetFinite
@@ -3418,13 +3420,13 @@ noncomputable def ipatFinset {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
 theorem mem_ipatFinset_iff {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
     (hpf : D.IsPathFinite) {k : ℕ} {A B : kVertex V k} (pt : PathTuple D k A B) :
     pt ∈ ipatFinset hpf A B ↔ pt.isIntersecting := by
-  simp only [ipatFinset, Set.Finite.mem_toFinset, ipatSet, Set.mem_setOf_eq]
+  simp only [ipatFinset, Set.Finite.mem_toFinset, ipatSet, Set.mem_ofPred_eq]
 
 /-- Membership in nipatFinset -/
 theorem mem_nipatFinset_iff {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
     (hpf : D.IsPathFinite) {k : ℕ} {A B : kVertex V k} (pt : PathTuple D k A B) :
     pt ∈ nipatFinset hpf A B ↔ pt.isNonIntersecting := by
-  simp only [nipatFinset, Set.Finite.mem_toFinset, nipatSet, Set.mem_setOf_eq]
+  simp only [nipatFinset, Set.Finite.mem_toFinset, nipatSet, Set.mem_ofPred_eq]
 
 /-- nipats and ipats are disjoint -/
 theorem nipatFinset_disjoint_ipatFinset {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
@@ -3468,11 +3470,11 @@ theorem prod_pathWeightSum_eq_sum_pathTupleWeight {V : Type*} [DecidableEq V] {D
     (fun g hg => PathTuple.mk g 
       (fun j => by
         simp only [Fintype.mem_piFinset, pathsFromTo, Set.Finite.mem_toFinset, 
-                   Set.mem_setOf_eq] at hg
+                   Set.mem_ofPred_eq] at hg
         exact (hg j).1)
       (fun j => by
         simp only [Fintype.mem_piFinset, pathsFromTo, Set.Finite.mem_toFinset, 
-                   Set.mem_setOf_eq] at hg
+                   Set.mem_ofPred_eq] at hg
         exact (hg j).2))
     -- backward: PathTuple → function
     (fun pt _ => pt.paths)
@@ -3480,7 +3482,7 @@ theorem prod_pathWeightSum_eq_sum_pathTupleWeight {V : Type*} [DecidableEq V] {D
     (fun g hg => mem_allPathTupleFinset hpf _)
     -- hj: backward maps into piFinset
     (fun pt hpt => by
-      simp only [Fintype.mem_piFinset, pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+      simp only [Fintype.mem_piFinset, pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
       intro j
       exact ⟨pt.starts j, pt.finishes j⟩)
     -- left_inv: j(i(g)) = g
@@ -3497,7 +3499,7 @@ def ipatWithPermSet {V : Type*} [DecidableEq V] {D : SimpleDigraph V} {k : ℕ}
   {sp | sp.2.isIntersecting}
 
 /-- PathTuple is finite when the digraph is path-finite. -/
-noncomputable instance pathTupleFinite {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
+theorem pathTupleFinite {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
     (hpf : D.IsPathFinite) {k : ℕ} (A B : kVertex V k) : 
     Finite (PathTuple D k A B) := by
   have h := allPathTupleSetFinite hpf A B
@@ -3507,7 +3509,7 @@ noncomputable instance pathTupleFinite {V : Type*} [DecidableEq V] {D : SimpleDi
   exact Set.finite_univ_iff.mp h
 
 /-- pathTupleWithPerm is finite when the digraph is path-finite. -/
-noncomputable instance pathTupleWithPermFinite {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
+theorem pathTupleWithPermFinite {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
     (hpf : D.IsPathFinite) {k : ℕ} (A B : kVertex V k) : 
     Finite (pathTupleWithPerm (D := D) A B) := by
   unfold pathTupleWithPerm
@@ -3536,7 +3538,7 @@ theorem mem_ipatWithPermFinset_iff {V : Type*} [DecidableEq V] {D : SimpleDigrap
     (hpf : D.IsPathFinite) {k : ℕ} {A B : kVertex V k} 
     (sp : pathTupleWithPerm (D := D) A B) :
     sp ∈ ipatWithPermFinset hpf A B ↔ sp.2.isIntersecting := by
-  simp only [ipatWithPermFinset, Set.Finite.mem_toFinset, ipatWithPermSet, Set.mem_setOf_eq]
+  simp only [ipatWithPermFinset, Set.Finite.mem_toFinset, ipatWithPermSet, Set.mem_ofPred_eq]
 
 /-- The signed sum over ALL intersecting path tuples (with permutation) is zero.
     
@@ -3647,7 +3649,7 @@ theorem mem_nipatWithPermFinset_iff {V : Type*} [DecidableEq V] {D : SimpleDigra
     (hpf : D.IsPathFinite) {k : ℕ} {A B : kVertex V k} 
     (sp : pathTupleWithPerm (D := D) A B) :
     sp ∈ nipatWithPermFinset hpf A B ↔ sp.2.isNonIntersecting := by
-  simp only [nipatWithPermFinset, Set.Finite.mem_toFinset, nipatWithPermSet, Set.mem_setOf_eq]
+  simp only [nipatWithPermFinset, Set.Finite.mem_toFinset, nipatWithPermSet, Set.mem_ofPred_eq]
 
 /-- nipats and ipats with permutation are disjoint -/
 theorem nipatWithPermFinset_disjoint_ipatWithPermFinset {V : Type*} [DecidableEq V] 
@@ -3699,6 +3701,7 @@ theorem sum_allPathTupleWithPerm_eq_sum_nipat_add_sum_ipat {V : Type*} [Decidabl
       (Equiv.Perm.sign sp.1 : K) * pathTupleWeight w sp.2.paths := by
   rw [← nipatWithPermFinset_union_ipatWithPermFinset_sum hpf A B]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The sum over nipats with permutation equals the sum over permutations of nipatWeightSum -/
 theorem sum_nipatWithPerm_eq_sum_nipatWeightSum {V : Type*} [DecidableEq V] 
     {D : SimpleDigraph V} (hpf : D.IsPathFinite) {k : ℕ} (w : ArcWeight D K) 
@@ -3735,6 +3738,7 @@ theorem sum_nipatWithPerm_eq_sum_nipatWeightSum {V : Type*} [DecidableEq V]
         intro σ _
         simp only [nipatWeightSum, Units.smul_def, zsmul_eq_mul]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The determinant can be written as a sum over all path tuples with permutation -/
 theorem det_eq_sum_allPathTupleWithPerm {V : Type*} [DecidableEq V] {D : SimpleDigraph V}
     (hpf : D.IsPathFinite) {k : ℕ} (w : ArcWeight D K) (A B : kVertex V k) :
@@ -3884,7 +3888,7 @@ lemma discrete_ivt_aux (n : ℕ) : ∀ (a b : ℤ) (f : ℤ → ℤ),
       have hfa1_ge : f (a + 1) ≥ f a - 1 := by rw [abs_le] at hf_step; omega
       by_cases hfa1 : f (a + 1) ≤ 0
       · exact ⟨a + 1, by omega, ha1_le_b, by omega⟩
-      · push_neg at hfa1
+      · push Not at hfa1
         have hn' : (b - (a + 1)).toNat = k := by omega
         have hf' : ∀ m : ℤ, a + 1 ≤ m → m < b → |f (m + 1) - f m| ≤ 1 :=
           fun m hm1 hm2 => hf m (by omega) hm2
@@ -4190,18 +4194,18 @@ lemma monotone_perm_eq_id {k : ℕ} (σ : Equiv.Perm (Fin k))
       have hih : ∀ j : Fin (k + 1), j.val < n → σ j = j := fun j hj => ih j.val hj j rfl
       have hge : i ≤ σ i := by
         by_contra hlt
-        push_neg at hlt
+        push Not at hlt
         have hlt' : σ i < i := hlt
         have hval : (σ i).val < n := by rw [← hi]; exact Fin.val_fin_lt.mpr hlt'
         have heq : σ (σ i) = σ i := hih (σ i) hval
         exact (ne_of_lt hlt') (σ.injective heq)
       have hle : σ i ≤ i := by
         by_contra hgt
-        push_neg at hgt
+        push Not at hgt
         have hgt' : i < σ i := hgt
         have hpre : σ.symm i < i := by
           by_contra hge'
-          push_neg at hge'
+          push Not at hge'
           rcases hge'.eq_or_lt with heq | hgt''
           · have := congrArg σ heq.symm
             simp at this
@@ -4225,12 +4229,12 @@ theorem no_nipats_nonidentity {k : ℕ} (A B : kVertex (ℤ × ℤ) k)
     (σ : Equiv.Perm (Fin k)) (hσ : σ ≠ Equiv.refl (Fin k)) :
     nipatSet (D := integerLattice) A (permuteKVertex σ B) = ∅ := by
   ext pt
-  simp only [nipatSet, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+  simp only [nipatSet, Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false]
   intro hpt
   -- σ ≠ id means σ is not monotone, so there exist i < j with σ(i) > σ(j)
   have : ∃ i j : Fin k, i < j ∧ σ j < σ i := by
     by_contra h
-    push_neg at h
+    push Not at h
     exact hσ (monotone_perm_eq_id σ h)
   obtain ⟨i, j, hij, hσij⟩ := this
   -- Apply baby_jordan to paths i and j
@@ -4331,7 +4335,7 @@ private lemma binom_fkg_core (A B C D : ℕ) (hAB : B ≤ A) (hCD : D ≤ C) (hC
     by_cases hBm : B < D + k + 1
     · simp only [Nat.choose_eq_zero_of_lt hBm, CharP.cast_eq_zero, mul_zero]
       exact mul_nonneg (Int.natCast_nonneg _) (Int.natCast_nonneg _)
-    · push_neg at hBm
+    · push Not at hBm
       have hBDk : D + k ≤ B := Nat.le_of_succ_le hBm
       have hADk : D + k ≤ A := Nat.le_of_succ_le hCA
       have hA_rec := Nat.choose_succ_right_eq A (D + k)
@@ -4376,11 +4380,11 @@ lemma binom_2x2_ineq (a b c d : ℕ) (hab : b ≤ a) (hcd : d ≤ c) :
   by_cases hca : c > a
   · have hbc : c > b := Nat.lt_of_le_of_lt hab hca
     simp [Nat.choose_eq_zero_of_lt hca, Nat.choose_eq_zero_of_lt hbc]
-  · push_neg at hca
+  · push Not at hca
     by_cases hdb : d > b
     · have hbc : c > b := Nat.lt_of_lt_of_le hdb hcd
       simp [Nat.choose_eq_zero_of_lt hdb, Nat.choose_eq_zero_of_lt hbc]
-    · push_neg at hdb
+    · push Not at hdb
       exact binom_fkg_core a b c d hab hcd hca hdb
 
 /-!
@@ -4547,7 +4551,7 @@ private lemma vertexAtPos_arc (a : ℕ) (S : Finset (Fin a)) (i : Fin a) :
       rw [heq]
       have hnotmem : i ∉ S.filter (fun j => j.val < i.val) := by
         simp only [Finset.mem_filter, not_and, not_lt]; intro _; exact le_refl _
-      rw [Finset.card_insert_eq_ite, if_neg hnotmem]
+      rw [Finset.card_insert_eq_ite, ite_eq_right hnotmem]
     constructor
     · simp only [hfilter]; push_cast; ring
     · simp only [hfilter]; push_cast; ring
@@ -4762,7 +4766,7 @@ private lemma pathToEastSteps_eastStepsToPath (a b : ℕ) (S : Finset (Fin a)) (
         rw [heq]
         have hnotmem : i ∉ S.filter (fun j => j.val < i.val) := by
           simp only [Finset.mem_filter, not_and, not_lt]; intro _; exact le_refl _
-        rw [Finset.card_insert_eq_ite, if_neg hnotmem]
+        rw [Finset.card_insert_eq_ite, ite_eq_right hnotmem]
       · simp only [hi, ↓reduceIte, add_zero]
         congr 1; ext j; simp only [Finset.mem_filter]
         constructor
@@ -4800,7 +4804,7 @@ private lemma pathToEastSteps_eastStepsToPath (a b : ℕ) (S : Finset (Fin a)) (
       rw [heq]
       have hnotmem : i ∉ S.filter (fun j => j.val < i.val) := by
         simp only [Finset.mem_filter, not_and, not_lt]; intro _; exact le_refl _
-      rw [Finset.card_insert_eq_ite, if_neg hnotmem]
+      rw [Finset.card_insert_eq_ite, ite_eq_right hnotmem]
     simp only [hfilter]
     push_cast
     ring
@@ -4886,7 +4890,7 @@ private lemma path_x_coord_eq_eastSteps (a _b : ℕ) (p : SimpleDigraph.Path int
         rw [heq]
         have hnotmem : (⟨k, hkk⟩ : Fin a) ∉ (pathToEastSteps a p hlen).filter (fun j => j.val < k) := by
           simp only [Finset.mem_filter, not_and, not_lt]; intro _; exact le_refl _
-        rw [Finset.card_insert_eq_ite, if_neg hnotmem]
+        rw [Finset.card_insert_eq_ite, ite_eq_right hnotmem]
       rw [hx_inc, ih, hfilter_inc]
       push_cast; ring
 
@@ -4942,7 +4946,7 @@ noncomputable def paths_equiv_powersetCard (a b : ℕ) :
   refine ⟨?toFun, ?invFun, ?left_inv, ?right_inv⟩
   case toFun =>
     intro ⟨p, hp⟩
-    simp only [pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+    simp only [pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
     have hstart := hp.1
     have hfinish := hp.2
     have hlen := path_length_from_endpoints a b p hstart hfinish
@@ -4956,7 +4960,7 @@ noncomputable def paths_equiv_powersetCard (a b : ℕ) :
     exact ⟨eastStepsToPath a b S hS, by simp [pathsFromTo, hstart, hfinish]⟩
   case left_inv =>
     intro ⟨p, hp⟩
-    simp only [pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+    simp only [pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
     have hstart := hp.1
     have hfinish := hp.2
     have hlen := path_length_from_endpoints a b p hstart hfinish
@@ -5052,6 +5056,7 @@ theorem nipatWeightSum_unitArcWeight_nonneg {k : ℕ} (A B : kVertex (ℤ × ℤ
   rw [nipatWeightSum_unitArcWeight]
   exact Int.natCast_nonneg _
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The ipatWithPermFinset can be decomposed as a sigma type over permutations.
     This is the ipat analogue of the decomposition used for nipats. -/
 theorem ipatWithPermFinset_eq_sigma {k : ℕ} (A B : kVertex (ℤ × ℤ) k) :
@@ -5308,14 +5313,14 @@ theorem dyckDigraph_pathFinite : dyckDigraph.IsPathFinite := by
   · -- Case 1: No paths exist (would need to go backwards in x)
     convert Set.finite_empty
     ext p
-    simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_and]
+    simp only [Set.mem_ofPred_eq, Set.mem_empty_iff_false, iff_false, not_and]
     intro hstart hfinish
     have hlen := dyckDigraph_path_length_eq p
     rw [hstart, hfinish] at hlen
     have hpos : 0 < p.vertices.length := List.length_pos_of_ne_nil p.nonempty
     omega
   · -- Case 2: Paths exist but are finite
-    push_neg at h
+    push Not at h
     -- Define the path length
     let n := (v.1 - u.1 + 1).toNat
     -- Define the bounding box for the second coordinate
@@ -5479,6 +5484,7 @@ lemma dyckPathToSteps_length (p : SimpleDigraph.Path dyckDigraph) :
     (dyckPathToSteps p).length = p.vertices.length - 1 := by
   simp [dyckPathToSteps]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Key lemma: the y-coordinate at position i equals #U - #D in the first i steps (as integers). -/
 private lemma dyckPath_y_eq_count_diff_int (p : SimpleDigraph.Path dyckDigraph) (i : ℕ)
     (hi : i < p.vertices.length) (hstart : p.start = (0, 0)) :
@@ -5755,7 +5761,7 @@ private lemma dyckPathToWord_semilength_eq (n : ℕ) (p : SimpleDigraph.Path dyc
 /-- Membership in pathsFromTo -/
 private lemma mem_pathsFromTo_dyck (u v : ℤ × ℕ) (p : SimpleDigraph.Path dyckDigraph) :
     p ∈ pathsFromTo dyckDigraph dyckDigraph_pathFinite u v ↔ p.start = u ∧ p.finish = v := by
-  simp only [pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+  simp only [pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
 
 /-- The maps dyckPathToWord and dyckWordToPath are inverses (path → word → path) -/
 private lemma dyckWordToPath_dyckPathToWord (p : SimpleDigraph.Path dyckDigraph)
@@ -5867,7 +5873,7 @@ private lemma dyckPathToWord_dyckWordToPath (w : DyckWord) :
         rw [h1, h2]
         have hle := w.count_D_le_count_U i
         omega
-      rw [if_pos hy_eq, hU]
+      rw [ite_eq_left hy_eq, hU]
     · -- D case: y decreases by 1
       have hy_ne : dyckWordY w (i + 1) ≠ dyckWordY w i + 1 := by
         unfold dyckWordY
@@ -5880,7 +5886,7 @@ private lemma dyckPathToWord_dyckWordToPath (w : DyckWord) :
         rw [h1, h2]
         have hle := w.count_D_le_count_U i
         omega
-      rw [if_neg hy_ne, hD]
+      rw [ite_eq_right hy_ne, hD]
 
 /-- The number of Dyck paths from (0, 0) to (2n, 0) equals the n-th Catalan number.
     This is a classical result connecting Dyck paths to Catalan numbers.
@@ -6208,7 +6214,7 @@ lemma nestedDyckVertices_arcs_valid (n : ℕ) :
     · have h1 : min i (4 * n - i) = i := Nat.min_eq_left (by omega)
       have h2 : min (i + 1) (4 * n - (i + 1)) = i + 1 := Nat.min_eq_left (by omega)
       rw [h1, h2]
-  · push_neg at hcase
+  · push Not at hcase
     right
     constructor
     · push_cast; ring
@@ -6271,12 +6277,12 @@ lemma nestedDyckPath_disjoint (n m : ℕ) (hnm : n ≠ m) :
       by_cases hj_case : j ≤ 2 * m
       · have hmin_m : min j (4 * m - j) = j := Nat.min_eq_left (by omega)
         rw [hmin_m] at hy; omega
-      · push_neg at hj_case
+      · push Not at hj_case
         have hmin_m : min j (4 * m - j) = 4 * m - j := Nat.min_eq_right (by omega)
         rw [hmin_m] at hy
         have hi_eq : i = m + n := by omega
         omega
-    · push_neg at hi_case
+    · push Not at hi_case
       have hmin_n : min i (4 * n - i) = 4 * n - i := Nat.min_eq_right (by omega)
       rw [hmin_n] at hy
       by_cases hj_case : j ≤ 2 * m
@@ -6284,7 +6290,7 @@ lemma nestedDyckPath_disjoint (n m : ℕ) (hnm : n ≠ m) :
         rw [hmin_m] at hy
         have hi_eq : i = 3 * n - m := by omega
         omega
-      · push_neg at hj_case
+      · push Not at hj_case
         have hmin_m : min j (4 * m - j) = 4 * m - j := Nat.min_eq_right (by omega)
         rw [hmin_m] at hy
         omega
@@ -6298,12 +6304,12 @@ lemma nestedDyckPath_disjoint (n m : ℕ) (hnm : n ≠ m) :
       by_cases hi_case : i ≤ 2 * n
       · have hmin_n : min i (4 * n - i) = i := Nat.min_eq_left (by omega)
         rw [hmin_n] at hy; omega
-      · push_neg at hi_case
+      · push Not at hi_case
         have hmin_n : min i (4 * n - i) = 4 * n - i := Nat.min_eq_right (by omega)
         rw [hmin_n] at hy
         have hj_eq' : j = 3 * m - n := by omega
         omega
-    · push_neg at hj_case
+    · push Not at hj_case
       have hmin_m : min j (4 * m - j) = 4 * m - j := Nat.min_eq_right (by omega)
       rw [hmin_m] at hy
       by_cases hi_case : i ≤ 2 * n
@@ -6311,7 +6317,7 @@ lemma nestedDyckPath_disjoint (n m : ℕ) (hnm : n ≠ m) :
         rw [hmin_n] at hy
         have hj_eq' : j = m + n := by omega
         omega
-      · push_neg at hi_case
+      · push Not at hi_case
         have hmin_n : min i (4 * n - i) = 4 * n - i := Nat.min_eq_right (by omega)
         rw [hmin_n] at hy
         omega
@@ -6392,7 +6398,7 @@ lemma dyck_path_y_upper_bound (p : SimpleDigraph.Path dyckDigraph) (n : ℕ)
                 ≤ (p.vertices.get ⟨k, hk'⟩).2 + (k - j) := ihk'
               _ = (p.vertices.get ⟨k + 1, hk⟩).2 + 1 + (k - j) := by rw [hy]
               _ ≤ (p.vertices.get ⟨k + 1, hk⟩).2 + (k + 1 - j) := by omega
-        · push_neg at hjk'
+        · push Not at hjk'
           have : j = k + 1 := by omega
           subst this; simp
     have hdecr' := hdecr (p.vertices.length - 1) (by omega) hfinish_idx
@@ -6736,7 +6742,7 @@ theorem catalan_unique_nipat (k : ℕ) :
                         exact this
                       rw [hmid] at hsteps; omega
                     · -- Second half: y(j) = 4*i.val - j
-                      push_neg at hj2i
+                      push Not at hj2i
                       have hmin : min j (4 * i.val - j) = 4 * i.val - j := Nat.min_eq_right (by omega)
                       rw [hmin]
                       rw [hmin] at hbound_j
@@ -7279,7 +7285,7 @@ theorem latticePath'Tuple_isIntersecting_iff {k : ℕ} {A B : kVertex (ℤ × �
     obtain ⟨v, hvi, hvj⟩ := hnotdisj
     unfold pathsIntersect
     use v
-    simp only [LatticePath'Tuple.verticesOf, Set.mem_setOf_eq] at hvi hvj
+    simp only [LatticePath'Tuple.verticesOf, Set.mem_ofPred_eq] at hvi hvj
     simp only [latticePath'TupleToPathTuple, LatticePath'.toPath]
     exact ⟨hvi, hvj⟩
   · -- If the converted tuple is intersecting, then pt is intersecting
@@ -7292,7 +7298,7 @@ theorem latticePath'Tuple_isIntersecting_iff {k : ℕ} {A B : kVertex (ℤ × �
     rw [Set.not_disjoint_iff]
     use v
     simp only [latticePath'TupleToPathTuple, LatticePath'.toPath] at hvi hvj
-    simp only [LatticePath'Tuple.verticesOf, Set.mem_setOf_eq]
+    simp only [LatticePath'Tuple.verticesOf, Set.mem_ofPred_eq]
     exact ⟨hvi, hvj⟩
 
 end LGV

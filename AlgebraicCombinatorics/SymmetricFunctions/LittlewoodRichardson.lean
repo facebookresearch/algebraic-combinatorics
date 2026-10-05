@@ -317,7 +317,7 @@ def IsSemistandard {lam mu : Fin N → ℕ} (T : Tableau lam mu) : Prop :=
     c₁.val.2 = c₂.val.2 → c₁.val.1 < c₂.val.1 → T c₁ < T c₂)
 
 /-- The skew Young diagram is finite. -/
-instance skewYoungDiagram_finite (lam mu : Fin N → ℕ) :
+theorem skewYoungDiagram_finite (lam mu : Fin N → ℕ) :
     Set.Finite (skewYoungDiagram lam mu) := by
   let maxCol := Finset.sup Finset.univ lam
   have h : skewYoungDiagram lam mu ⊆
@@ -358,6 +358,7 @@ scoped notation "cont" => contentTableau
 
 /-! ### Content API lemmas (def.sf.content) -/
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Alternative characterization: content counts cells using Finset.card. -/
 theorem contentTableau_eq_card {lam mu : Fin N → ℕ} (T : Tableau lam mu) (i : Fin N) :
     contentTableau T i = Finset.card (Finset.univ.filter (fun c => T c = i)) := by
@@ -473,7 +474,7 @@ theorem skewYoungDiagram_col_pos {lam mu : Fin N → ℕ}
     (c : {c : Fin N × ℕ // c ∈ skewYoungDiagram lam mu}) :
     c.val.2 ≥ 1 := by
   have h := c.prop
-  simp only [skewYoungDiagram, Set.mem_setOf_eq] at h
+  simp only [skewYoungDiagram, Set.mem_ofPred_eq] at h
   omega
 
 /-- The embedding from the domain of T to the domain of col_{≥1}(T).
@@ -542,7 +543,7 @@ theorem colGeq_empty_of_large {lam mu : Fin N → ℕ} (j : ℕ) (hj : ∀ i : F
     IsEmpty {c : Fin N × ℕ // c ∈ skewYoungDiagram lam mu ∧ c.2 ≥ j} := by
   constructor
   intro ⟨c, hc, hcj⟩
-  simp only [skewYoungDiagram, Set.mem_setOf_eq] at hc
+  simp only [skewYoungDiagram, Set.mem_ofPred_eq] at hc
   have : c.2 ≤ lam c.1 := hc.2
   have : lam c.1 < j := hj c.1
   omega
@@ -559,7 +560,7 @@ theorem colGeq_zero_domain {lam mu : Fin N → ℕ} :
     {c : Fin N × ℕ | c ∈ skewYoungDiagram lam mu ∧ c.2 ≥ 0} =
     {c : Fin N × ℕ | c ∈ skewYoungDiagram lam mu} := by
   ext c
-  simp only [Set.mem_setOf_eq, ge_iff_le, Nat.zero_le, and_true]
+  simp only [Set.mem_ofPred_eq, ge_iff_le, Nat.zero_le, and_true]
 
 /-- The content of a restricted tableau col_{≥j}(T).
     Counts occurrences of each value in columns j and beyond. -/
@@ -619,7 +620,7 @@ theorem isYamanouchi_iff {lam mu : Fin N → ℕ} {nu : Fin N → ℕ} {T : Tabl
     in the standard convention where column j contains cells with c.2 = j). -/
 theorem skewYoungDiagram_col_ge_one {lam mu : Fin N → ℕ}
     (c : Fin N × ℕ) (hc : c ∈ skewYoungDiagram lam mu) : c.2 ≥ 1 := by
-  simp only [skewYoungDiagram, Set.mem_setOf_eq] at hc
+  simp only [skewYoungDiagram, Set.mem_ofPred_eq] at hc
   omega
 
 /-- The type of cells in the skew diagram with column ≥ 1 is equivalent to the full diagram. -/
@@ -730,10 +731,10 @@ theorem contentColGeq_succ_le {lam mu : Fin N → ℕ} (T : Tableau lam mu) (_hT
     right_inv := fun x => by
       cases x with
       | inl c =>
-        simp only [dif_pos c.prop]
+        simp only [dite_eq_left c.prop]
         rfl
       | inr c =>
-        simp only [dif_neg (Nat.ne_of_gt c.prop)]
+        simp only [dite_eq_right (Nat.ne_of_gt c.prop)]
         rfl
   }
 
@@ -978,7 +979,7 @@ private lemma sign_revPerm_eq' (n : ℕ) :
       rw [Fin.revPerm_apply, Fin.revPerm_apply]
       have hrev : Fin.rev j < Fin.rev i := Fin.rev_lt_rev.mpr hj
       exact not_lt.mpr hrev.le
-    rw [if_neg hnotlt]
+    rw [ite_eq_right hnotlt]
   have h2 : ∏ i : Fin n, ∏ j ∈ Finset.Ioi i,
       (if Fin.revPerm i < Fin.revPerm j then (1 : ℤˣ) else -1) =
       ∏ i : Fin n, ∏ j ∈ Finset.Ioi i, (-1 : ℤˣ) := by
@@ -1788,7 +1789,7 @@ private lemma freeKSuccCountUpTo_eq_between_k {lam mu : Fin N → ℕ} (T : Tabl
       by_cases hc_col : c.val.2 ≤ c₁.val.2
       · exact ⟨hc_row.trans h_row.symm, hc_col, hc_val, hc_free⟩
       · -- c.val.2 > c₁.val.2, contradiction via semistandardness
-        push_neg at hc_col
+        push Not at hc_col
         exfalso
         -- c is between c₁ and c₂ (or at c₂), and T c = k+1
         -- But T c ≤ T c₂ = k (by row-weak), so k+1 ≤ k, contradiction
@@ -1867,7 +1868,7 @@ private lemma freeKCountBefore_eq_between_kSucc {lam mu : Fin N → ℕ} (T : Ta
       by_cases hc_col : c.val.2 < c₁.val.2
       · exact ⟨hc_row.trans h_row.symm, hc_col, hc_val, hc_free⟩
       · -- c.val.2 ≥ c₁.val.2, contradiction via semistandardness
-        push_neg at hc_col
+        push Not at hc_col
         exfalso
         cases' Nat.lt_or_eq_of_le hc_col with hlt heq
         · -- c₁.val.2 < c.val.2: T c₁ ≤ T c, but T c₁ = k+1 and T c = k
@@ -1908,7 +1909,7 @@ private lemma freeKCountUpTo_eq_between_kSucc {lam mu : Fin N → ℕ} (T : Tabl
     · intro ⟨hc_row, hc_col_le, hc_val, hc_free⟩
       by_cases hc_col : c.val.2 ≤ c₁.val.2
       · exact ⟨hc_row.trans h_row.symm, hc_col, hc_val, hc_free⟩
-      · push_neg at hc_col
+      · push Not at hc_col
         exfalso
         have h1 : T c₁ ≤ T c := hT.1 c₁ c (hc_row.trans h_row.symm).symm hc_col
         rw [h_c₁_kSucc, hc_val] at h1
@@ -1941,7 +1942,7 @@ private lemma freeKCountUpTo_eq_freeKCount_at_kSucc {lam mu : Fin N → ℕ} (T 
       -- Need to show d.col ≤ c.col
       -- If d.col > c.col, then by row-weak T(c) ≤ T(d), i.e., k+1 ≤ k, contradiction
       by_contra h_gt
-      push_neg at h_gt
+      push Not at h_gt
       have h1 : T c ≤ T d := hT.1 c d hd_row.symm h_gt
       rw [h_kSucc, hd_val] at h1
       simp only [Fin.le_def] at h1
@@ -2013,7 +2014,7 @@ private lemma matched_kSucc_propagates_right {lam mu : Fin N → ℕ} (T : Table
     ¬isUnmatchedFreeKSucc T k hk c₂ := by
   -- Extract the counting inequality from h_c₁_matched
   unfold isUnmatchedFreeKSucc at h_c₁_matched ⊢
-  push_neg at h_c₁_matched
+  push Not at h_c₁_matched
   -- h_c₁_matched: T c₁ = k+1 → ¬isForcedKSucc c₁ → freeKCount + freeKSuccCountUpTo(c₁) > freeKSuccCount
   have h_gt : freeKSuccCount T c₁.val.1 k hk < freeKCount T c₁.val.1 k hk + freeKSuccCountUpTo T c₁.val.1 k hk c₁.val.2 := 
     h_c₁_matched h_c₁_free_kSucc.1 h_c₁_free_kSucc.2
@@ -2046,7 +2047,7 @@ private lemma skewYoungDiagram_cell_below_exists' {lam mu : Fin N → ℕ}
     (h1 : ((i, j₁) : Fin N × ℕ) ∈ skewYoungDiagram lam mu)
     (h2 : ((⟨i.val + 1, hi⟩ : Fin N), j₂) ∈ skewYoungDiagram lam mu) :
     ((⟨i.val + 1, hi⟩ : Fin N), j₁) ∈ skewYoungDiagram lam mu := by
-  simp only [skewYoungDiagram, Set.mem_setOf_eq] at h1 h2 ⊢
+  simp only [skewYoungDiagram, Set.mem_ofPred_eq] at h1 h2 ⊢
   constructor
   · have hmu_le : mu ⟨i.val + 1, hi⟩ ≤ mu i := hmu i ⟨i.val + 1, hi⟩ (by simp only [Fin.le_def]; omega)
     omega
@@ -2061,7 +2062,7 @@ private lemma skewYoungDiagram_column_contiguous {lam mu : Fin N → ℕ}
     (h2 : (i₂, j) ∈ skewYoungDiagram lam mu)
     (i : Fin N) (hi1 : i₁ ≤ i) (hi2 : i ≤ i₂) :
     (i, j) ∈ skewYoungDiagram lam mu := by
-  simp only [skewYoungDiagram, Set.mem_setOf_eq] at h1 h2 ⊢
+  simp only [skewYoungDiagram, Set.mem_ofPred_eq] at h1 h2 ⊢
   constructor
   · have hmu_le : mu i ≤ mu i₁ := hmu i₁ i hi1
     omega
@@ -2603,7 +2604,7 @@ private lemma notUnmatchedK_eq_union {lam mu : Fin N → ℕ}
     {c | T c = k ∧ ¬isUnmatchedFreeK T k hk c} =
       {c | isForcedK T k hk c} ∪ {c | isMatchedFreeK T k hk c} := by
   ext c
-  simp only [Set.mem_setOf_eq, Set.mem_union]
+  simp only [Set.mem_ofPred_eq, Set.mem_union]
   constructor
   · intro ⟨hTc, h_not_unmatched⟩
     by_cases hforced : isForcedK T k hk c
@@ -2621,7 +2622,7 @@ private lemma notUnmatchedKSucc_eq_union {lam mu : Fin N → ℕ}
     {c | T c = ⟨k.val + 1, hk⟩ ∧ ¬isUnmatchedFreeKSucc T k hk c} =
       {c | isForcedKSucc T k hk c} ∪ {c | isMatchedFreeKSucc T k hk c} := by
   ext c
-  simp only [Set.mem_setOf_eq, Set.mem_union]
+  simp only [Set.mem_ofPred_eq, Set.mem_union]
   constructor
   · intro ⟨hTc, h_not_unmatched⟩
     by_cases hforced : isForcedKSucc T k hk c
@@ -2682,7 +2683,7 @@ private lemma count_gt_threshold (m n : ℕ) :
     · have h : ∀ i : Fin m, ¬(i.val + 1 > n) := by intro i; have := i.isLt; omega
       have : IsEmpty {i : Fin m // i.val + 1 > n} := ⟨fun ⟨i, hi⟩ => h i hi⟩
       simp only [Fintype.card_eq_zero]; omega
-    · push_neg at hn
+    · push Not at hn
       have hmn : m - n > 0 := by omega
       have h_eq : {i : Fin m // i.val + 1 > n} ≃ Fin (m - n) := {
         toFun := fun ⟨i, hi⟩ => ⟨i.val - n, by have := i.isLt; omega⟩
@@ -2735,7 +2736,7 @@ private lemma count_le_nth_smallest (S : Finset ℕ) (j : Fin S.card) :
       have hx_range : x ∈ Set.range f := by rw [range_orderEmbOfFin]; exact hx
       obtain ⟨i, rfl⟩ := hx_range
       refine ⟨i, ?_, rfl⟩
-      by_contra h; push_neg at h
+      by_contra h; push Not at h
       have : f j < f i := hf_strict_mono h
       omega
     · intro ⟨i, hi, hxi⟩
@@ -2759,7 +2760,7 @@ private lemma matched_position_count (m n : ℕ) :
     · have h : ∀ j : Fin m, ¬(j.val + 1 ≤ 0) := by intro j; omega
       have : IsEmpty {j : Fin m // j.val + 1 ≤ n} := ⟨fun ⟨j, hj⟩ => by subst hn; exact h j hj⟩
       simp [Fintype.card_eq_zero, hn]
-    · push_neg at hm hn
+    · push Not at hm hn
       by_cases hmn : m ≤ n
       · have h_eq : {j : Fin m // j.val + 1 ≤ n} ≃ Fin m := by
           refine ⟨fun ⟨j, _⟩ => j, fun j => ⟨j, ?_⟩, ?_, ?_⟩
@@ -2767,7 +2768,7 @@ private lemma matched_position_count (m n : ℕ) :
           · intro ⟨j, _⟩; rfl
           · intro j; rfl
         rw [Fintype.card_congr h_eq, Fintype.card_fin, Nat.min_eq_left hmn]
-      · push_neg at hmn
+      · push Not at hmn
         have h_eq : {j : Fin m // j.val + 1 ≤ n} ≃ Fin n := by
           refine ⟨?_, ?_, ?_, ?_⟩
           · exact fun ⟨j, hj⟩ => ⟨j.val, by omega⟩
@@ -2798,7 +2799,7 @@ private lemma filter_card_eq_symm_val (S : Finset ℕ) (s : S) :
       have hx_range : x ∈ Set.range f := by rw [range_orderEmbOfFin]; exact hx
       obtain ⟨i, rfl⟩ := hx_range
       refine ⟨i, ?_, rfl⟩
-      by_contra h; push_neg at h
+      by_contra h; push Not at h
       have : f j < f i := hf_strict_mono h
       omega
     · intro ⟨i, hi, hxi⟩
@@ -2874,7 +2875,7 @@ private lemma matched_cols_count (S : Finset ℕ) (n : ℕ) :
           have hx_range : x ∈ Set.range f := by rw [range_orderEmbOfFin]; exact hx
           obtain ⟨i, rfl⟩ := hx_range
           refine ⟨i, ?_, rfl⟩
-          by_contra h; push_neg at h
+          by_contra h; push Not at h
           have : f j < f i := hf_strict_mono h
           omega
         · intro ⟨i, hi, hxi⟩
@@ -2905,7 +2906,7 @@ private lemma matched_cols_count (S : Finset ℕ) (n : ℕ) :
     · have h_all : (Finset.univ : Finset (Fin S.card)).filter (fun j => j.val + 1 ≤ n) = Finset.univ := by
         ext j; simp only [mem_filter, mem_univ, true_and, iff_true]; have := j.isLt; omega
       rw [h_all, card_univ, Fintype.card_fin, Nat.min_eq_left hmn]
-    · push_neg at hmn
+    · push Not at hmn
       have h_eq : (Finset.univ : Finset (Fin S.card)).filter (fun j => j.val + 1 ≤ n) = 
           (Finset.univ : Finset (Fin S.card)).filter (fun j => j.val < n) := by
         ext j; simp only [mem_filter, mem_univ, true_and]; omega
@@ -2954,7 +2955,7 @@ private lemma matched_kSucc_cols_count (S : Finset ℕ) (m : ℕ) :
             have hx_range : x ∈ Set.range f := by rw [Finset.range_orderEmbOfFin]; exact hx
             obtain ⟨i, rfl⟩ := hx_range
             refine ⟨i, ?_, rfl⟩
-            by_contra h; push_neg at h
+            by_contra h; push Not at h
             have : f j < f i := hf_strict_mono h
             omega
           · intro ⟨i, hi, hxi⟩
@@ -2985,7 +2986,7 @@ private lemma matched_kSucc_cols_count (S : Finset ℕ) (m : ℕ) :
       · have h_all : (Finset.univ : Finset (Fin S.card)).filter (fun j => m + j.val + 1 > S.card) = Finset.univ := by
           ext j; simp only [Finset.mem_filter, Finset.mem_univ, true_and, iff_true]; omega
         rw [h_all, Finset.card_univ, Fintype.card_fin, Nat.min_eq_right hmn]
-      · push_neg at hmn
+      · push Not at hmn
         have hm_pos : 0 < m := Nat.pos_of_ne_zero hm
         have h_filter_eq2 : (Finset.univ : Finset (Fin S.card)).filter (fun j => m + j.val + 1 > S.card) = 
             Finset.Ici (⟨S.card - m, by 
@@ -3070,7 +3071,7 @@ private lemma freeKCols_card {lam mu : Fin N → ℕ} (T : Tableau lam mu)
   rw [Finset.card_image_of_injOn]
   · -- The filter sets are equal (up to instance differences)
       -- Fintype is a Subsingleton, so the two instances are equal
-      simp only [Subsingleton.elim (skewYoungDiagram_fintype lam mu) this]
+      convert rfl
   · -- Injectivity: cells in the same row with the same column are equal
     intro c₁ hc₁ c₂ hc₂ hcol
     have hc₁' := Finset.mem_filter.mp hc₁
@@ -3159,7 +3160,7 @@ private lemma freeKSuccCols_card {lam mu : Fin N → ℕ} (T : Tableau lam mu)
   unfold freeKSuccCols freeKSuccCount
   rw [Nat.card_eq_fintype_card, Fintype.card_subtype]
   rw [Finset.card_image_of_injOn]
-  · simp only [Subsingleton.elim (skewYoungDiagram_fintype lam mu) this]
+  · convert rfl
   · intro c₁ hc₁ c₂ hc₂ hcol
     have hc₁' := Finset.mem_filter.mp hc₁
     have hc₂' := Finset.mem_filter.mp hc₂
@@ -3213,7 +3214,7 @@ private lemma freeKCountBefore_eq_freeKCount_at_kSucc {lam mu : Fin N → ℕ}
     refine ⟨hd_row, ?_, hd_val, hd_free⟩
     -- Need to show d.col < c.col (strictly less)
     by_contra h_not_lt
-    push_neg at h_not_lt
+    push Not at h_not_lt
     -- d and c are in the same row
     have h_same_row : c.val.1 = d.val.1 := hc_row.trans hd_row.symm
     cases' Nat.lt_or_eq_of_le h_not_lt with hgt heq
@@ -3273,7 +3274,7 @@ private lemma matchedFreeK_row_card {lam mu : Fin N → ℕ}
       refine ⟨⟨hrow, hval, hfree⟩, ?_⟩
       -- ¬isUnmatchedFreeK means freeKCountUpTo c.col ≤ freeKSuccCount
       unfold isUnmatchedFreeK at hunmatched
-      push_neg at hunmatched
+      push Not at hunmatched
       have h := hunmatched hval hfree
       -- Use hrow to rewrite c.val.1 to i in h
       rw [hrow] at h
@@ -3288,7 +3289,7 @@ private lemma matchedFreeK_row_card {lam mu : Fin N → ℕ}
       refine ⟨hval, hfree, ?_⟩
       -- Need to show ¬isUnmatchedFreeK
       unfold isUnmatchedFreeK
-      push_neg
+      push Not
       intro _ _
       -- hcond: (S.filter (· ≤ c.col)).card ≤ n
       -- Need: freeKCountUpTo c.col ≤ freeKSuccCount
@@ -3296,6 +3297,7 @@ private lemma matchedFreeK_row_card {lam mu : Fin N → ℕ}
       exact hcond
   -- The goal after Fintype.card_subtype is: #{x | x ∈ {c | ...}} = ...
   convert h_filter_eq using 1
+  on_goal 1 => rfl
   
   -- Step 4: Show the bijection between cells and columns in S
   have h_col_mem : ∀ c ∈ cells, c.val.2 ∈ S := by
@@ -3386,7 +3388,7 @@ private lemma matchedFreeKSucc_row_card {lam mu : Fin N → ℕ}
       refine ⟨⟨hrow, hval, hfree⟩, ?_⟩
       -- ¬isUnmatchedFreeKSucc means freeKCount + freeKSuccCountUpTo c.col > freeKSuccCount
       unfold isUnmatchedFreeKSucc at hunmatched
-      push_neg at hunmatched
+      push Not at hunmatched
       have h := hunmatched hval hfree
       -- Use hrow to rewrite c.val.1 to i in h
       rw [hrow] at h
@@ -3401,7 +3403,7 @@ private lemma matchedFreeKSucc_row_card {lam mu : Fin N → ℕ}
       refine ⟨hval, hfree, ?_⟩
       -- Need to show ¬isUnmatchedFreeKSucc
       unfold isUnmatchedFreeKSucc
-      push_neg
+      push Not
       intro _ _
       -- hcond: m + (S.filter (· ≤ c.col)).card > S.card
       -- Need: freeKCount + freeKSuccCountUpTo c.col > freeKSuccCount
@@ -3411,6 +3413,7 @@ private lemma matchedFreeKSucc_row_card {lam mu : Fin N → ℕ}
   -- The goal after Fintype.card_subtype is: #{x | x ∈ {c | ...}} = ...
   -- This is definitionally equal to (Finset.univ.filter (fun c => c.val.1 = i ∧ isMatchedFreeKSucc T k hk c)).card
   convert h_filter_eq using 1
+  on_goal 1 => rfl
   
   -- Step 4: Show the bijection between cells and columns in S
   have h_col_mem : ∀ c ∈ cells, c.val.2 ∈ S := by
@@ -3485,7 +3488,7 @@ private lemma unmatchedFreeK_row_card {lam mu : Fin N → ℕ}
       c.val.1 = i ∧ T c = k ∧ ¬isForcedK T k hk c} =
     {c | c.val.1 = i ∧ isMatchedFreeK T k hk c} ∪ {c | c.val.1 = i ∧ isUnmatchedFreeK T k hk c} := by
     ext c
-    simp only [Set.mem_setOf_eq, Set.mem_union]
+    simp only [Set.mem_ofPred_eq, Set.mem_union]
     constructor
     · intro ⟨hrow, hval, hfree⟩
       by_cases h : isUnmatchedFreeK T k hk c
@@ -3552,7 +3555,7 @@ private lemma unmatchedFreeKSucc_row_card {lam mu : Fin N → ℕ}
       c.val.1 = i ∧ T c = ⟨k.val + 1, hk⟩ ∧ ¬isForcedKSucc T k hk c} =
     {c | c.val.1 = i ∧ isMatchedFreeKSucc T k hk c} ∪ {c | c.val.1 = i ∧ isUnmatchedFreeKSucc T k hk c} := by
     ext c
-    simp only [Set.mem_setOf_eq, Set.mem_union]
+    simp only [Set.mem_ofPred_eq, Set.mem_union]
     constructor
     · intro ⟨hrow, hval, hfree⟩
       by_cases h : isUnmatchedFreeKSucc T k hk c
@@ -3657,7 +3660,7 @@ private lemma matchedFreeK_card_eq_matchedFreeKSucc_card {lam mu : Fin N → ℕ
   -- Step 1: Convert to Fintype.card
   rw [Nat.card_eq_fintype_card, Nat.card_eq_fintype_card]
   rw [Fintype.card_subtype, Fintype.card_subtype]
-  simp only [Set.mem_setOf_eq]
+  simp only [Set.mem_ofPred_eq]
   
   -- Step 2: Decompose by rows
   -- LHS = ∑ᵢ #{c | c.row = i ∧ isMatchedFreeK T k hk c}
@@ -3692,7 +3695,7 @@ private lemma matchedFreeK_card_eq_matchedFreeKSucc_card {lam mu : Fin N → ℕ
   have hK := matchedFreeK_row_card T i k hk
   have hKSucc := matchedFreeKSucc_row_card T i k hk
   rw [Nat.card_eq_fintype_card, Fintype.card_subtype] at hK hKSucc
-  simp only [Set.mem_setOf_eq] at hK hKSucc
+  simp only [Set.mem_ofPred_eq] at hK hKSucc
   rw [hK, hKSucc]
 
 private lemma notUnmatched_k_kSucc_card_eq {lam mu : Fin N → ℕ}
@@ -3813,7 +3816,7 @@ private lemma freeKSucc_benderKnuth_eq_union {lam mu : Fin N → ℕ} (k : Fin N
     {c | c.val.1 = i ∧ isMatchedFreeKSucc T k hk c} ∪ {c | c.val.1 = i ∧ isUnmatchedFreeK T k hk c} := by
   intro T'
   ext c
-  simp only [Set.mem_setOf_eq, Set.mem_union]
+  simp only [Set.mem_ofPred_eq, Set.mem_union]
   constructor
   · intro ⟨hrow, hT'c, hfree'⟩
     have h := (freeKSucc_in_benderKnuth_iff k hk T hT c).mp ⟨hT'c, hfree'⟩
@@ -3913,7 +3916,7 @@ private lemma freeK_benderKnuth_eq_union {lam mu : Fin N → ℕ} (k : Fin N) (h
     {c | c.val.1 = i ∧ isMatchedFreeK T k hk c} ∪ {c | c.val.1 = i ∧ isUnmatchedFreeKSucc T k hk c} := by
   intro T'
   ext c
-  simp only [Set.mem_setOf_eq, Set.mem_union]
+  simp only [Set.mem_ofPred_eq, Set.mem_union]
   constructor
   · intro ⟨hrow, hT'c, hfree'⟩
     have h := (freeK_in_benderKnuth_iff k hk T hT c).mp ⟨hT'c, hfree'⟩
@@ -4223,7 +4226,7 @@ lemma matched_k_stays_matched' {lam mu : Fin N → ℕ} (k : Fin N) (hk : k.val 
     -- i.e., freeKCountUpTo T c.col ≤ freeKSuccCount T
     have h_matched_bound : freeKCountUpTo T c.val.1 k hk c.val.2 ≤ freeKSuccCount T c.val.1 k hk := by
       unfold isUnmatchedFreeK at hmatched
-      push_neg at hmatched
+      push Not at hmatched
       exact hmatched hval hfree
     
     -- Step 4: Show freeKSuccCount T' ≥ freeKCountUpTo T' c.col
@@ -4316,7 +4319,7 @@ lemma matched_kSucc_stays_matched' {lam mu : Fin N → ℕ} (k : Fin N) (hk : k.
     -- From hmatched: m + cnt_kSucc > n
     have h_matched_bound : m + cnt_kSucc > n := by
       unfold isUnmatchedFreeKSucc at hmatched
-      push_neg at hmatched
+      push Not at hmatched
       exact hmatched hval hfree
     
     -- The count swaps after BK
@@ -4420,7 +4423,7 @@ lemma matched_kSucc_stays_matched' {lam mu : Fin N → ℕ} (k : Fin N) (hk : k.
             d.val.1 = c.val.1 → isUnmatchedFreeK T k hk d → d.val.2 ≤ c.val.2 := by
           intro d hd_row hunmatched_d
           -- d is a k, c is a (k+1), by semistandardness d.col < c.col
-          by_contra h_gt; push_neg at h_gt
+          by_contra h_gt; push Not at h_gt
           have h_weak : T c ≤ T d := hT.1 c d hd_row.symm h_gt
           rw [hval, hunmatched_d.1] at h_weak
           simp only [Fin.le_def] at h_weak; omega
@@ -4428,7 +4431,7 @@ lemma matched_kSucc_stays_matched' {lam mu : Fin N → ℕ} (k : Fin N) (hk : k.
         have h_eq : unmatchedK_set = {d : {d : Fin N × ℕ // d ∈ skewYoungDiagram lam mu} | 
             d.val.1 = c.val.1 ∧ isUnmatchedFreeK T k hk d} := by
           ext d
-          simp only [Set.mem_setOf_eq, unmatchedK_set]
+          simp only [Set.mem_ofPred_eq, unmatchedK_set]
           constructor
           · intro ⟨hrow, _, hu⟩; exact ⟨hrow, hu⟩
           · intro ⟨hrow, hu⟩; exact ⟨hrow, h_all_unmatchedK d hrow hu, hu⟩
@@ -4462,7 +4465,7 @@ lemma matched_kSucc_stays_matched' {lam mu : Fin N → ℕ} (k : Fin N) (hk : k.
       have h_ge := h_unmatched_k_contrib h_case
       omega
     · -- Case: m ≤ n
-      push_neg at h_case
+      push Not at h_case
       -- n + freeKSuccCountUpTo T' c.col ≥ n + 1 > n ≥ m
       have h_ge := h_c_contributes
       omega
@@ -4632,18 +4635,18 @@ private lemma freeKCountUpTo_after_BK_ge {lam mu : Fin N → ℕ} (k : Fin N) (h
     have h_exists : ∃ d : {d : Fin N × ℕ // d ∈ skewYoungDiagram lam mu},
         d.val.1 = i ∧ d.val.2 ≤ j ∧ T d = ⟨k.val + 1, hk⟩ ∧ ¬isForcedKSucc T k hk d := by
       by_contra h_not_exists
-      push_neg at h_not_exists
+      push Not at h_not_exists
       have h_cnt_zero : cnt = 0 := by
         show freeKSuccCountUpTo T i k hk j = 0
         unfold freeKSuccCountUpTo
         rw [Nat.card_eq_zero]
         left; rw [isEmpty_subtype]
-        intro d; push_neg
+        intro d; push Not
         intro hd_row hd_col hd_val
         exact h_not_exists d hd_row hd_col hd_val
       omega
     obtain ⟨d, hd_row, hd_col, hd_val, _⟩ := h_exists
-    by_contra h_gt; push_neg at h_gt
+    by_contra h_gt; push Not at h_gt
     have h_col_lt : d.val.2 < c.val.2 := Nat.lt_of_le_of_lt hd_col h_gt
     have h_weak : T d ≤ T c := hT.1 d c (hd_row.trans hrow.symm) h_col_lt
     rw [hd_val, hval] at h_weak
@@ -4689,7 +4692,7 @@ private lemma freeKCountUpTo_after_BK_ge {lam mu : Fin N → ℕ} (k : Fin N) (h
   have h_B_card : B.ncard = cnt := by
     have h_B_eq : B = {c : {c : Fin N × ℕ // c ∈ skewYoungDiagram lam mu} | 
         c.val.1 = i ∧ c.val.2 ≤ j ∧ T c = ⟨k.val + 1, hk⟩ ∧ ¬isForcedKSucc T k hk c} := by
-      ext c; simp only [Set.mem_setOf_eq, B]
+      ext c; simp only [Set.mem_ofPred_eq, B]
       constructor
       · intro ⟨hrow, hcol, hunmatched⟩; exact ⟨hrow, hcol, hunmatched.1, hunmatched.2.1⟩
       · intro ⟨hrow, hcol, hval, hfree⟩; exact ⟨hrow, hcol, h_all_kSucc_unmatched c hrow hcol hval hfree⟩
@@ -4700,7 +4703,7 @@ private lemma freeKCountUpTo_after_BK_ge {lam mu : Fin N → ℕ} (k : Fin N) (h
   have h_A_card : A.ncard = m := by
     have h_A_eq : A = {c : {c : Fin N × ℕ // c ∈ skewYoungDiagram lam mu} | 
         c.val.1 = i ∧ T c = k ∧ ¬isForcedK T k hk c} := by
-      ext c; simp only [Set.mem_setOf_eq, A]
+      ext c; simp only [Set.mem_ofPred_eq, A]
       constructor
       · intro ⟨hrow, _, hmatched⟩; exact ⟨hrow, hmatched.1, hmatched.2.1⟩
       · intro ⟨hrow, hval, hfree⟩
@@ -4751,7 +4754,7 @@ private lemma freeKSuccCount_after_BK_eq {lam mu : Fin N → ℕ} (k : Fin N) (h
       c.val.1 = i ∧ T' c = ⟨k.val + 1, hk⟩ ∧ ¬isForcedKSucc T' k hk c} =
     {c | c.val.1 = i ∧ isMatchedFreeKSucc T k hk c} := by
     ext c
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     constructor
     · -- Forward direction: free (k+1) in T' → matched free (k+1) in T
       intro ⟨hrow, hT'c, hfree'⟩
@@ -4820,7 +4823,7 @@ private lemma freeKSuccCount_after_BK_eq {lam mu : Fin N → ℕ} (k : Fin N) (h
       {c | c.val.1 = i ∧ isMatchedFreeKSucc T k hk c} ∪ 
       {c | c.val.1 = i ∧ isUnmatchedFreeKSucc T k hk c} := by
       ext c
-      simp only [Set.mem_setOf_eq, Set.mem_union]
+      simp only [Set.mem_ofPred_eq, Set.mem_union]
       constructor
       · intro ⟨hrow, hTc, hfree⟩
         by_cases h : isUnmatchedFreeKSucc T k hk c
@@ -5081,7 +5084,7 @@ lemma benderKnuth_row_weak {lam mu : Fin N → ℕ}
                 -- then (row-1, col₂) is also in diagram
                 have hc₂_prop := c₂.prop
                 have hc₁a_prop := c₁_above.prop
-                simp only [skewYoungDiagram, Set.mem_setOf_eq] at hc₂_prop hc₁a_prop ⊢
+                simp only [skewYoungDiagram, Set.mem_ofPred_eq] at hc₂_prop hc₁a_prop ⊢
                 constructor
                 · -- mu (row-1) ≤ c₂.col
                   -- We have c₁_above at (row-1, c₁.col) is in diagram, so mu(row-1) ≤ c₁.col
@@ -5623,7 +5626,7 @@ theorem benderKnuth_content_swap {lam mu : Fin N → ℕ} (k : Fin N) (hk : k.va
   have h_kSucc_decomp : {c | T c = ⟨k.val + 1, hk⟩} = 
       {c | T c = ⟨k.val + 1, hk⟩ ∧ ¬isUnmatchedFreeKSucc T k hk c} ∪ {c | isUnmatchedFreeKSucc T k hk c} := by
     ext c
-    simp only [Set.mem_setOf_eq, Set.mem_union]
+    simp only [Set.mem_ofPred_eq, Set.mem_union]
     constructor
     · intro hTc
       by_cases h : isUnmatchedFreeKSucc T k hk c
@@ -5637,7 +5640,7 @@ theorem benderKnuth_content_swap {lam mu : Fin N → ℕ} (k : Fin N) (hk : k.va
   have h_k_decomp : {c | T c = k} = 
       {c | T c = k ∧ ¬isUnmatchedFreeK T k hk c} ∪ {c | isUnmatchedFreeK T k hk c} := by
     ext c
-    simp only [Set.mem_setOf_eq, Set.mem_union]
+    simp only [Set.mem_ofPred_eq, Set.mem_union]
     constructor
     · intro hTc
       by_cases h : isUnmatchedFreeK T k hk c
@@ -5651,13 +5654,13 @@ theorem benderKnuth_content_swap {lam mu : Fin N → ℕ} (k : Fin N) (hk : k.va
   have h_T'_k_set : {c | T' c = k} = 
       {c | T c = k ∧ ¬isUnmatchedFreeK T k hk c} ∪ {c | isUnmatchedFreeKSucc T k hk c} := by
     ext c
-    simp only [Set.mem_setOf_eq, Set.mem_union]
+    simp only [Set.mem_ofPred_eq, Set.mem_union]
     exact benderKnuth_eq_k_iff k hk T hT c
   -- Set equality for {c | T' c = k+1} using benderKnuth_eq_kSucc_iff
   have h_T'_kSucc_set : {c | T' c = ⟨k.val + 1, hk⟩} = 
       {c | T c = ⟨k.val + 1, hk⟩ ∧ ¬isUnmatchedFreeKSucc T k hk c} ∪ {c | isUnmatchedFreeK T k hk c} := by
     ext c
-    simp only [Set.mem_setOf_eq, Set.mem_union]
+    simp only [Set.mem_ofPred_eq, Set.mem_union]
     exact benderKnuth_eq_kSucc_iff k hk T hT c
   -- Disjointness: {T c = k ∧ ¬isUnmatchedFreeK} and {isUnmatchedFreeKSucc} are disjoint
   have h_disj1 : Disjoint {c | T c = k ∧ ¬isUnmatchedFreeK T k hk c} {c | isUnmatchedFreeKSucc T k hk c} := by
@@ -5706,14 +5709,14 @@ theorem benderKnuth_content_swap {lam mu : Fin N → ℕ} (k : Fin N) (hk : k.va
         Nat.card ↑({c | T c = k ∧ ¬isUnmatchedFreeK T k hk c} ∪ {c | isUnmatchedFreeKSucc T k hk c}) := by
       apply Nat.card_congr
       exact Equiv.subtypeEquiv (Equiv.refl _) (fun c => by 
-        simp only [Set.ext_iff, Set.mem_union, Set.mem_setOf_eq] at h_T'_k_set
+        simp only [Set.ext_iff, Set.mem_union, Set.mem_ofPred_eq] at h_T'_k_set
         exact h_T'_k_set c)
     -- Second, convert {c // T c = k+1} to the union form using h_kSucc_decomp
     have h2 : Nat.card {c // T c = ⟨k.val + 1, hk⟩} = 
         Nat.card ↑({c | T c = ⟨k.val + 1, hk⟩ ∧ ¬isUnmatchedFreeKSucc T k hk c} ∪ {c | isUnmatchedFreeKSucc T k hk c}) := by
       apply Nat.card_congr
       exact Equiv.subtypeEquiv (Equiv.refl _) (fun c => by 
-        simp only [Set.ext_iff, Set.mem_union, Set.mem_setOf_eq] at h_kSucc_decomp
+        simp only [Set.ext_iff, Set.mem_union, Set.mem_ofPred_eq] at h_kSucc_decomp
         exact h_kSucc_decomp c)
     rw [h1, h2]
     -- Now use the disjoint union cardinality
@@ -5735,14 +5738,14 @@ theorem benderKnuth_content_swap {lam mu : Fin N → ℕ} (k : Fin N) (hk : k.va
         Nat.card ↑({c | T c = ⟨k.val + 1, hk⟩ ∧ ¬isUnmatchedFreeKSucc T k hk c} ∪ {c | isUnmatchedFreeK T k hk c}) := by
       apply Nat.card_congr
       exact Equiv.subtypeEquiv (Equiv.refl _) (fun c => by 
-        simp only [Set.ext_iff, Set.mem_union, Set.mem_setOf_eq] at h_T'_kSucc_set
+        simp only [Set.ext_iff, Set.mem_union, Set.mem_ofPred_eq] at h_T'_kSucc_set
         exact h_T'_kSucc_set c)
     -- Second, convert {c // T c = k} to the union form using h_k_decomp
     have h2 : Nat.card {c // T c = k} = 
         Nat.card ↑({c | T c = k ∧ ¬isUnmatchedFreeK T k hk c} ∪ {c | isUnmatchedFreeK T k hk c}) := by
       apply Nat.card_congr
       exact Equiv.subtypeEquiv (Equiv.refl _) (fun c => by 
-        simp only [Set.ext_iff, Set.mem_union, Set.mem_setOf_eq] at h_k_decomp
+        simp only [Set.ext_iff, Set.mem_union, Set.mem_ofPred_eq] at h_k_decomp
         exact h_k_decomp c)
     rw [h1, h2]
     -- Now use the disjoint union cardinality
@@ -6054,7 +6057,7 @@ private lemma matchedFreeKPrefix_row_card {lam mu : Fin N → ℕ}
       refine ⟨⟨hrow, hcol_lt_j, hval, hfree⟩, ?_⟩
       -- ¬isUnmatchedFreeKPrefix means freeKCountUpToPrefix c.col ≤ freeKSuccCountPrefix
       unfold isUnmatchedFreeKPrefix at hunmatched
-      push_neg at hunmatched
+      push Not at hunmatched
       have h := hunmatched hcol_lt_j hval hfree
       -- Use hrow to rewrite c.val.1 to i in h
       rw [hrow] at h
@@ -6069,7 +6072,7 @@ private lemma matchedFreeKPrefix_row_card {lam mu : Fin N → ℕ}
       refine ⟨hcol_lt_j, hval, hfree, ?_⟩
       -- Need to show ¬isUnmatchedFreeKPrefix
       unfold isUnmatchedFreeKPrefix
-      push_neg
+      push Not
       intro _ _ _
       -- hcond: (S.filter (· ≤ c.col)).card ≤ n
       -- Need: freeKCountUpToPrefix c.col ≤ freeKSuccCountPrefix
@@ -6077,6 +6080,7 @@ private lemma matchedFreeKPrefix_row_card {lam mu : Fin N → ℕ}
       exact hcond
   -- The goal after Fintype.card_subtype is: #{x | x ∈ {c | ...}} = ...
   convert h_filter_eq using 1
+  on_goal 1 => rfl
   
   -- Step 5: Show the bijection between cells and columns in S
   have h_col_mem : ∀ c ∈ cells, c.val.2 ∈ S := by
@@ -6144,7 +6148,7 @@ private lemma unmatchedFreeKPrefix_row_card {lam mu : Fin N → ℕ}
       c.val.1 = i ∧ c.val.2 < j ∧ T c = k ∧ ¬isForcedK T k hk c} =
     {c | c.val.1 = i ∧ isMatchedFreeKPrefix T k hk j c} ∪ {c | c.val.1 = i ∧ isUnmatchedFreeKPrefix T k hk j c} := by
     ext c
-    simp only [Set.mem_setOf_eq, Set.mem_union]
+    simp only [Set.mem_ofPred_eq, Set.mem_union]
     constructor
     · intro ⟨hrow, hcol, hval, hfree⟩
       by_cases h : isUnmatchedFreeKPrefix T k hk j c
@@ -6267,7 +6271,7 @@ private lemma matchedFreeKSuccPrefix_row_card {lam mu : Fin N → ℕ}
       obtain ⟨hcol, hval, hfree, hunmatched⟩ := hmatched
       refine ⟨⟨hrow, hcol, hval, hfree⟩, ?_⟩
       unfold isUnmatchedFreeKSuccPrefix at hunmatched
-      push_neg at hunmatched
+      push Not at hunmatched
       have h := hunmatched hcol hval hfree
       rw [hrow] at h
       -- h : freeKSuccCountPrefix T i k hk j < freeKCountPrefix T i k hk j + freeKSuccCountUpToPrefix T i k hk j c.val.2
@@ -6282,7 +6286,7 @@ private lemma matchedFreeKSuccPrefix_row_card {lam mu : Fin N → ℕ}
       unfold isMatchedFreeKSuccPrefix
       refine ⟨hcol, hval, hfree, ?_⟩
       unfold isUnmatchedFreeKSuccPrefix
-      push_neg
+      push Not
       intro _ _ _
       rw [hrow]
       -- hcond : m + (S.filter (· ≤ c.val.2)).card > S.card
@@ -6331,7 +6335,7 @@ private lemma matchedFreeKSuccPrefix_row_card {lam mu : Fin N → ℕ}
       exact ⟨hc, hcol ▸ hs.2⟩
     
   -- Combine everything
-  simp only [Set.mem_setOf_eq]
+  simp only [Set.mem_ofPred_eq]
   rw [h_filter_eq, h_bij, matched_kSucc_cols_count S m, hS_card, hm]
 
 
@@ -6358,7 +6362,7 @@ private lemma unmatchedFreeKSuccPrefix_row_card {lam mu : Fin N → ℕ}
       c.val.1 = i ∧ c.val.2 < j ∧ T c = ⟨k.val + 1, hk⟩ ∧ ¬isForcedKSucc T k hk c} =
     {c | c.val.1 = i ∧ isMatchedFreeKSuccPrefix T k hk j c} ∪ {c | c.val.1 = i ∧ isUnmatchedFreeKSuccPrefix T k hk j c} := by
     ext c
-    simp only [Set.mem_setOf_eq, Set.mem_union]
+    simp only [Set.mem_ofPred_eq, Set.mem_union]
     constructor
     · intro ⟨hrow, hcol, hval, hfree⟩
       by_cases h : isUnmatchedFreeKSuccPrefix T k hk j c
@@ -6553,7 +6557,7 @@ private lemma matched_kSucc_propagates_right_prefix {lam mu : Fin N → ℕ} (T 
     ¬isUnmatchedFreeKSuccPrefix T k hk j c₂ := by
   -- Extract the counting inequality from h_c₁_matched
   unfold isUnmatchedFreeKSuccPrefix at h_c₁_matched ⊢
-  push_neg at h_c₁_matched
+  push Not at h_c₁_matched
   -- h_c₁_matched: c₁.col < j → T c₁ = k+1 → ¬isForcedKSucc c₁ → freeKCountPrefix + freeKSuccCountUpToPrefix(c₁) > freeKSuccCountPrefix
   have h_gt : freeKSuccCountPrefix T c₁.val.1 k hk j < freeKCountPrefix T c₁.val.1 k hk j + freeKSuccCountUpToPrefix T c₁.val.1 k hk j c₁.val.2 :=
     h_c₁_matched h_c₁_free_kSucc_prefix.1 h_c₁_free_kSucc_prefix.2.1 h_c₁_free_kSucc_prefix.2.2
@@ -6699,10 +6703,10 @@ private lemma cross_boundary_unmatched_k_not_eq_suffix_k {lam mu : Fin N → ℕ
   
   -- Cell at column j in the same row as c₁ and c₂ is in the skew diagram
   have hj_in : (c₁.val.1, j) ∈ skewYoungDiagram lam mu := by
-    simp only [skewYoungDiagram, Set.mem_setOf_eq]
+    simp only [skewYoungDiagram, Set.mem_ofPred_eq]
     have hc₁_in := c₁.prop
     have hc₂_in := c₂.prop
-    simp only [skewYoungDiagram, Set.mem_setOf_eq] at hc₁_in hc₂_in
+    simp only [skewYoungDiagram, Set.mem_ofPred_eq] at hc₁_in hc₂_in
     constructor
     · omega  -- mu c₁.val.1 < c₁.val.2 < j
     · have : lam c₂.val.1 = lam c₁.val.1 := by rw [h_row]
@@ -6885,7 +6889,7 @@ private lemma freeKCountPrefix_benderKnuthPrefixMatching {lam mu : Fin N → ℕ
   -- The key set equality: LHS = A ∪ B
   have h_LHS_eq : LHS = A ∪ B := by
     ext c
-    simp only [Set.mem_setOf_eq, Set.mem_union, LHS, A, B]
+    simp only [Set.mem_ofPred_eq, Set.mem_union, LHS, A, B]
     constructor
     · intro ⟨hrow, hcol, hT'c, hfree'⟩
       -- T' c = k in the prefix. Analyze how this happens.
@@ -7370,7 +7374,7 @@ private lemma skewYoungDiagram_cell_above_exists'' {lam mu : Fin N → ℕ}
     (h1 : ((i, j₁) : Fin N × ℕ) ∈ skewYoungDiagram lam mu)
     (h2 : ((⟨i.val - 1, by omega⟩ : Fin N), j₂) ∈ skewYoungDiagram lam mu) :
     ((⟨i.val - 1, by omega⟩ : Fin N), j₁) ∈ skewYoungDiagram lam mu := by
-  simp only [skewYoungDiagram, Set.mem_setOf_eq] at h1 h2 ⊢
+  simp only [skewYoungDiagram, Set.mem_ofPred_eq] at h1 h2 ⊢
   constructor
   · omega
   · have hlam_le : lam i ≤ lam ⟨i.val - 1, by omega⟩ := hlam ⟨i.val - 1, by omega⟩ i (by simp only [Fin.le_def]; omega)
@@ -7481,7 +7485,7 @@ private lemma benderKnuthPrefixMatching_row_weak_stembridge {lam mu : Fin N → 
             · exfalso
               have hc₂_in_prefix : c₂.val.2 < j := hc₂j
               unfold isUnmatchedFreeKPrefix at h2
-              push_neg at h2
+              push Not at h2
               have h2' := h2 hc₂_in_prefix hT2k
               by_cases hc₂_forced : isForcedK T k hk c₂
               · have h_c₁_forced := row_forced_propagates_left' hmu k hk T hT c₁ c₂ h_row h_col hT1 hc₂_forced
@@ -7491,7 +7495,7 @@ private lemma benderKnuthPrefixMatching_row_weak_stembridge {lam mu : Fin N → 
                 have h_c₂_free_prefix : c₂.val.2 < j ∧ T c₂ = k ∧ ¬isForcedK T k hk c₂ := ⟨hc₂_in_prefix, hT2k, hc₂_forced⟩
                 have h_c₂_not_unmatched : ¬isUnmatchedFreeKPrefix T k hk j c₂ := by
                   unfold isUnmatchedFreeKPrefix
-                  push_neg
+                  push Not
                   intro _ _ _
                   exact hc₂_matched
                 have h_c₁_not_unmatched := matched_k_propagates_left_prefix T k hk j c₁ c₂ h_row h_col h_c₁_free_prefix h_c₂_free_prefix h_c₂_not_unmatched
@@ -7532,7 +7536,7 @@ private lemma benderKnuthPrefixMatching_row_weak_stembridge {lam mu : Fin N → 
               by_cases hT1k1 : T c₁ = ⟨k.val + 1, hk⟩
               · exfalso
                 unfold isUnmatchedFreeKSuccPrefix at h2
-                push_neg at h2
+                push Not at h2
                 have h2' := h2 hc₁j hT1k1
                 by_cases hc₁_forced : isForcedKSucc T k hk c₁
                 · have h_c₂_forced := row_forcedKSucc_propagates_right' hlam k hk T hT c₂ c₁ h_row.symm h_col hT2 hc₁_forced
@@ -7542,7 +7546,7 @@ private lemma benderKnuthPrefixMatching_row_weak_stembridge {lam mu : Fin N → 
                   have h_c₂_free_prefix : c₂.val.2 < j ∧ T c₂ = ⟨k.val + 1, hk⟩ ∧ ¬isForcedKSucc T k hk c₂ := ⟨hc₂j, hT2, h4.2.2.1⟩
                   have h_c₁_not_unmatched : ¬isUnmatchedFreeKSuccPrefix T k hk j c₁ := by
                     unfold isUnmatchedFreeKSuccPrefix
-                    push_neg
+                    push Not
                     intro _ _ _
                     exact hc₁_matched
                   have h_c₂_not_unmatched := matched_kSucc_propagates_right_prefix T k hk j c₁ c₂ h_row h_col h_c₁_free_prefix h_c₂_free_prefix h_c₁_not_unmatched
@@ -7815,7 +7819,7 @@ theorem benderKnuthPrefixMatching_contentTableau_other {lam mu : Fin N → ℕ} 
         simp only [Fin.ext_iff] at this
         exact absurd this hi_ne_ksucc
       · exact hTc
-  · push_neg at hcol
+  · push Not at hcol
     rw [benderKnuthPrefixMatching_eq_on_suffix k hk j T hT c hcol]
 
 /-! ### Helper lemmas for the involution proof
@@ -7841,7 +7845,7 @@ private lemma k_col_lt_kSucc_col {lam mu : Fin N → ℕ}
     (h_c₁ : T c₁ = k) (h_c₂ : T c₂ = ⟨k.val + 1, hk⟩) :
     c₁.val.2 < c₂.val.2 := by
   by_contra h_not_lt
-  push_neg at h_not_lt
+  push Not at h_not_lt
   rcases Nat.lt_or_eq_of_le h_not_lt with h_gt | h_eq
   · -- Case: c₂.col < c₁.col
     have h_le : T c₂ ≤ T c₁ := hT.1 c₂ c₁ h_row.symm h_gt
@@ -7857,7 +7861,7 @@ private lemma k_col_lt_kSucc_col {lam mu : Fin N → ℕ}
       rw [h_c₁, h_c₂] at h_lt
       simp only [Fin.lt_def] at h_lt
       omega
-    · push_neg at h_row_lt
+    · push Not at h_row_lt
       rcases Nat.lt_or_eq_of_le h_row_lt with h_row_gt | h_row_eq
       · have h_lt : T c₂ < T c₁ := hT.2 c₂ c₁ h_eq h_row_gt
         rw [h_c₁, h_c₂] at h_lt
@@ -8145,7 +8149,7 @@ private lemma unmatchedFreeK_becomes_unmatchedFreeKSucc {lam mu : Fin N → ℕ}
       have h_matched_all_upTo : matchedK_upTo = {d : {d : Fin N × ℕ // d ∈ skewYoungDiagram lam mu} | 
           d.val.1 = c.val.1 ∧ isMatchedFreeKPrefix T k hk j d} := by
         ext d
-        simp only [Set.mem_setOf_eq]
+        simp only [Set.mem_ofPred_eq]
         constructor
         · intro ⟨hd_row, _, hd_matched⟩; exact ⟨hd_row, hd_matched⟩
         · intro ⟨hd_row, hd_matched⟩
@@ -8154,12 +8158,12 @@ private lemma unmatchedFreeK_becomes_unmatchedFreeKSucc {lam mu : Fin N → ℕ}
           -- Show d.col ≤ c.col
           have hd_not_unmatch := hd_matched.2.2.2
           unfold isUnmatchedFreeKPrefix at hd_not_unmatch
-          push_neg at hd_not_unmatch
+          push Not at hd_not_unmatch
           have hd_cond := hd_not_unmatch hd_matched.1 hd_matched.2.1 hd_matched.2.2.1
           -- hd_cond : freeKCountUpToPrefix T d.row k hk j d.col ≤ freeKSuccCountPrefix T d.row k hk j
           -- h_m_c_gt_n : m_c > n where m_c = freeKCountUpToPrefix T c.row k hk j c.col
           -- By monotonicity of freeKCountUpToPrefix, d.col ≤ c.col
-          by_contra h_gt; push_neg at h_gt
+          by_contra h_gt; push Not at h_gt
           -- First rewrite hd_cond to use c.row instead of d.row
           rw [hd_row] at hd_cond
           -- Now hd_cond : freeKCountUpToPrefix T c.row k hk j d.col ≤ freeKSuccCountPrefix T c.row k hk j = n
@@ -8380,7 +8384,7 @@ private lemma unmatchedFreeKSucc_becomes_unmatchedFreeK {lam mu : Fin N → ℕ}
     have h_freeK_cols_le : ∀ d : {d : Fin N × ℕ // d ∈ skewYoungDiagram lam mu},
         d.val.1 = c.val.1 → d.val.2 < j → T d = k → ¬isForcedK T k hk d → d.val.2 ≤ c.val.2 := by
       intro d hrow hcolj hval hfree
-      by_contra h_gt; push_neg at h_gt
+      by_contra h_gt; push Not at h_gt
       -- c is a (k+1) at col c.col, d is a k at col d.col > c.col
       -- By row-weak: T c ≤ T d, i.e., k+1 ≤ k, contradiction
       have h_weak : T c ≤ T d := hT.1 c d (by rw [hrow]) h_gt
@@ -8586,7 +8590,7 @@ private lemma unmatchedFreeKSucc_becomes_unmatchedFreeK {lam mu : Fin N → ℕ}
     have h_A_card : A.ncard = m := by
       have h_A_eq : A = {d : {d : Fin N × ℕ // d ∈ skewYoungDiagram lam mu} | 
           d.val.1 = c.val.1 ∧ d.val.2 < j ∧ T d = k ∧ ¬isForcedK T k hk d} := by
-        ext d; simp only [Set.mem_setOf_eq, A]
+        ext d; simp only [Set.mem_ofPred_eq, A]
         constructor
         · intro ⟨hrow, _, hcolj, hval, hfree⟩; exact ⟨hrow, hcolj, hval, hfree⟩
         · intro ⟨hrow, hcolj, hval, hfree⟩
@@ -8598,7 +8602,7 @@ private lemma unmatchedFreeKSucc_becomes_unmatchedFreeK {lam mu : Fin N → ℕ}
     have h_B_card : B.ncard = n_c := by
       have h_B_eq : B = {d : {d : Fin N × ℕ // d ∈ skewYoungDiagram lam mu} | 
           d.val.1 = c.val.1 ∧ d.val.2 ≤ c.val.2 ∧ d.val.2 < j ∧ T d = ⟨k.val + 1, hk⟩ ∧ ¬isForcedKSucc T k hk d} := by
-        ext d; simp only [Set.mem_setOf_eq, B]
+        ext d; simp only [Set.mem_ofPred_eq, B]
         constructor
         · intro ⟨hrow, hcol, hunmatched⟩
           exact ⟨hrow, hcol, hunmatched.1, hunmatched.2.1, hunmatched.2.2.1⟩
@@ -8932,7 +8936,7 @@ private lemma matchedFreeKSucc_stays_matched {lam mu : Fin N → ℕ}
       · -- d ∈ B: unmatched k becomes (k+1)
         -- First show d.col ≤ c.col (by semistandardness, k's come before (k+1)'s)
         have hd_col : d.val.2 ≤ c.val.2 := by
-          by_contra h_gt; push_neg at h_gt
+          by_contra h_gt; push Not at h_gt
           -- d is a k at col > c.col, c is a (k+1)
           -- By row-weak: T c ≤ T d, so k+1 ≤ k, contradiction
           have h_weak : T c ≤ T d := hT.1 c d hd_row.symm h_gt
@@ -8969,7 +8973,7 @@ private lemma matchedFreeKSucc_stays_matched {lam mu : Fin N → ℕ}
               d.val.1 = c.val.1 ∧ d.val.2 ≤ c.val.2 ∧ d.val.2 < j ∧ 
               T d = ⟨k.val + 1, hk⟩ ∧ ¬isForcedKSucc T k hk d} := by
             ext d
-            simp only [Set.mem_setOf_eq, A]
+            simp only [Set.mem_ofPred_eq, A]
             constructor
             · intro ⟨hrow, hcol, hmatched⟩
               exact ⟨hrow, hcol, hmatched.1, hmatched.2.1, hmatched.2.2.1⟩
@@ -8977,7 +8981,7 @@ private lemma matchedFreeKSucc_stays_matched {lam mu : Fin N → ℕ}
               refine ⟨hrow, hcol, hcolj, hval, hfree_d, ?_⟩
               -- Show d is matched when m ≥ n (all free (k+1)'s are matched)
               unfold isUnmatchedFreeKSuccPrefix
-              push_neg
+              push Not
               intro _ _ _
               -- Since m ≥ n and freeKSuccCountUpToPrefix(d.col) ≥ 1, we have m + 1 > n
               have h_d_counted : freeKSuccCountUpToPrefix T d.val.1 k hk j d.val.2 ≥ 1 := by
@@ -9009,7 +9013,7 @@ private lemma matchedFreeKSucc_stays_matched {lam mu : Fin N → ℕ}
         -- Since c has index n_c and is matched (m + n_c > n), we have n_c > n - m.
         -- The matched (k+1)'s at cols ≤ c.col have indices from (n - m + 1) to n_c,
         -- giving n_c - (n - m) = n_c + m - n cells.
-        push_neg at h_mn
+        push Not at h_mn
         have hB_zero : B.ncard = 0 := by
           rw [hB_card]
           simp only [Nat.min_eq_left (le_of_lt h_mn), Nat.sub_self]
@@ -9080,7 +9084,7 @@ private lemma matchedFreeKSucc_stays_matched {lam mu : Fin N → ℕ}
         -- A and U partition AllKSuccUpTo
         have h_partition : AllKSuccUpTo = A ∪ U := by
           ext d
-          simp only [Set.mem_setOf_eq, Set.mem_union, A, U, AllKSuccUpTo]
+          simp only [Set.mem_ofPred_eq, Set.mem_union, A, U, AllKSuccUpTo]
           constructor
           · intro ⟨hrow, hcol, hcolj, hval, hfree⟩
             by_cases h : isUnmatchedFreeKSuccPrefix T k hk j d
@@ -9326,7 +9330,7 @@ theorem benderKnuthPrefixMatching_involutive_stembridge {lam mu : Fin N → ℕ}
           -- So either c was forced k or c was matched free k
           have h1_impl : isForcedK T k hk c ∨ freeKCountUpToPrefix T c.val.1 k hk j c.val.2 ≤ freeKSuccCountPrefix T c.val.1 k hk j := by
             by_contra h_contra
-            push_neg at h_contra
+            push Not at h_contra
             apply h1
             exact ⟨hcj, hTc_eq_k, h_contra.1, h_contra.2⟩
           rcases h1_impl with hforced | h_matched
@@ -9390,7 +9394,7 @@ theorem benderKnuthPrefixMatching_involutive_stembridge {lam mu : Fin N → ℕ}
             have hTc_eq_ksucc : T c = ⟨k.val + 1, hk⟩ := by rw [← hT'c]; exact h2'.2.1
             have h2_impl : isForcedKSucc T k hk c ∨ freeKCountPrefix T c.val.1 k hk j + freeKSuccCountUpToPrefix T c.val.1 k hk j c.val.2 > freeKSuccCountPrefix T c.val.1 k hk j := by
               by_contra h_contra
-              push_neg at h_contra
+              push Not at h_contra
               apply h2
               exact ⟨hcj, hTc_eq_ksucc, h_contra.1, h_contra.2⟩
             rcases h2_impl with hforced | h_matched
@@ -9463,7 +9467,7 @@ and proving properties of Stembridge's involution. -/
 lemma not_isNPartition_iff_exists_misstep (α : Fin N → ℕ) :
     ¬IsNPartition α ↔ ∃ k : Fin N, isMisstep α k := by
   simp only [_root_.IsNPartition, isMisstep]
-  push_neg
+  push Not
   constructor
   · intro ⟨i, j, hij, hαij⟩
     -- We have α j > α i with i ≤ j
@@ -9500,7 +9504,7 @@ lemma not_isNPartition_iff_exists_misstep (α : Fin N → ℕ) :
         · -- Found consecutive increase at i
           exact ⟨i, hmid_lt_N, by convert hcmp using 1⟩
         · -- α mid ≤ α i, so α mid < α j
-          push_neg at hcmp
+          push Not at hcmp
           have hmid_lt_j : α mid < α j := Nat.lt_of_le_of_lt hcmp hαij
           have hmid_le_j : mid ≤ j := by simp only [Fin.le_def, mid]; omega
           have hmid_ne_j : mid ≠ j := by simp only [ne_eq, Fin.ext_iff, mid]; omega
@@ -9527,14 +9531,14 @@ lemma not_isYamanouchi_iff {lam mu : Fin N → ℕ} {nu : Fin N → ℕ} {T : Ta
     | inl hnotSS => left; exact hnotSS
     | inr hnotPart =>
       right
-      push_neg at hnotPart
+      push Not at hnotPart
       exact hnotPart
   · intro h
     cases h with
     | inl hnotSS => left; exact hnotSS
     | inr hex =>
       right
-      push_neg
+      push Not
       exact hex
 
 /-- For a semistandard tableau T that is not ν-Yamanouchi, the violator columns set is nonempty. -/
@@ -9557,7 +9561,7 @@ lemma violatorColumns_nonempty_of_not_yamanouchi {lam mu : Fin N → ℕ} {nu : 
       · exact ⟨hj_pos, by simp only [isPartitionAtColumn]; exact hnotPart⟩
     · -- j > maxCol + 1, so contentColGeq T j = 0
       -- Use j' = maxCol + 1 instead, which is in the range
-      push_neg at hj_le
+      push Not at hj_le
       use maxCol + 1
       constructor
       · exact Finset.mem_range.mpr (Nat.lt_add_one_of_le (le_refl _))
@@ -9625,7 +9629,7 @@ lemma max_violator_succ_isNPartition {lam mu : Fin N → ℕ} {nu : Fin N → �
     · -- j + 1 > 0 since j ≥ 0 (natural number), so j + 1 ≥ 1 > 0, contradiction
       omega
   · -- j+1 is beyond all columns, so contentColGeq T (j+1) = 0
-    push_neg at hj1_range
+    push Not at hj1_range
     have hcontent_zero : contentColGeq T (j + 1) = 0 := by
       apply contentColGeq_eq_zero_of_large
       intro i
@@ -9772,7 +9776,7 @@ private lemma max_violator_beta_partition {lam mu : Fin N → ℕ} (nu : Fin N �
     · omega
   · -- j+1 is beyond all columns, so contentColGeq T (j+1) = 0
     -- In this case, nu + contentColGeq T (j+1) = nu, which is a partition by hnu
-    push_neg at hj1_range
+    push Not at hj1_range
     have hcontent_zero : contentColGeq T (j + 1) = 0 := by
       apply contentColGeq_eq_zero_of_large
       intro i
@@ -9830,6 +9834,7 @@ theorem stembridgeInvolutionMatching_semistandard {lam mu : Fin N → ℕ}
   -- Apply the semistandard theorem
   exact benderKnuthPrefixMatching_semistandard_stembridge hlam hmu nu k hk j hj_pos T hT hbeta hk_misstep
 
+set_option backward.isDefEq.respectTransparency false in
 /-- stembridgeInvolutionMatching is an involution on non-Yamanouchi tableaux.
 
     This theorem uses `benderKnuthPrefixMatching_involutive_stembridge` which is
@@ -9888,7 +9893,7 @@ theorem stembridgeInvolutionMatching_involutive {lam mu : Fin N → ℕ}
     · apply Finset.max'_le
       intro j'' hj''_mem
       simp only [violatorColumns, Finset.mem_filter, Finset.mem_range] at hj''_mem
-      by_contra hj''_gt; push_neg at hj''_gt
+      by_contra hj''_gt; push Not at hj''_gt
       have hj''_ge : j'' ≥ j := Nat.le_of_lt hj''_gt
       have heq : isPartitionAtColumn nu T' j'' = isPartitionAtColumn nu T j'' := by
         simp only [isPartitionAtColumn, hT'_def]
@@ -10006,7 +10011,7 @@ theorem stembridgeInvolution_involutive {lam mu : Fin N → ℕ}
     · apply Finset.max'_le
       intro j'' hj''_mem
       simp only [violatorColumns, Finset.mem_filter, Finset.mem_range] at hj''_mem
-      by_contra hj''_gt; push_neg at hj''_gt
+      by_contra hj''_gt; push Not at hj''_gt
       have hj''_ge : j'' ≥ j := Nat.le_of_lt hj''_gt
       have heq : isPartitionAtColumn nu T' j'' = isPartitionAtColumn nu T j'' := by
         simp only [isPartitionAtColumn, hT'_def]
@@ -10151,7 +10156,7 @@ lemma benderKnuthPrefixMatching_content_swap {lam mu : Fin N → ℕ}
     let S_prefix : Set {c : Fin N × ℕ // c ∈ skewYoungDiagram lam mu} := {c | c.val.2 < j ∧ S c = i}
     let S_suffix : Set {c : Fin N × ℕ // c ∈ skewYoungDiagram lam mu} := {c | c.val.2 ≥ j ∧ S c = i}
     have h_decomp_set : S_all = S_prefix ∪ S_suffix := by
-      ext c; simp only [Set.mem_setOf_eq, Set.mem_union, S_all, S_prefix, S_suffix]
+      ext c; simp only [Set.mem_ofPred_eq, Set.mem_union, S_all, S_prefix, S_suffix]
       constructor
       · intro h; by_cases hcol : c.val.2 < j
         · left; exact ⟨hcol, h⟩
@@ -10245,7 +10250,7 @@ lemma benderKnuthPrefixMatching_content_swap {lam mu : Fin N → ℕ}
     {c | isUnmatchedFreeKSuccPrefix T k hk j c}
   
   have h_LHS_eq : LHS = A ∪ B := by
-    ext c; simp only [Set.mem_setOf_eq, Set.mem_union, LHS, A, B]; exact h_LHS_char c
+    ext c; simp only [Set.mem_ofPred_eq, Set.mem_union, LHS, A, B]; exact h_LHS_char c
   
   have h_disj_AB : Disjoint A B := by
     rw [Set.disjoint_iff]
@@ -10258,7 +10263,7 @@ lemma benderKnuthPrefixMatching_content_swap {lam mu : Fin N → ℕ}
     {c | c.val.2 < j ∧ T c = k' ∧ ¬isUnmatchedFreeKSuccPrefix T k hk j c}
   
   have h_RHS_eq : RHS = C ∪ B := by
-    ext c; simp only [Set.mem_setOf_eq, Set.mem_union, RHS, C, B]
+    ext c; simp only [Set.mem_ofPred_eq, Set.mem_union, RHS, C, B]
     constructor
     · intro ⟨hcol, hTc⟩
       by_cases h : isUnmatchedFreeKSuccPrefix T k hk j c
@@ -10289,7 +10294,7 @@ lemma benderKnuthPrefixMatching_content_swap {lam mu : Fin N → ℕ}
     let C_matched : Set _ := {c | c.val.2 < j ∧ isMatchedFreeKSuccPrefix T k hk j c}
     
     have h_A_decomp : A = A_forced ∪ A_matched := by
-      ext c; simp only [Set.mem_setOf_eq, Set.mem_union, A, A_forced, A_matched]
+      ext c; simp only [Set.mem_ofPred_eq, Set.mem_union, A, A_forced, A_matched]
       constructor
       · intro ⟨hcol, hTc, h_not_unmatched⟩
         by_cases hforced : isForcedK T k hk c
@@ -10300,7 +10305,7 @@ lemma benderKnuthPrefixMatching_content_swap {lam mu : Fin N → ℕ}
         · exact ⟨hcol, hmatched.2.1, hmatched.2.2.2⟩
     
     have h_C_decomp : C = C_forced ∪ C_matched := by
-      ext c; simp only [Set.mem_setOf_eq, Set.mem_union, C, C_forced, C_matched]
+      ext c; simp only [Set.mem_ofPred_eq, Set.mem_union, C, C_forced, C_matched]
       constructor
       · intro ⟨hcol, hTc, h_not_unmatched⟩
         by_cases hforced : isForcedKSucc T k hk c
@@ -10350,14 +10355,14 @@ lemma benderKnuthPrefixMatching_content_swap {lam mu : Fin N → ℕ}
       
       -- A_matched = ⋃ᵢ A_row i
       have h_A_union : A_matched = ⋃ i : Fin N, A_row i := by
-        ext c; simp only [Set.mem_setOf_eq, Set.mem_iUnion, A_matched, A_row]
+        ext c; simp only [Set.mem_ofPred_eq, Set.mem_iUnion, A_matched, A_row]
         constructor
         · intro ⟨_, hmatched⟩; exact ⟨c.val.1, rfl, hmatched⟩
         · intro ⟨_, _, hmatched⟩; exact ⟨hmatched.1, hmatched⟩
       
       -- C_matched = ⋃ᵢ C_row i
       have h_C_union : C_matched = ⋃ i : Fin N, C_row i := by
-        ext c; simp only [Set.mem_setOf_eq, Set.mem_iUnion, C_matched, C_row]
+        ext c; simp only [Set.mem_ofPred_eq, Set.mem_iUnion, C_matched, C_row]
         constructor
         · intro ⟨_, hmatched⟩; exact ⟨c.val.1, rfl, hmatched⟩
         · intro ⟨_, _, hmatched⟩; exact ⟨hmatched.1, hmatched⟩
@@ -11345,7 +11350,7 @@ theorem tableau_entry_ge_row {lam : Fin N → ℕ} (hlam : IsNPartition lam)
     have hn_lt_N : n < N := by omega
     -- The cell (n, j) is in the diagram since lam is weakly decreasing
     have hcell_n : (⟨n, hn_lt_N⟩, j) ∈ skewYoungDiagram lam zeroTuple := by
-      simp only [skewYoungDiagram, Set.mem_setOf_eq, zeroTuple, Pi.zero_apply]
+      simp only [skewYoungDiagram, Set.mem_ofPred_eq, zeroTuple, Pi.zero_apply]
       constructor
       · exact hcell.1  -- 0 < j
       · -- j ≤ lam ⟨n, _⟩ because lam is weakly decreasing
@@ -11392,7 +11397,7 @@ private def restrictedCellsRow (lam : Fin N → ℕ) (i : Fin N) (j : ℕ) : Set
 private lemma restrictedCellsRow_eq_Ioc (lam : Fin N → ℕ) (i : Fin N) (j : ℕ) (hj : j > 0) :
     restrictedCellsRow lam i j = Set.Ioc (j - 1) (lam i) := by
   ext k
-  simp only [restrictedCellsRow, Set.mem_setOf_eq, Set.mem_Ioc]
+  simp only [restrictedCellsRow, Set.mem_ofPred_eq, Set.mem_Ioc]
   constructor
   · intro ⟨hjk, _, hkl⟩
     exact ⟨by omega, hkl⟩
@@ -11417,16 +11422,16 @@ private def contentColGeqEquiv (lam : Fin N → ℕ) (j : ℕ) (_hj : j > 0) (i 
     contentColGeqType lam j i ≃ restrictedCellsRow lam i j where
   toFun := fun ⟨⟨⟨row, col⟩, hmem⟩, heq⟩ =>
     ⟨col, by
-      simp only [restrictedCellsRow, Set.mem_setOf_eq]
-      simp only [skewYoungDiagram, zeroTuple, Pi.zero_apply, Set.mem_setOf_eq] at hmem
+      simp only [restrictedCellsRow, Set.mem_ofPred_eq]
+      simp only [skewYoungDiagram, zeroTuple, Pi.zero_apply, Set.mem_ofPred_eq] at hmem
       simp only at heq
       refine ⟨hmem.2, hmem.1.1, ?_⟩
       rw [← heq]
       exact hmem.1.2⟩
   invFun := fun ⟨k, hk⟩ =>
     ⟨⟨⟨i, k⟩, by
-      simp only [skewYoungDiagram, zeroTuple, Pi.zero_apply, Set.mem_setOf_eq]
-      simp only [restrictedCellsRow, Set.mem_setOf_eq] at hk
+      simp only [skewYoungDiagram, zeroTuple, Pi.zero_apply, Set.mem_ofPred_eq]
+      simp only [restrictedCellsRow, Set.mem_ofPred_eq] at hk
       exact ⟨⟨hk.2.1, hk.2.2⟩, hk.1⟩⟩, rfl⟩
   left_inv := by
     intro ⟨⟨⟨row, col⟩, hmem⟩, heq⟩
@@ -11482,7 +11487,7 @@ lemma yamanouchi_rightmost_entry {lam : Fin N → ℕ} (hlam : IsNPartition lam)
     (T : Tableau lam zeroTuple) (hT : IsYamanouchi zeroTuple T)
     (i : Fin N) (hi : lam i > 0) :
     let hright_mem : (i, lam i) ∈ skewYoungDiagram lam zeroTuple := by
-      simp only [skewYoungDiagram, zeroTuple, Pi.zero_apply, Set.mem_setOf_eq]
+      simp only [skewYoungDiagram, zeroTuple, Pi.zero_apply, Set.mem_ofPred_eq]
       exact ⟨hi, le_refl _⟩
     T ⟨(i, lam i), hright_mem⟩ = i := by
   intro hright_mem
@@ -11526,7 +11531,7 @@ lemma yamanouchi_rightmost_entry {lam : Fin N → ℕ} (hlam : IsNPartition lam)
     -- Show c'.1 ≤ i
     have hc'_row_le : c'.1 ≤ i := by
       by_contra hc'_row_gt
-      push_neg at hc'_row_gt
+      push Not at hc'_row_gt
       have hlam_ineq := hlam i c'.1 (le_of_lt hc'_row_gt)
       have hc'_col_eq : c'.2 = lam i := by
         have h1 : c'.2 ≤ lam c'.1 := hc'_mem.2
@@ -11561,7 +11566,7 @@ lemma yamanouchi_rightmost_entry {lam : Fin N → ℕ} (hlam : IsNPartition lam)
         exact Fin.lt_def.mp hc'_row_lt
       have hih := ih c'.1.val hc'_row_lt_n c'.1 hc'_lam_pos rfl
       have hc'_right_mem : (c'.1, lam c'.1) ∈ skewYoungDiagram lam zeroTuple := by
-        simp only [skewYoungDiagram, zeroTuple, Pi.zero_apply, Set.mem_setOf_eq]
+        simp only [skewYoungDiagram, zeroTuple, Pi.zero_apply, Set.mem_ofPred_eq]
         exact ⟨hc'_lam_pos, le_refl _⟩
       have hrow_incr : T ⟨c', hc'_mem⟩ ≤ T ⟨(c'.1, lam c'.1), hc'_right_mem⟩ := by
         by_cases hcol_lt : c'.2 < lam c'.1
@@ -11595,7 +11600,7 @@ theorem minimalisticTableau_unique (lam : Fin N → ℕ) (hlam : IsNPartition la
   have hlam_pos : lam i > 0 := by omega
   -- The rightmost cell (i, lam i) is in the diagram
   have hright_mem : (i, lam i) ∈ skewYoungDiagram lam zeroTuple := by
-    simp only [skewYoungDiagram, zeroTuple, Pi.zero_apply, Set.mem_setOf_eq]
+    simp only [skewYoungDiagram, zeroTuple, Pi.zero_apply, Set.mem_ofPred_eq]
     exact ⟨hlam_pos, le_refl _⟩
   -- Key: T(i, lam i) = i
   have hright := yamanouchi_rightmost_entry hlam T hT i hlam_pos
