@@ -325,6 +325,7 @@ lemma coeff_partialDeriv {σ : Type*} [DecidableEq σ] (i : σ) (f : MvPowerSeri
   simp only [partialDeriv, LinearMap.coe_mk, AddHom.coe_mk]
   rfl
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The map `(a, b) ↦ (a + single i 1, b)` gives a bijection from `antidiagonal m` to
     the subset of `antidiagonal (m + single i 1)` where `single i 1 ≤ a`. -/
 lemma antidiag_shift_fst {σ : Type*} [DecidableEq σ] (i : σ) (m : σ →₀ ℕ) :
@@ -335,7 +336,8 @@ lemma antidiag_shift_fst {σ : Type*} [DecidableEq σ] (i : σ) (m : σ →₀ �
       ext <;> simp [h1, h2]⟩ =
     (antidiagonal (m + Finsupp.single i 1)).filter (fun p => Finsupp.single i 1 ≤ p.1) := by
   ext ⟨a, b⟩
-  simp only [mem_map, mem_filter, mem_antidiagonal, Function.Embedding.coeFn_mk, Prod.mk.injEq,
+  simp only [mem_map, mem_filter, Finset.HasAntidiagonal.mem_antidiagonal,
+    Function.Embedding.coeFn_mk, Prod.mk.injEq,
     Prod.exists]
   constructor
   · rintro ⟨a', b', hab, rfl, rfl⟩
@@ -349,6 +351,7 @@ lemma antidiag_shift_fst {σ : Type*} [DecidableEq σ] (i : σ) (m : σ →₀ �
       exact add_right_cancel this
     · rw [tsub_add_cancel_of_le hle]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The map `(a, b) ↦ (a, b + single i 1)` gives a bijection from `antidiagonal m` to
     the subset of `antidiagonal (m + single i 1)` where `single i 1 ≤ b`. -/
 lemma antidiag_shift_snd {σ : Type*} [DecidableEq σ] (i : σ) (m : σ →₀ ℕ) :
@@ -359,7 +362,8 @@ lemma antidiag_shift_snd {σ : Type*} [DecidableEq σ] (i : σ) (m : σ →₀ �
       ext <;> simp [h1, h2]⟩ =
     (antidiagonal (m + Finsupp.single i 1)).filter (fun p => Finsupp.single i 1 ≤ p.2) := by
   ext ⟨a, b⟩
-  simp only [mem_map, mem_filter, mem_antidiagonal, Function.Embedding.coeFn_mk, Prod.mk.injEq,
+  simp only [mem_map, mem_filter, Finset.HasAntidiagonal.mem_antidiagonal,
+    Function.Embedding.coeFn_mk, Prod.mk.injEq,
     Prod.exists]
   constructor
   · rintro ⟨a', b', hab, rfl, rfl⟩
@@ -380,7 +384,8 @@ lemma sum_filter_zero_fst {σ : Type*} [DecidableEq σ] (i : σ) (m : σ →₀ 
       (p.1 i : R) * coeff p.1 f * coeff p.2 g = 0 := by
   apply Finset.sum_eq_zero
   intro p hp
-  simp only [mem_filter, mem_antidiagonal, Finsupp.single_le_iff, not_le] at hp
+  simp only [mem_filter, Finset.HasAntidiagonal.mem_antidiagonal, Finsupp.single_le_iff,
+    not_le] at hp
   have : p.1 i = 0 := by omega
   simp [this]
 
@@ -391,10 +396,12 @@ lemma sum_filter_zero_snd {σ : Type*} [DecidableEq σ] (i : σ) (m : σ →₀ 
       coeff p.1 f * ((p.2 i : R) * coeff p.2 g) = 0 := by
   apply Finset.sum_eq_zero
   intro p hp
-  simp only [mem_filter, mem_antidiagonal, Finsupp.single_le_iff, not_le] at hp
+  simp only [mem_filter, Finset.HasAntidiagonal.mem_antidiagonal, Finsupp.single_le_iff,
+    not_le] at hp
   have : p.2 i = 0 := by omega
   simp [this]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The partial derivative satisfies the product rule. -/
 theorem partialDeriv_mul {σ : Type*} [DecidableEq σ] (i : σ)
     (f g : MvPowerSeries σ R) :
@@ -411,7 +418,7 @@ theorem partialDeriv_mul {σ : Type*} [DecidableEq σ] (i : σ)
       (DFunLike.coe m' i : R) * (coeff p.1 f * coeff p.2 g) =
       (p.1 i : R) * coeff p.1 f * coeff p.2 g + coeff p.1 f * ((p.2 i : R) * coeff p.2 g) := by
     intro p hp
-    rw [mem_antidiagonal] at hp
+    rw [Finset.HasAntidiagonal.mem_antidiagonal] at hp
     have : DFunLike.coe m' i = p.1 i + p.2 i := by
       rw [← hp]; simp only [Finsupp.coe_add, Pi.add_apply]
     rw [this]; push_cast; ring

@@ -119,9 +119,9 @@ theorem sign_eq_neg_one_pow_invCount (σ : Perm (Fin n)) :
       rw [Finset.prod_insert ha]
       by_cases h : σ a.1 < σ a.2
       · simp only [h, ↓reduceIte, one_mul]
-        rw [Finset.filter_insert, if_neg (by simp [h]), ih]
+        rw [Finset.filter_insert, ite_eq_right (by simp [h]), ih]
       · simp only [h, ↓reduceIte]
-        rw [Finset.filter_insert, if_pos (by simp [h])]
+        rw [Finset.filter_insert, ite_eq_left (by simp [h])]
         rw [Finset.card_insert_of_notMem (by simp [ha])]
         rw [pow_succ, mul_comm, ih]
   rw [key]
@@ -243,10 +243,8 @@ theorem sign_mul' (σ τ : Perm α) : sign (σ * τ) = sign σ * sign τ :=
 /-- **(e)** The sign of a product equals the product of signs.
 **Proposition (prop.perm.sign.props)(e)** -/
 theorem sign_prod_list (l : List (Perm α)) :
-    sign l.prod = (l.map sign).prod := by
-  induction l with
-  | nil => simp
-  | cons σ l ih => simp [sign_mul, ih]
+    sign l.prod = (l.map sign).prod :=
+  map_list_prod sign l
 
 /-- **(f)** The sign of the inverse equals the sign of the permutation.
 **Proposition (prop.perm.sign.props)(f)** -/

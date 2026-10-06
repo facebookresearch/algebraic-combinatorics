@@ -459,7 +459,7 @@ theorem fibonacci_gf : (PowerSeries.mk (fun n => (fibonacci n : ℚ)) : PowerSer
     · -- n = 1: fib 1 - fib 0 - 0 = 1
       simp [Nat.fib_zero, Nat.fib_one]
     · -- n >= 2: fib (n+2) - fib (n+1) - fib n = 0 by recurrence
-      simp only [show ¬(n + 2 = 0) by omega, if_false,
+      simp only [show ¬(n + 2 = 0) by omega, ite_false,
         show ¬(n + 2 = 1) by omega, show ¬(n + 2 < 2) by omega]
       -- fib (n+2) - fib (n+1) - fib n = 0
       have h1 : n + 2 - 1 = n + 1 := by omega
@@ -834,7 +834,7 @@ private lemma one_sub_smul_X_mul_geom (α : ℚ) :
   simp only [PowerSeries.coeff_mul, PowerSeries.coeff_one, PowerSeries.coeff_mk]
   induction n with
   | zero =>
-    rw [Finset.antidiagonal_zero]
+    rw [Finset.Nat.antidiagonal_zero]
     simp
   | succ n ih =>
     simp only [Nat.add_one_ne_zero, ↓reduceIte]
@@ -853,17 +853,17 @@ private lemma one_sub_smul_X_mul_geom (α : ℚ) :
         · simp only [map_sub, PowerSeries.coeff_one, Nat.add_one_ne_zero, ↓reduceIte,
             PowerSeries.coeff_smul, PowerSeries.coeff_X, smul_eq_mul]
           norm_num]
-    have hfilter : (Finset.antidiagonal n).filter (fun x => x.1 = 0) = {(0, n)} := by
+    have hfilter : (antidiagonal n).filter (fun x => x.1 = 0) = {(0, n)} := by
       ext x
-      simp only [Finset.mem_filter, Finset.mem_antidiagonal, Finset.mem_singleton]
+      simp only [Finset.mem_filter, Finset.HasAntidiagonal.mem_antidiagonal, Finset.mem_singleton]
       constructor
       · intro ⟨hsum, h0⟩
         ext <;> omega
       · intro h
         simp [h]
-    rw [← Finset.sum_filter_add_sum_filter_not (Finset.antidiagonal n) (fun x => x.1 = 0)]
+    rw [← Finset.sum_filter_add_sum_filter_not (antidiagonal n) (fun x => x.1 = 0)]
     simp only [hfilter, Finset.sum_singleton, ↓reduceIte, neg_mul]
-    have hzero : ∑ x ∈ (Finset.antidiagonal n).filter (fun x => ¬x.1 = 0),
+    have hzero : ∑ x ∈ (antidiagonal n).filter (fun x => ¬x.1 = 0),
         (if x.1 = 0 then -α else 0) * α ^ x.2 = 0 := by
       apply Finset.sum_eq_zero
       intro x hx
@@ -885,7 +885,7 @@ theorem geometric_series_scaled (α : ℚ) :
 
 Equation \eqref{eq.sec.gf.exas.4.1/(1-x)2}. -/
 theorem deriv_inv_one_minus_x :
-    (PowerSeries.derivative ℚ) ((1 - PowerSeries.X : PowerSeries ℚ)⁻¹) =
+    (PowerSeries.derivative (R := ℚ)) ((1 - PowerSeries.X : PowerSeries ℚ)⁻¹) =
       (1 - PowerSeries.X : PowerSeries ℚ)⁻¹ ^ 2 := by
   rw [PowerSeries.derivative_inv']
   simp [sub_eq_add_neg]

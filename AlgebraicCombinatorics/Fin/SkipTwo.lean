@@ -81,11 +81,11 @@ theorem skipTwo_inverse {n : ℕ} (i j : Fin (n + 2)) (hij : i < j)
   by_cases h1 : (x : ℕ) < i
   · refine ⟨⟨x, by omega⟩, ?_⟩
     unfold skipTwo
-    rw [if_pos h1]
+    rw [ite_eq_left h1]
   · by_cases h2 : (x : ℕ) < j
     · -- x is between i and j (exclusive)
       have hx_gt_i : i < x := by
-        push_neg at h1
+        push Not at h1
         exact lt_of_le_of_ne (Fin.le_def.mpr h1) (fun h => hx_ne_i h.symm)
       have hx_pos : 0 < x.val := by omega
       refine ⟨⟨x.val - 1, by omega⟩, ?_⟩
@@ -95,7 +95,7 @@ theorem skipTwo_inverse {n : ℕ} (i j : Fin (n + 2)) (hij : i < j)
       simp only [h1', h2', ↓reduceIte, Fin.ext_iff]
       omega
     · -- x is after j
-      push_neg at h2
+      push Not at h2
       have hx_gt_j : j < x := by
         apply lt_of_le_of_ne (Fin.le_def.mpr h2)
         intro heq
@@ -111,7 +111,7 @@ theorem skipTwo_inverse {n : ℕ} (i j : Fin (n + 2)) (hij : i < j)
 theorem skipTwo_range {n : ℕ} (i j : Fin (n + 2)) (hij : i < j) :
     Set.range (skipTwo i j hij) = {x | x ≠ i ∧ x ≠ j} := by
   ext x
-  simp only [Set.mem_range, Set.mem_setOf_eq]
+  simp only [Set.mem_range, Set.mem_ofPred_eq]
   constructor
   · intro ⟨k, hk⟩
     subst hk

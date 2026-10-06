@@ -79,7 +79,7 @@ The indeterminate x is defined as x = (δ_{i,1})_{i∈ℤ}, i.e., the sequence w
 position 1 and 0 elsewhere.
 
 In Mathlib, Laurent polynomials are represented as `LaurentPolynomial K = AddMonoidAlgebra K ℤ`,
-which is exactly `ℤ →₀ K` (finitely supported functions from ℤ to K). This matches the
+whose coefficient function `p.coeff : ℤ →₀ K` is finitely supported. This matches the
 definition of essentially finite families.
 -/
 
@@ -90,17 +90,17 @@ variable {K : Type*} [CommRing K]
 /-- **Definition of Laurent polynomials** (Definition def.fps.laure.laupol)
 
 A Laurent polynomial over K is an essentially finite family (aₙ)_{n∈ℤ}, represented
-in Mathlib as `LaurentPolynomial K = AddMonoidAlgebra K ℤ = ℤ →₀ K`.
+in Mathlib as `LaurentPolynomial K = AddMonoidAlgebra K ℤ`, with coefficients `p.coeff : ℤ →₀ K`.
 
 This definition captures the key property: only finitely many coefficients are nonzero. -/
 abbrev LaurentPoly (K : Type*) [CommRing K] := K[T;T⁻¹]
 
 /-- Laurent polynomials are essentially finite families: they have finite support. -/
-theorem laurentPoly_finite_support (p : LaurentPoly K) : (p.support : Set ℤ).Finite :=
-  p.support.finite_toSet
+theorem laurentPoly_finite_support (p : LaurentPoly K) : (p.coeff.support : Set ℤ).Finite :=
+  p.coeff.support.finite_toSet
 
 /-- The coefficient function of a Laurent polynomial. -/
-def laurentPoly_coeff (p : LaurentPoly K) (n : ℤ) : K := p n
+def laurentPoly_coeff (p : LaurentPoly K) (n : ℤ) : K := p.coeff n
 
 /-- **Multiplication of Laurent polynomials is convolution**.
 (Part of Definition def.fps.laure.laupol)
@@ -109,12 +109,13 @@ The product (a · b)_n = ∑_{i∈ℤ} aᵢ · b_{n-i}.
 
 In Mathlib, this is the standard multiplication on `AddMonoidAlgebra K ℤ`. -/
 theorem laurentPoly_mul_coeff (a b : LaurentPoly K) (n : ℤ) :
-    (a * b) n = ∑ i ∈ a.support, a i * b (n - i) := by
-  simp only [AddMonoidAlgebra.mul_apply, Finsupp.sum]
+    (a * b).coeff n = ∑ i ∈ a.coeff.support, a.coeff i * b.coeff (n - i) := by
+  classical
+  simp only [AddMonoidAlgebra.coeff_mul, Finsupp.sum]
   apply Finset.sum_congr rfl
   intro i _
-  have key : ∀ x, (if i + x = n then a i * b x else 0) =
-             (if x = n - i then a i * b x else 0) := fun x => by
+  have key : ∀ x, (if i + x = n then a.coeff i * b.coeff x else 0) =
+             (if x = n - i then a.coeff i * b.coeff x else 0) := fun x => by
     by_cases h : i + x = n
     · have hx : x = n - i := by linarith
       simp [hx]
@@ -122,7 +123,7 @@ theorem laurentPoly_mul_coeff (a b : LaurentPoly K) (n : ℤ) :
       simp [h, hx]
   simp_rw [key]
   rw [Finset.sum_ite_eq']
-  by_cases h : n - i ∈ b.support
+  by_cases h : n - i ∈ b.coeff.support
   · simp [h]
   · simp only [Finsupp.mem_support_iff, not_not] at h
     simp [h]
@@ -137,7 +138,7 @@ def laurentPoly_X : LaurentPoly K := T 1
 /-- The indeterminate x has coefficient 1 at position 1 and 0 elsewhere. -/
 @[simp]
 theorem laurentPoly_X_coeff (n : ℤ) :
-    (laurentPoly_X (K := K)) n = if n = 1 then 1 else 0 := by
+    (laurentPoly_X (K := K)).coeff n = if n = 1 then 1 else 0 := by
   simp only [laurentPoly_X]
   rw [T_apply]
   by_cases h : n = 1
@@ -150,8 +151,8 @@ theorem laurentPoly_X_coeff (n : ℤ) :
 The unity is 1 = (δ_{i,0})_{i∈ℤ}, i.e., the sequence with 1 at position 0 and 0 elsewhere. -/
 @[simp]
 theorem laurentPoly_one_coeff (n : ℤ) :
-    (1 : LaurentPoly K) n = if n = 0 then 1 else 0 := by
-  show (T 0 : K[T;T⁻¹]) n = _
+    (1 : LaurentPoly K).coeff n = if n = 0 then 1 else 0 := by
+  show (T 0 : K[T;T⁻¹]).coeff n = _
   rw [T_apply]
   by_cases h : n = 0
   · simp [h]
@@ -170,16 +171,16 @@ def laurentPoly_module : Module K (LaurentPoly K) := inferInstance
 /-- Scalar multiplication on Laurent polynomials acts coefficientwise.
 (Part of Definition def.fps.laure.laupol) -/
 theorem laurentPoly_smul_coeff (c : K) (p : LaurentPoly K) (n : ℤ) :
-    (c • p) n = c * p n := rfl
+    (c • p).coeff n = c * p.coeff n := rfl
 
 /-- Addition on Laurent polynomials is coefficientwise.
 (Part of Definition def.fps.laure.laupol) -/
 theorem laurentPoly_add_coeff (p q : LaurentPoly K) (n : ℤ) :
-    (p + q) n = p n + q n :=
-  Finsupp.add_apply p q n
+    (p + q).coeff n = p.coeff n + q.coeff n :=
+  Finsupp.add_apply p.coeff q.coeff n
 
 /-- The zero Laurent polynomial has all coefficients zero. -/
-theorem laurentPoly_zero_coeff (n : ℤ) : (0 : LaurentPoly K) n = 0 :=
+theorem laurentPoly_zero_coeff (n : ℤ) : (0 : LaurentPoly K).coeff n = 0 :=
   Finsupp.zero_apply
 
 /-- **The support of a Laurent polynomial is finite**.
@@ -187,35 +188,35 @@ theorem laurentPoly_zero_coeff (n : ℤ) : (0 : LaurentPoly K) n = 0 :=
 
 This is the essential finiteness condition: only finitely many coefficients are nonzero. -/
 theorem laurentPoly_support_finite (p : LaurentPoly K) :
-    {n : ℤ | p n ≠ 0}.Finite := by
-  convert p.support.finite_toSet
+    {n : ℤ | p.coeff n ≠ 0}.Finite := by
+  convert p.coeff.support.finite_toSet
   ext n
   simp [Finsupp.mem_support_iff]
 
-/-- The support of a Laurent polynomial is exactly the Finsupp support. -/
+/-- The support of a Laurent polynomial is exactly the support of its coefficient `Finsupp`. -/
 theorem laurentPoly_support_eq (p : LaurentPoly K) :
-    {n : ℤ | p n ≠ 0} = ↑p.support := by
+    {n : ℤ | p.coeff n ≠ 0} = ↑p.coeff.support := by
   ext n
   simp [Finsupp.mem_support_iff]
 
 /-- **Construction of Laurent polynomials from finite data**.
 
 Any finitely supported function ℤ → K gives a Laurent polynomial. -/
-def laurentPoly_ofFinsupp (f : ℤ →₀ K) : LaurentPoly K := f
+def laurentPoly_ofFinsupp (f : ℤ →₀ K) : LaurentPoly K := AddMonoidAlgebra.ofCoeff f
 
 /-- The coefficients of a Laurent polynomial constructed from a finsupp are the same. -/
 theorem laurentPoly_ofFinsupp_coeff (f : ℤ →₀ K) (n : ℤ) :
-    laurentPoly_ofFinsupp f n = f n := rfl
+    (laurentPoly_ofFinsupp f).coeff n = f n := rfl
 
 /-- **Single term Laurent polynomial**.
 
 The Laurent polynomial with a single term `a · x^k` is represented as `Finsupp.single k a`. -/
-def laurentPoly_single (k : ℤ) (a : K) : LaurentPoly K := Finsupp.single k a
+def laurentPoly_single (k : ℤ) (a : K) : LaurentPoly K := AddMonoidAlgebra.single k a
 
 /-- The coefficient of a single-term Laurent polynomial. -/
 theorem laurentPoly_single_coeff (k : ℤ) (a : K) (n : ℤ) :
-    laurentPoly_single k a n = if n = k then a else 0 := by
-  simp only [laurentPoly_single, Finsupp.single_apply]
+    (laurentPoly_single k a).coeff n = if n = k then a else 0 := by
+  simp only [laurentPoly_single, AddMonoidAlgebra.coeff_single, Finsupp.single_apply]
   split_ifs with h1 h2
   · rfl
   · omega
@@ -225,28 +226,27 @@ theorem laurentPoly_single_coeff (k : ℤ) (a : K) (n : ℤ) :
 /-- A single-term Laurent polynomial equals C(a) * T(k). -/
 theorem laurentPoly_single_eq_C_mul_T (k : ℤ) (a : K) :
     laurentPoly_single k a = C a * T k := by
-  have : (Finsupp.single k a : K[T;T⁻¹]) = AddMonoidAlgebra.single k a := rfl
-  simp only [laurentPoly_single, this, single_eq_C_mul_T]
+  simp only [laurentPoly_single, single_eq_C_mul_T]
 
 /-- **Laurent polynomials are the essentially finite families**.
 
-This theorem explicitly states that Laurent polynomials (as `ℤ →₀ K`) are exactly
+This theorem explicitly states that Laurent polynomials (via `p.coeff : ℤ →₀ K`) are exactly
 the essentially finite families (aₙ)_{n∈ℤ}, formalizing Definition def.fps.laure.laupol. -/
 theorem laurentPoly_iff_essentiallyFinite (f : ℤ → K) :
-    (∃ p : LaurentPoly K, ∀ n, p n = f n) ↔ {n : ℤ | f n ≠ 0}.Finite := by
+    (∃ p : LaurentPoly K, ∀ n, p.coeff n = f n) ↔ {n : ℤ | f n ≠ 0}.Finite := by
   constructor
   · intro ⟨p, hp⟩
     have h := laurentPoly_support_finite p
-    have heq : {n : ℤ | f n ≠ 0} = {n : ℤ | p n ≠ 0} := by
+    have heq : {n : ℤ | f n ≠ 0} = {n : ℤ | p.coeff n ≠ 0} := by
       ext n
-      simp only [Set.mem_setOf_eq]
+      simp only [Set.mem_ofPred_eq]
       rw [hp n]
     rw [heq]
     exact h
   · intro hf
-    refine ⟨⟨hf.toFinset, fun n => f n, ?_⟩, fun n => rfl⟩
+    refine ⟨AddMonoidAlgebra.ofCoeff ⟨hf.toFinset, fun n => f n, ?_⟩, fun n => rfl⟩
     intro n
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, ne_eq]
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, ne_eq]
 
 end LaurentPolynomialDefinition
 
@@ -307,8 +307,8 @@ If `a = (aₙ)_{n∈ℤ}` is a Laurent polynomial, then `T · a = (aₙ₋₁)_{
 In other words, the coefficient at position `n` in `T * a` equals the coefficient
 at position `n - 1` in `a`. -/
 theorem T_mul_coeff (a : K[T;T⁻¹]) (n : ℤ) :
-    (T 1 * a : K[T;T⁻¹]) n = a (n - 1) := by
-  simp only [T, AddMonoidAlgebra.single_mul_apply, one_mul]
+    (T 1 * a : K[T;T⁻¹]).coeff n = a.coeff (n - 1) := by
+  simp only [T, AddMonoidAlgebra.coeff_single_mul_apply, one_mul]
   ring_nf
 
 /-- **Multiplication by T⁻¹ shifts coefficients up by 1**.
@@ -318,18 +318,18 @@ If `a = (aₙ)_{n∈ℤ}` is a Laurent polynomial, then `T⁻¹ · a = (aₙ₊�
 In other words, the coefficient at position `n` in `T(-1) * a` equals the coefficient
 at position `n + 1` in `a`. -/
 theorem T_neg_one_mul_coeff (a : K[T;T⁻¹]) (n : ℤ) :
-    (T (-1) * a : K[T;T⁻¹]) n = a (n + 1) := by
-  simp only [T, AddMonoidAlgebra.single_mul_apply, one_mul]
+    (T (-1) * a : K[T;T⁻¹]).coeff n = a.coeff (n + 1) := by
+  simp only [T, AddMonoidAlgebra.coeff_single_mul_apply, one_mul]
   ring_nf
 
 /-- Multiplication on the right by T also shifts coefficients. -/
 theorem mul_T_coeff (a : K[T;T⁻¹]) (n : ℤ) :
-    (a * T 1 : K[T;T⁻¹]) n = a (n - 1) := by
+    (a * T 1 : K[T;T⁻¹]).coeff n = a.coeff (n - 1) := by
   rw [mul_comm, T_mul_coeff]
 
 /-- Multiplication on the right by T⁻¹ also shifts coefficients. -/
 theorem mul_T_neg_one_coeff (a : K[T;T⁻¹]) (n : ℤ) :
-    (a * T (-1) : K[T;T⁻¹]) n = a (n + 1) := by
+    (a * T (-1) : K[T;T⁻¹]).coeff n = a.coeff (n + 1) := by
   rw [mul_comm, T_neg_one_mul_coeff]
 
 end ShiftByT
@@ -351,14 +351,14 @@ variable {K : Type*} [CommRing K]
 For each `k ∈ ℤ`, the Laurent polynomial `T(k)` has coefficient 1 at position k
 and 0 everywhere else. -/
 theorem T_coeff_eq (k : ℤ) (i : ℤ) :
-    (T k : K[T;T⁻¹]) i = if i = k then 1 else 0 := by
+    (T k : K[T;T⁻¹]).coeff i = if i = k then 1 else 0 := by
   rw [T_apply]
   by_cases h : k = i
   · simp [h]
   · simp [h, Ne.symm h]
 
 /-- `T(k)` is the Kronecker delta at k, restated. -/
-theorem T_eq_single (k : ℤ) : (T k : K[T;T⁻¹]) = Finsupp.single k 1 := rfl
+theorem T_eq_single (k : ℤ) : (T k : K[T;T⁻¹]) = AddMonoidAlgebra.single k 1 := rfl
 
 /-- The product `T(m) * T(n) = T(m + n)` follows from the group structure. -/
 theorem T_mul_T (m n : ℤ) : (T m : K[T;T⁻¹]) * T n = T (m + n) :=
@@ -404,7 +404,7 @@ theorem T_one_zpow (k : ℤ) : (↑((isUnit_T (R := K) 1).unit ^ k) : K[T;T⁻¹
 /-- Corollary: The coefficient of `x^k` at position `i` is `δᵢ,ₖ`.
 (Proposition prop.fps.laure.xk, restated in terms of coefficients) -/
 theorem T_one_zpow_coeff (k i : ℤ) :
-    ((isUnit_T (R := K) 1).unit ^ k : K[T;T⁻¹]ˣ).val i = if i = k then 1 else 0 := by
+    ((isUnit_T (R := K) 1).unit ^ k : K[T;T⁻¹]ˣ).val.coeff i = if i = k then 1 else 0 := by
   rw [T_one_zpow, T_coeff_eq]
 
 end PowersOfT
@@ -423,16 +423,16 @@ variable {K : Type*} [CommRing K]
 
 Any Laurent polynomial `a` can be written as `∑_{i ∈ support(a)} aᵢ · Tⁱ`. -/
 theorem eq_sum_T (a : K[T;T⁻¹]) :
-    a = a.support.sum fun i => C (a i) * T i := by
-  conv_lhs => rw [← Finsupp.sum_single a]
+    a = a.coeff.support.sum fun i => C (a.coeff i) * T i := by
+  conv_lhs => rw [← AddMonoidAlgebra.sum_coeff_single a]
   apply Finset.sum_congr rfl
   intro i _
-  exact single_eq_C_mul_T (a i) i
+  exact single_eq_C_mul_T (a.coeff i) i
 
 /-- Alternative form: every Laurent polynomial is a sum over its support. -/
 theorem eq_sum_single (a : K[T;T⁻¹]) :
-    a = a.support.sum fun i => Finsupp.single i (a i) :=
-  (Finsupp.sum_single a).symm
+    a = a.coeff.support.sum fun i => AddMonoidAlgebra.single i (a.coeff i) :=
+  (AddMonoidAlgebra.sum_coeff_single a).symm
 
 end Representation
 
@@ -487,7 +487,7 @@ def singleFamily (x : LaurentSeries K) : SummableFamily ℤ K x.support where
     by_cases hg : x.coeff g = 0
     · convert Set.finite_empty
       ext ⟨g', _⟩
-      simp only [Set.mem_setOf_eq, coeff_single, Set.mem_empty_iff_false, iff_false]
+      simp only [Set.mem_ofPred_eq, coeff_single, Set.mem_empty_iff_false, iff_false]
       intro h
       split_ifs at h with heq
       · subst heq
@@ -496,7 +496,7 @@ def singleFamily (x : LaurentSeries K) : SummableFamily ℤ K x.support where
     · have hg_supp : g ∈ x.support := by simpa [mem_support] using hg
       refine Set.Finite.subset (Set.finite_singleton ⟨g, hg_supp⟩) ?_
       intro ⟨g', hg'⟩ h
-      simp only [Set.mem_setOf_eq, coeff_single, ne_eq] at h
+      simp only [Set.mem_ofPred_eq, coeff_single, ne_eq] at h
       simp only [Set.mem_singleton_iff, Subtype.mk.injEq]
       split_ifs at h with heq
       · exact heq.symm
@@ -634,10 +634,10 @@ variable {K : Type*} [CommRing K]
 
 This is the inclusion `K[T;T⁻¹] → K⸨X⸩`. -/
 def laurentPolynomialToSeries (p : K[T;T⁻¹]) : LaurentSeries K where
-  coeff := p
+  coeff := p.coeff
   isPWO_support' := by
     apply Set.Finite.isPWO
-    exact Finsupp.finite_support p
+    exact Finsupp.hasFiniteSupport p.coeff
 
 /-- The embedding is additive. -/
 theorem laurentPolynomialToSeries_add (p q : K[T;T⁻¹]) :
@@ -658,10 +658,12 @@ theorem laurentPolynomialToSeries_zero :
 theorem laurentPolynomialToSeries_one :
     laurentPolynomialToSeries (1 : K[T;T⁻¹]) = 1 := by
   ext n
-  simp only [laurentPolynomialToSeries]
-  convert HahnSeries.coeff_one (Γ := ℤ) (R := K) using 1
-  simp
+  rw [HahnSeries.coeff_one]
+  show (1 : K[T;T⁻¹]).coeff n = _
+  rw [laurentPoly_one_coeff]
+  congr
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The embedding is multiplicative. -/
 theorem laurentPolynomialToSeries_mul (p q : K[T;T⁻¹]) :
     laurentPolynomialToSeries (p * q) =
@@ -670,21 +672,21 @@ theorem laurentPolynomialToSeries_mul (p q : K[T;T⁻¹]) :
   simp only [laurentPolynomialToSeries]
   rw [HahnSeries.coeff_mul]
   -- The HahnSeries antidiagonal equals the filtered product of supports
-  have hs_eq : Finset.addAntidiagonal
+  have hs_eq : Finset.antidiagonal
       (laurentPolynomialToSeries p).isPWO_support
       (laurentPolynomialToSeries q).isPWO_support n =
-      (p.support ×ˢ q.support).filter (fun ij => ij.1 + ij.2 = n) := by
+      (p.coeff.support ×ˢ q.coeff.support).filter (fun ij => ij.1 + ij.2 = n) := by
     ext ⟨i, j⟩
-    simp only [Finset.mem_addAntidiagonal, Finsupp.mem_support_iff,
+    simp only [Finset.mem_antidiagonal, Finsupp.mem_support_iff,
                Finset.mem_filter, Finset.mem_product, laurentPolynomialToSeries]
     tauto
   rw [hs_eq]
   classical
-  simp only [AddMonoidAlgebra.mul_apply, Finsupp.sum, Finset.sum_filter, Finset.sum_product]
+  simp only [AddMonoidAlgebra.coeff_mul, Finsupp.sum, Finset.sum_filter, Finset.sum_product]
 
 /-- The embedding preserves coefficients. -/
 theorem laurentPolynomialToSeries_coeff (p : K[T;T⁻¹]) (n : ℤ) :
-    (laurentPolynomialToSeries p).coeff n = p n := rfl
+    (laurentPolynomialToSeries p).coeff n = p.coeff n := rfl
 
 end LaurentPolynomialEmbedding
 
@@ -1012,7 +1014,7 @@ private lemma balanced_ternary_injective (k : ℕ) (f g : Fin (k + 1) → ℤ)
         have hj : j < n + 1 := by omega
         have : f' ⟨j, hj⟩ = g' ⟨j, hj⟩ := congrFun heq ⟨j, hj⟩
         simp only [f', g'] at this
-        convert this using 2
+        convert this using 2 <;> rfl
 
 /-- kBoundedBTValue is injective on kBoundedBTReps. -/
 theorem kBoundedBTValue_injective_on (k : ℕ) :
@@ -1075,8 +1077,8 @@ noncomputable def kBoundedToFinsupp (k : ℕ) (f : Fin (k + 1) → ℤ) : ℕ �
     (fun i hi => by
       simp only [mem_range, ne_eq] at hi ⊢
       by_contra h
-      push_neg at h
-      exact hi (dif_neg (not_lt.mpr h)))
+      push Not at h
+      exact hi (dite_eq_right (not_lt.mpr h)))
 
 theorem kBoundedToFinsupp_apply (k : ℕ) (f : Fin (k + 1) → ℤ) (i : ℕ) (hi : i < k + 1) :
     kBoundedToFinsupp k f i = f ⟨i, hi⟩ := by
@@ -1191,7 +1193,7 @@ theorem btDigits_sum_unique (f g : ℕ →₀ ℤ)
   by_contra hne
   have hdiff : ∃ i, f i ≠ g i := by
     by_contra hall
-    push_neg at hall
+    push Not at hall
     exact hne (Finsupp.ext hall)
   let S := f.support ∪ g.support
   have hf_sum : ∑ i ∈ S, f i * (3 : ℤ) ^ i = ∑ i ∈ f.support, f i * (3 : ℤ) ^ i := 
@@ -1213,7 +1215,7 @@ theorem btDigits_sum_unique (f g : ℕ →₀ ℤ)
     simp only [D, mem_filter, S, mem_union, Finsupp.mem_support_iff, ne_eq]
     constructor
     · by_contra h
-      push_neg at h
+      push Not at h
       exact hi (h.1.trans h.2.symm)
     · exact hi
   let k := D.max' hD_nonempty
@@ -1391,7 +1393,7 @@ noncomputable def BTRep.toFinsupp {n : ℤ} (r : BTRep n) : BalancedTernaryRep n
     toFun := fun i => (r.digits i).toInt
     mem_support_toFun := by
       intro i
-      simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq,
+      simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq,
                  AlgebraicCombinatorics.BalancedTernaryDigit.ne_zero_iff_toInt_ne_zero, ne_eq]
   }
   digits_range := fun i => BTDigit.toInt_mem_btDigits _
@@ -1402,7 +1404,7 @@ noncomputable def BTRep.toFinsupp {n : ℤ} (r : BTRep n) : BalancedTernaryRep n
     · convert h using 1
     · intro i hi
       simp only [Function.mem_support, ne_eq] at hi
-      simp only [Set.Finite.coe_toFinset, Set.mem_setOf_eq]
+      simp only [Set.Finite.coe_toFinset, Set.mem_ofPred_eq]
       intro heq
       apply hi
       simp only [heq, AlgebraicCombinatorics.BalancedTernaryDigit.toInt_zero, zero_mul]
@@ -1414,7 +1416,7 @@ noncomputable def BalancedTernaryRep.toInductive {n : ℤ} (r : BalancedTernaryR
   finite_support := by
     have h : {i | btDigitOfInt (r.digits i) ≠ 0} ⊆ r.digits.support := by
       intro i hi
-      simp only [Set.mem_setOf_eq] at hi
+      simp only [Set.mem_ofPred_eq] at hi
       simp only [Finset.mem_coe, Finsupp.mem_support_iff]
       rw [btDigitOfInt_ne_zero_iff _ (r.digits_range i)] at hi
       exact hi

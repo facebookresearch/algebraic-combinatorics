@@ -180,7 +180,7 @@ theorem coeff_C_fps (n : ℕ) (a : R) :
 theorem coeff_zero_mul_fps (f g : R⟦X⟧) :
     coeff 0 (f * g) = coeff 0 f * coeff 0 g := by
   rw [coeff_mul_fps]
-  simp [antidiagonal_zero]
+  simp
 
 /-!
 ## Ring Structure (Theorem thm.fps.ring)
@@ -260,14 +260,14 @@ theorem mul_X_shift (f : R⟦X⟧) (n : ℕ) :
 theorem X_mul_coeff_zero (f : R⟦X⟧) :
     coeff 0 (X * f) = 0 := by
   rw [coeff_mul_fps]
-  simp [antidiagonal_zero]
+  simp
 
 /-- The constant term of f * X is 0 -/
 @[simp]
 theorem mul_X_coeff_zero (f : R⟦X⟧) :
     coeff 0 (f * X) = 0 := by
   rw [coeff_mul_fps]
-  simp [antidiagonal_zero]
+  simp
 
 /-- Complete characterization of multiplication by X (Lemma lem.fps.xa, unified form)
 
@@ -425,9 +425,9 @@ theorem summableFPS_add {ι : Type*} {f g : ι → R⟦X⟧}
   intro n
   have h : {i | coeff n (f i + g i) ≠ 0} ⊆ {i | coeff n (f i) ≠ 0} ∪ {i | coeff n (g i) ≠ 0} := by
     intro i hi
-    simp only [Set.mem_setOf_eq, map_add, Set.mem_union] at *
+    simp only [Set.mem_ofPred_eq, map_add, Set.mem_union] at *
     by_contra h
-    push_neg at h
+    push Not at h
     simp [h.1, h.2] at hi
   exact Set.Finite.subset (Set.Finite.union (hf n) (hg n)) h
 
@@ -437,7 +437,7 @@ theorem summableFPS_neg {ι : Type*} {f : ι → R⟦X⟧}
   intro n
   have h : {i | coeff n (-f i) ≠ 0} = {i | coeff n (f i) ≠ 0} := by
     ext i
-    simp only [Set.mem_setOf_eq, map_neg, neg_ne_zero]
+    simp only [Set.mem_ofPred_eq, map_neg, neg_ne_zero]
   rw [h]
   exact hf n
 
@@ -453,7 +453,7 @@ theorem summableFPS_smul {ι : Type*} {f : ι → R⟦X⟧} (c : R)
   intro n
   have h : {i | coeff n (c • f i) ≠ 0} ⊆ {i | coeff n (f i) ≠ 0} := by
     intro i hi
-    simp only [Set.mem_setOf_eq] at hi ⊢
+    simp only [Set.mem_ofPred_eq] at hi ⊢
     intro hfi
     simp [hfi] at hi
   exact Set.Finite.subset (hf n) h
@@ -475,7 +475,7 @@ theorem summableFPS_monomial_family (a : ℕ → R) :
   have h : {n | coeff m (C (a n) * (X : R⟦X⟧) ^ n) ≠ 0} ⊆ {m} := by
     intro n hn
     simp only [Set.mem_singleton_iff]
-    simp only [coeff_C_mul, coeff_X_pow, mul_ite, mul_one, mul_zero, Set.mem_setOf_eq] at hn
+    simp only [coeff_C_mul, coeff_X_pow, mul_ite, mul_one, mul_zero, Set.mem_ofPred_eq] at hn
     by_contra hne
     have : m ≠ n := fun h => hne h.symm
     simp [this] at hn
@@ -589,6 +589,7 @@ noncomputable def essFinSum {ι : Type*} (f : ι → R) (hf : EssentiallyFinite 
 theorem essFinSum_eq_finset_sum {ι : Type*} (f : ι → R) (hf : EssentiallyFinite f) :
     essFinSum f hf = ∑ i ∈ hf.toFinset, f i := rfl
 
+set_option backward.isDefEq.respectTransparency false in
 /-- If a family has finite support contained in a finset S, the essentially finite sum
     equals the sum over S -/
 theorem essFinSum_eq_sum_of_support_subset {ι : Type*} (f : ι → R) (hf : EssentiallyFinite f)
@@ -610,6 +611,7 @@ theorem essFinSum_eq_zero_of_forall_zero {ι : Type*} {f : ι → R} (hf : Essen
     (h : ∀ i, f i = 0) : essFinSum f hf = 0 := by
   simp [essFinSum, h]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The essentially finite sum can be computed using any finset containing the support -/
 theorem essFinSum_eq_sum_finset {ι : Type*} (f : ι → R) (hf : EssentiallyFinite f)
     (S : Finset ι) (hS : ∀ i, f i ≠ 0 → i ∈ S) :
@@ -636,12 +638,14 @@ noncomputable def essentiallyFiniteToFinsupp {ι : Type*} (f : ι → R) (hf : E
 theorem essentiallyFiniteToFinsupp_apply {ι : Type*} (f : ι → R) (hf : EssentiallyFinite f) (i : ι) :
     essentiallyFiniteToFinsupp f hf i = f i := rfl
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The essentially finite sum equals the Finsupp sum -/
 theorem essFinSum_eq_finsupp_sum {ι : Type*} (f : ι → R) (hf : EssentiallyFinite f) :
     essFinSum f hf = (essentiallyFiniteToFinsupp f hf).sum (fun _ r => r) := by
   simp only [essFinSum, essentiallyFiniteToFinsupp, Finsupp.ofSupportFinite,
              Finsupp.sum, Finsupp.coe_mk]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Additivity: the essentially finite sum of a sum is the sum of essentially finite sums -/
 theorem essFinSum_add {ι : Type*} [DecidableEq ι] {f g : ι → R}
     (hf : EssentiallyFinite f) (hg : EssentiallyFinite g)
@@ -656,7 +660,7 @@ theorem essFinSum_add {ι : Type*} [DecidableEq ι] {f g : ι → R}
     simp only [Set.Finite.mem_toFinset, Function.mem_support] at hx
     simp only [S, Finset.mem_union, Set.Finite.mem_toFinset, Function.mem_support]
     by_contra h
-    push_neg at h
+    push Not at h
     simp [h.1, h.2] at hx
   calc essFinSum (fun i => f i + g i) hfg
       = ∑ i ∈ S, (f i + g i) := by
@@ -678,6 +682,7 @@ theorem essFinSum_add {ι : Type*} [DecidableEq ι] {f g : ι → R}
             simp only [Set.Finite.mem_toFinset, Function.mem_support, not_not] at hx
             exact hx
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Scalar multiplication: c * (∑ aᵢ) = ∑ (c * aᵢ) -/
 theorem essFinSum_smul {ι : Type*} {f : ι → R} (c : R) (hf : EssentiallyFinite f)
     (hcf : EssentiallyFinite (fun i => c * f i)) :

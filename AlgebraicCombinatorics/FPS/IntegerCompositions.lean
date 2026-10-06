@@ -100,11 +100,13 @@ lemma len_nil : len ([] : Composition) = 0 := rfl
 @[simp]
 lemma size_cons (a : ℕ+) (α : Composition) : size (a :: α) = a.val + size α := rfl
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The length of a cons composition is the tail length plus 1. -/
 @[simp]
 lemma len_cons (a : ℕ+) (α : Composition) : len (a :: α) = len α + 1 := by
   simp only [len, List.length_cons]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The size of a composition is at least its length, since each part is positive. -/
 theorem size_ge_len (α : Composition) : α.len ≤ α.size := by
   induction α with
@@ -135,6 +137,7 @@ def append (α β : Composition) : Composition := List.append α β
 
 instance : Append Composition := ⟨append⟩
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The size of the concatenation of two compositions equals the sum of their sizes. -/
 @[simp]
 theorem size_append (α β : Composition) : (α ++ β).size = α.size + β.size := by
@@ -143,6 +146,7 @@ theorem size_append (α β : Composition) : (α ++ β).size = α.size + β.size 
   conv_lhs => rw [show List.append α β = (α : List ℕ+) ++ β from rfl]
   rw [List.map_append, List.sum_append]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The length of the concatenation of two compositions equals the sum of their lengths. -/
 @[simp]
 theorem len_append (α β : Composition) : (α ++ β).len = α.len + β.len := by
@@ -185,6 +189,7 @@ def toBlocks (α : Composition) : List ℕ := α.map (·.val)
 def ofBlocks (blocks : List ℕ) (hpos : ∀ {i}, i ∈ blocks → 0 < i) : Composition :=
   blocks.pmap (fun i (hi : 0 < i) => ⟨i, hi⟩) (fun _ ha => hpos ha)
 
+set_option backward.isDefEq.respectTransparency false in
 theorem toBlocks_ofBlocks (blocks : List ℕ) (hpos : ∀ {i}, i ∈ blocks → 0 < i) :
     toBlocks (ofBlocks blocks hpos) = blocks := by
   simp only [toBlocks, ofBlocks]
@@ -195,6 +200,7 @@ theorem toBlocks_ofBlocks (blocks : List ℕ) (hpos : ∀ {i}, i ∈ blocks → 
     congr 1
     exact ih (fun hi => hpos (List.mem_cons_of_mem x hi))
 
+set_option backward.isDefEq.respectTransparency false in
 theorem ofBlocks_toBlocks (α : Composition) :
     ofBlocks (toBlocks α) (fun hi => by
       simp only [toBlocks, List.mem_map] at hi
@@ -210,9 +216,11 @@ theorem ofBlocks_toBlocks (α : Composition) :
 
 theorem size_eq_sum_toBlocks (α : Composition) : α.size = (toBlocks α).sum := rfl
 
+set_option backward.isDefEq.respectTransparency false in
 theorem len_eq_toBlocks_length (α : Composition) : α.len = (toBlocks α).length := by
   simp [len, toBlocks]
 
+set_option backward.isDefEq.respectTransparency false in
 /--
 Equivalence between our `Composition.ofSize n` and Mathlib's `Composition n`.
 This allows us to use Mathlib's `composition_card` theorem.
@@ -237,6 +245,7 @@ def equivMathlib (n : ℕ) : Composition.ofSize n ≃ _root_.Composition n where
     simp only [_root_.Composition.ext_iff]
     exact toBlocks_ofBlocks c.blocks c.blocks_pos
 
+set_option backward.isDefEq.respectTransparency false in
 /--
 Equivalence between `Composition.ofSizeIntoParts n k` and the filtered set of Mathlib compositions
 of `n` with length `k`.
@@ -251,7 +260,7 @@ def equivMathlibFiltered (n k : ℕ) :
       exact x.2
     blocks_sum := hα.1
   }, by
-    simp only [Set.mem_setOf_eq, _root_.Composition.length]
+    simp only [Set.mem_ofPred_eq, _root_.Composition.length]
     rw [← len_eq_toBlocks_length]
     exact hα.2⟩
   invFun := fun ⟨c, hc⟩ => ⟨ofBlocks c.blocks c.blocks_pos, by
@@ -371,7 +380,7 @@ lemma compositionAsSetEquiv_card_eq_length_sub_one (n : ℕ) (hn : 0 < n)
         omega
       have hval : x.val - 1 < n - 1 := by omega
       refine ⟨⟨x.val - 1, hval⟩, ?_, ?_⟩
-      · simp only [Set.mem_toFinset, Set.mem_setOf_eq]
+      · simp only [Set.mem_toFinset, Set.mem_ofPred_eq]
         convert hx_mem using 2
         omega
       · simp only [Fin.ext_iff]
@@ -433,7 +442,7 @@ theorem card_compositions_of_length (n k : ℕ) (hn : 0 < n) (hk : 0 < k) :
       have heq : (compositionToFinset n) ((compositionToFinset n).symm s) = s :=
         Equiv.apply_symm_apply _ _
       rw [heq] at h
-      simp only [Set.mem_setOf_eq] at hs
+      simp only [Set.mem_ofPred_eq] at hs
       rw [hs] at h
       have hc : ((compositionToFinset n).symm s).length = k := by omega
       exact ⟨⟨(compositionToFinset n).symm s, hc⟩, by simp [f]⟩
@@ -599,6 +608,7 @@ lemma len_nil : len ([] : WeakComposition) = 0 := rfl
 @[simp]
 lemma size_cons (a : ℕ) (α : WeakComposition) : size (a :: α) = a + size α := rfl
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The length of a cons weak composition is the tail length plus 1. -/
 @[simp]
 lemma len_cons (a : ℕ) (α : WeakComposition) : len (a :: α) = len α + 1 := by
@@ -765,6 +775,7 @@ lemma ofFun_toFun (α : WeakComposition) (k : ℕ) (hlen : α.len = k) :
     simp only [List.get_ofFn]
     rfl
 
+set_option backward.isDefEq.respectTransparency false in
 /--
 The two representations (list-based and function-based) are equivalent.
 The forward direction converts a list `[a₀, a₁, ..., aₖ₋₁]` to the function `i ↦ aᵢ`.
@@ -859,6 +870,7 @@ private lemma sum_map_sub_one (lst : List ℕ+) :
     have ht_sum_ge : (t.map (·.val)).sum ≥ t.length := pnat_list_sum_ge_length t
     omega
 
+set_option backward.isDefEq.respectTransparency false in
 /--
 Bijection between weak compositions of `n` into `k` parts and compositions of `n+k` into `k` parts.
 Adding 1 to each entry of a weak composition gives a composition.
@@ -1117,7 +1129,7 @@ lemma coeff_genFun (n k p : ℕ) :
     intro l
     split_ifs with h
     · exact prod_eq_one (fun i hi => by simp [h i hi])
-    · push_neg at h
+    · push Not at h
       obtain ⟨i, hi, hli⟩ := h
       exact prod_eq_zero hi (by simp [hli])
   simp_rw [h_prod]
@@ -1197,7 +1209,7 @@ lemma coeff_genFun_formula (n k p : ℕ) :
     simp only [Nat.add_zero]
     by_cases hn : n = 0
     · simp [hn]
-    · simp only [hn, if_false]
+    · simp only [hn, ite_false]
       have : n - 1 < n := Nat.sub_lt (Nat.pos_of_ne_zero hn) Nat.one_pos
       simp [Nat.choose_eq_zero_of_lt this]
   -- Now k > 0

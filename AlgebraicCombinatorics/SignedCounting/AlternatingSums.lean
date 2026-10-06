@@ -596,7 +596,7 @@ theorem pow_mod_primitiveRoot {K : Type*} [CommRing K] {ω : K} {d : ℕ}
 
 /-- q-binomial at q=1 gives ordinary binomial coefficient -/
 theorem qBinomial_eval_one (n k : ℕ) : (qBinomial n k).eval 1 = n.choose k := by
-  simp only [qBinomial, Polynomial.eval_finset_sum, Polynomial.eval_pow, Polynomial.eval_X, one_pow]
+  simp only [qBinomial, Polynomial.eval_finsetSum, Polynomial.eval_pow, Polynomial.eval_X, one_pow]
   -- Each term evaluates to 1, so we're counting the number of terms
   simp only [sum_const]
   -- The number of k-element subsets of {0,...,n-1} is n.choose k
@@ -676,7 +676,7 @@ private lemma orderEmbOfFin_le_sub_card_add {S : Finset ℕ} {n k : ℕ}
       _ = n := Finset.card_range n
   have hk_pos : 0 < k := Fin.pos i
   by_contra h
-  push_neg at h
+  push Not at h
   set T : Finset ℕ := (Finset.univ : Finset (Fin k)).filter (fun j => i ≤ j) |>.image (S.orderEmbOfFin hcard) with hT_def
   have hT_card : T.card = k - i := by
     rw [hT_def, Finset.card_image_of_injective _ (S.orderEmbOfFin hcard).injective]
@@ -829,7 +829,6 @@ theorem qBinomial_eq_canonical (n k : ℕ) :
           exact ⟨x, rfl⟩
         · exact hg_strictMono
       have := congr_fun heq i
-      simp only at this
       have hge := orderEmbOfFin_ge_index hScard i
       omega
     · -- Exponents match
@@ -864,7 +863,7 @@ theorem qBinomial_eq_canonical (n k : ℕ) :
         omega
       rw [h4]
   · -- Case k > n: both sides are 0
-    push_neg at hkn
+    push Not at hkn
     simp only [↓reduceIte, not_le.mpr hkn]
     rw [← Finset.powersetCard_eq_filter]
     apply Finset.sum_eq_zero
@@ -986,7 +985,7 @@ lemma orbit_sum_eq_zero {K : Type*} [Field K] {ω : K} {d : ℕ}
     rw [mul_comm, Nat.div_mul_cancel hgcd_dvd]
   have hm_gt_one : 1 < m := by
     by_contra hle
-    push_neg at hle
+    push Not at hle
     have : m = 0 ∨ m = 1 := by omega
     rcases this with hm0 | hm1
     · omega
@@ -1199,7 +1198,7 @@ private lemma nonBlocky_has_split_block {d n : ℕ} {S : Finset ℕ}
     simp only [blockOffsets, mem_filter, mem_range]
     exact ⟨hj2_lt, not_not.mp hj2_in⟩
   · by_contra hge
-    push_neg at hge
+    push Not at hge
     have hfull : (blockOffsets d i S).card = d := by
       have hsub : blockOffsets d i S ⊆ Finset.range d := by
         intro x hx
@@ -1263,7 +1262,7 @@ lemma rotateInBlock_injective (d : ℕ) (i : ℕ) (hd : 0 < d) :
 private lemma rotateInBlock_outside (d : ℕ) (i : ℕ) (x : ℕ)
     (hx : ¬(i * d ≤ x ∧ x < (i + 1) * d)) :
     rotateInBlock d i x = x := by
-  simp only [rotateInBlock, if_neg hx]
+  simp only [rotateInBlock, ite_eq_right hx]
 
 /-- For ω^a = ω^b when ω is primitive d-th root and a ≡ b (mod d). -/
 private lemma pow_eq_of_diff_mod {K : Type*} [Field K] {ω : K} {d : ℕ}
@@ -1281,7 +1280,7 @@ More precisely: rotateInBlock d i x ≡ x + 1 (mod d) -/
 private lemma rotateInBlock_mod (d : ℕ) (i : ℕ) (x : ℕ) (_hd : 0 < d)
     (hx : i * d ≤ x ∧ x < (i + 1) * d) :
     (rotateInBlock d i x) % d = (x + 1) % d := by
-  simp only [rotateInBlock, if_pos hx]
+  simp only [rotateInBlock, ite_eq_left hx]
   have hoff : x - i * d < d := Nat.sub_lt_left_of_lt_add hx.1 (by linarith [hx.2])
   have hdvd : d ∣ i * d := by rw [mul_comm]; exact dvd_mul_right d i
   have h1 : (i * d + (x - i * d + 1) % d) % d = (x - i * d + 1) % d := by
@@ -1359,7 +1358,7 @@ private lemma sum_eq_inBlock_add_outBlock (d i : ℕ) (S : Finset ℕ) :
 private lemma rotateInBlock_inside (d : ℕ) (i : ℕ) (x : ℕ)
     (hx : i * d ≤ x ∧ x < (i + 1) * d) :
     rotateInBlock d i x = i * d + (x - i * d + 1) % d := by
-  simp only [rotateInBlock, if_pos hx]
+  simp only [rotateInBlock, ite_eq_left hx]
 
 /-- Sum over rotated set equals sum with rotateInBlock -/
 private lemma rotateSetInBlock_sum_eq (d i : ℕ) (hd : 0 < d) (S : Finset ℕ) :
@@ -1462,7 +1461,7 @@ private lemma blockOffsets_rotateSetInBlock (d i : ℕ) (hd : 0 < d) (S : Finset
   have hinj : Set.InjOn (rotateInBlock d i)
       (S.filter (fun x => i * d ≤ x ∧ x < (i + 1) * d) : Set ℕ) := by
     intro x hx y hy hxy
-    simp only [coe_filter, Set.mem_setOf_eq] at hx hy
+    simp only [coe_filter, Set.mem_ofPred_eq] at hx hy
     exact rotateInBlock_injective d i hd hxy
   exact Finset.card_image_of_injOn hinj
 
@@ -1492,7 +1491,7 @@ private lemma blockOffsets_rotateSetInBlock_other (d i j : ℕ) (hij : j ≠ i) 
           have hoff_lt_d : off < d := hoff_lt
           have h5 : i ≤ j := by
             by_contra hcontra
-            push_neg at hcontra
+            push Not at hcontra
             have : j + 1 ≤ i := hcontra
             have : (j + 1) * d ≤ i * d := Nat.mul_le_mul_right d this
             have : j * d + d ≤ i * d := by ring_nf at this ⊢; exact this
@@ -1500,7 +1499,7 @@ private lemma blockOffsets_rotateSetInBlock_other (d i j : ℕ) (hij : j ≠ i) 
             omega
           have h6 : j ≤ i := by
             by_contra hcontra
-            push_neg at hcontra
+            push Not at hcontra
             have : i + 1 ≤ j := hcontra
             have : (i + 1) * d ≤ j * d := Nat.mul_le_mul_right d this
             omega
@@ -1512,7 +1511,7 @@ private lemma blockOffsets_rotateSetInBlock_other (d i j : ℕ) (hij : j ≠ i) 
       · rw [hx_eq] at hxS; exact hxS
       · exfalso
         by_cases hx_in_block : i * d ≤ x ∧ x < (i + 1) * d
-        · simp only [rotateInBlock, if_pos hx_in_block] at hxy
+        · simp only [rotateInBlock, ite_eq_left hx_in_block] at hxy
           have hmod_lt : (x - i * d + 1) % d < d := by
             cases d with
             | zero => simp at hx_in_block
@@ -1547,7 +1546,7 @@ private lemma blockOffsets_rotateSetInBlock_other (d i j : ℕ) (hij : j ≠ i) 
           have hoff_lt_d : off < d := hoff_lt
           have h5 : i ≤ j := by
             by_contra hcontra
-            push_neg at hcontra
+            push Not at hcontra
             have : j + 1 ≤ i := hcontra
             have : (j + 1) * d ≤ i * d := Nat.mul_le_mul_right d this
             have : j * d + d ≤ i * d := by ring_nf at this ⊢; exact this
@@ -1555,7 +1554,7 @@ private lemma blockOffsets_rotateSetInBlock_other (d i j : ℕ) (hij : j ≠ i) 
             omega
           have h6 : j ≤ i := by
             by_contra hcontra
-            push_neg at hcontra
+            push Not at hcontra
             have : i + 1 ≤ j := hcontra
             have : (i + 1) * d ≤ j * d := Nat.mul_le_mul_right d this
             omega
@@ -1856,7 +1855,7 @@ lemma rotateInBlock_iterate_d (d i x : ℕ) (hd : 0 < d) :
           · exact Nat.le_add_right _ _
           · calc i * d + (x - i * d + k) % d < i * d + d := by omega
               _ = (i + 1) * d := by ring
-        simp only [if_pos hin_block]
+        simp only [ite_eq_left hin_block]
         congr 1
         have hsub : i * d + (x - i * d + k) % d - i * d = (x - i * d + k) % d := by omega
         rw [hsub]
@@ -1880,7 +1879,7 @@ lemma rotateInBlock_iterate_d (d i x : ℕ) (hd : 0 < d) :
       | zero => rfl
       | succ k ih =>
         simp only [Function.iterate_succ', Function.comp_apply, ih]
-        simp only [rotateInBlock, if_neg hblock]
+        simp only [rotateInBlock, ite_eq_right hblock]
     exact h d
 
 /-- Rotating a set d times returns to identity -/
@@ -2071,21 +2070,21 @@ lemma rotateSetInBlockK_fiber_card_uniform (d i : ℕ) (hd : 0 < d) (S : Finset 
       rw [h3, h4] at heq
       by_cases hcase1 : k1 + (d - j) < d <;> by_cases hcase2 : k2 + (d - j) < d
       · simp only [Nat.mod_eq_of_lt hcase1, Nat.mod_eq_of_lt hcase2] at heq; omega
-      · push_neg at hcase2
+      · push Not at hcase2
         simp only [Nat.mod_eq_of_lt hcase1] at heq
         have h5 : (k2 + (d - j)) % d = k2 - j := by
           have : k2 + (d - j) = d + (k2 - j) := by omega
           rw [this, Nat.add_mod, Nat.mod_self, zero_add, Nat.mod_mod]
           exact Nat.mod_eq_of_lt (by omega : k2 - j < d)
         rw [h5] at heq; omega
-      · push_neg at hcase1
+      · push Not at hcase1
         simp only [Nat.mod_eq_of_lt hcase2] at heq
         have h5 : (k1 + (d - j)) % d = k1 - j := by
           have : k1 + (d - j) = d + (k1 - j) := by omega
           rw [this, Nat.add_mod, Nat.mod_self, zero_add, Nat.mod_mod]
           exact Nat.mod_eq_of_lt (by omega : k1 - j < d)
         rw [h5] at heq; omega
-      · push_neg at hcase1 hcase2
+      · push Not at hcase1 hcase2
         have h5 : (k1 + (d - j)) % d = k1 - j := by
           have : k1 + (d - j) = d + (k1 - j) := by omega
           rw [this, Nat.add_mod, Nat.mod_self, zero_add, Nat.mod_mod]
@@ -2107,7 +2106,7 @@ lemma rotateSetInBlockK_fiber_card_uniform (d i : ℕ) (hd : 0 < d) (S : Finset 
           have h1 : m + j + d - j = m + d := by omega
           rw [h1, Nat.add_mod, Nat.mod_self, add_zero, Nat.mod_mod]
           exact Nat.mod_eq_of_lt hm_lt
-        · push_neg at hcase
+        · push Not at hcase
           have h1 : (m + j) % d = m + j - d := by
             rw [Nat.mod_eq_sub_mod hcase, Nat.mod_eq_of_lt (by omega)]
           rw [h1]
@@ -2596,7 +2595,7 @@ theorem nonBlocky_contributions_cancel {K : Type*} [Field K] {ω : K} {d : ℕ}
       · intro hS; simp only [mem_filter] at hS; exact absurd (hall_blocky S hS.1) hS.2
       · intro hS; simp at hS
     rw [hempty, sum_empty]
-  push_neg at hnd
+  push Not at hnd
   -- Case 2: n ≥ d - the main case using d-cycle cancellation
   --
   -- Proof outline:
@@ -2933,12 +2932,11 @@ private lemma componentsToSubset_isBlocky (d n : ℕ) (hd : 0 < d)
     intro j hj
     simp only [componentsToSubset, Finset.mem_union, Finset.mem_biUnion, Finset.mem_image,
                Finset.mem_range]
-    push_neg
+    push Not
     constructor
     · intro i' hi' j' hj' heq
       have h1 : i' = i := by
         have h := congrArg (· / d) heq
-        simp only at h
         rw [mul_div_add_mod' i' j' d hd hj', mul_div_add_mod' i j d hd hj] at h
         exact h
       rw [h1] at hi'
@@ -3290,7 +3288,7 @@ theorem blocky_subsets_count (d n k : ℕ) (hd : 0 < d) :
             · exact ⟨x / d, ⟨hi_lt, hall⟩, x % d, hj_lt, hx_eq.symm⟩
             · exfalso; have := hnone (x % d) hj_lt; rw [← hx_eq] at this; exact this hxS
           · right
-            push_neg at hx_complete
+            push Not at hx_complete
             have hn_eq : n = (n / d) * d + n % d := div_mod_eq' n d hd
             use x - (n / d) * d
             refine ⟨⟨by omega, ?_⟩, by omega⟩
@@ -3709,7 +3707,7 @@ theorem blocky_sum_eq {K : Type*} [Field K] {ω : K} {d : ℕ}
             · exact ⟨x / d, ⟨hi_lt, hall⟩, x % d, hj_lt, hx_eq.symm⟩
             · exfalso; have := hnone (x % d) hj_lt; rw [← hx_eq] at this; exact this hxS
           · right
-            push_neg at hx_complete
+            push Not at hx_complete
             have hn_eq : n = (n / d) * d + n % d := div_mod_eq' n d hd
             use x - (n / d) * d
             refine ⟨⟨by omega, ?_⟩, by omega⟩
@@ -3783,7 +3781,7 @@ theorem blocky_sum_eq {K : Type*} [Field K] {ω : K} {d : ℕ}
               · exact ⟨x / d, ⟨hi_lt, hall⟩, x % d, hj_lt, hx_eq.symm⟩
               · exfalso; have := hnone (x % d) hj_lt; rw [← hx_eq] at this; exact this hxS
             · right
-              push_neg at hx_complete
+              push Not at hx_complete
               have hn_eq : n = (n / d) * d + n % d := div_mod_eq' n d hd
               use x - (n / d) * d
               refine ⟨⟨by omega, ?_⟩, by omega⟩
@@ -3855,7 +3853,7 @@ theorem blocky_sum_eq {K : Type*} [Field K] {ω : K} {d : ℕ}
           have h1 : (ω ^ c.toNat) ^ d = 1 := by
             rw [← pow_mul, mul_comm, pow_mul, hω_d, one_pow]
           rw [h1, one_mul]
-        · push_neg at hc_pos
+        · push Not at hc_pos
           have hba : b = a + (-c).toNat * d := by
             have : (b : ℤ) = a + (-c) * d := by linarith
             have hc_nat : -c = (-c).toNat := (Int.toNat_of_nonneg (by linarith : -c ≥ 0)).symm
@@ -4106,7 +4104,7 @@ theorem blocky_sum_eq {K : Type*} [Field K] {ω : K} {d : ℕ}
       -- If powersetCard (k/d) (range (n/d)) is empty, then k/d > n/d
       have hkd_gt : k / d > n / d := by
         by_contra h
-        push_neg at h
+        push Not at h
         have : ((Finset.range (n / d)).powersetCard (k / d)).Nonempty := by
           rw [Finset.powersetCard_nonempty]
           simp only [Finset.card_range]
@@ -4115,7 +4113,7 @@ theorem blocky_sum_eq {K : Type*} [Field K] {ω : K} {d : ℕ}
       simp only [Nat.choose_eq_zero_of_lt hkd_gt, Nat.cast_zero, zero_mul]
 
   · -- Case k % d > n % d: no blocky subsets
-    push_neg at hmod
+    push Not at hmod
     have hempty : blockySubsets d n k = ∅ := blockySubsets_empty_of_gt d n k hd hmod
     rw [hempty, Finset.sum_empty]
     have hqbin : qBinomial (n % d) (k % d) = 0 := by
@@ -4192,11 +4190,11 @@ theorem qLucas {K : Type*} [Field K] (d : ℕ) (hd : 0 < d) (ω : K)
       simp only [hqbin, map_zero]
       by_cases hkd : k / d > n / d
       · simp only [Nat.choose_eq_zero_of_lt hkd, Nat.cast_zero, zero_mul]
-      · push_neg at hkd
+      · push Not at hkd
         have hmod : k % d > n % d := by
           have h1 : d * (n / d) + n % d = n := Nat.div_add_mod n d
           have h2 : d * (k / d) + k % d = k := Nat.div_add_mod k d
-          by_contra h; push_neg at h
+          by_contra h; push Not at h
           have : k ≤ n := by nlinarith
           omega
         have hqbin2 : qBinomial (n % d) (k % d) = 0 := by
@@ -4209,7 +4207,7 @@ theorem qLucas {K : Type*} [Field K] (d : ℕ) (hd : 0 < d) (ω : K)
           omega
         simp only [hqbin2, map_zero, mul_zero]
     · -- k ≤ n
-      push_neg at hnk
+      push Not at hnk
       -- Case n < d: then n / d = 0, n % d = n
       by_cases hnd : n < d
       · have hn_div : n / d = 0 := Nat.div_eq_of_lt hnd
@@ -4220,12 +4218,12 @@ theorem qLucas {K : Type*} [Field K] (d : ℕ) (hd : 0 < d) (ω : K)
           have hk_mod : k % d = k := Nat.mod_eq_of_lt hkd
           rw [hk_div, hk_mod]
           simp only [Nat.choose_zero_right, Nat.cast_one, one_mul]
-        · push_neg at hkd
+        · push Not at hkd
           -- Since k ≥ d > n and k ≤ n, we have a contradiction
           have : n < k := Nat.lt_of_lt_of_le hnd hkd
           omega
       · -- n ≥ d: the main case requiring d-cycle argument
-        push_neg at hnd
+        push Not at hnd
         -- The proof structure is:
         -- 1. Split the sum over k-subsets into blocky and non-blocky parts
         -- 2. Non-blocky contributions cancel (by nonBlocky_contributions_cancel)
@@ -4383,7 +4381,7 @@ theorem qBinom_neg_one (n k : ℕ) :
       sum_empty, ite_true, sum_singleton, Nat.sub_zero, pow_zero,
       Polynomial.eval_one]
   have h01 : (qBinomial 0 1).eval (-1) = 0 := by
-    simp only [qBinomial, Polynomial.eval_finset_sum]
+    simp only [qBinomial, Polynomial.eval_finsetSum]
     apply sum_eq_zero
     intro S hS
     simp only [mem_filter, mem_powerset] at hS
@@ -4391,13 +4389,13 @@ theorem qBinom_neg_one (n k : ℕ) :
     simp only [card_range] at this
     omega
   have h10 : (qBinomial 1 0).eval (-1) = 1 := by
-    simp only [qBinomial, Polynomial.eval_finset_sum, Polynomial.eval_X_pow]
+    simp only [qBinomial, Polynomial.eval_finsetSum, Polynomial.eval_X_pow]
     have h : (range 1).powerset.filter (fun S => S.card = 0) = {∅} := by
       ext S; simp only [mem_filter, mem_powerset, mem_singleton, card_eq_zero]
       constructor; intro ⟨_, h2⟩; exact h2; intro h; simp [h]
     rw [h, sum_singleton]; simp
   have h11 : (qBinomial 1 1).eval (-1) = 1 := by
-    simp only [qBinomial, Polynomial.eval_finset_sum, Polynomial.eval_X_pow]
+    simp only [qBinomial, Polynomial.eval_finsetSum, Polynomial.eval_X_pow]
     have h : (range 1).powerset.filter (fun S => S.card = 1) = {{0}} := by
       ext S; simp only [mem_filter, mem_powerset, mem_singleton]
       constructor
@@ -4458,7 +4456,7 @@ theorem qBinom_neg_one (n k : ℕ) :
   · obtain ⟨hn0, hk1⟩ := h
     simp only [hn0, hk1, and_self, ↓reduceIte, mul_zero]
     rfl
-  · push_neg at h
+  · push Not at h
     have hn2 : n % 2 < 2 := Nat.mod_lt n (by norm_num)
     have hk2 : k % 2 < 2 := Nat.mod_lt k (by norm_num)
     by_cases hn0 : n % 2 = 0
@@ -4489,7 +4487,7 @@ theorem acceptable_nonAcceptablePartner_iff (n m : ℕ) (hn : 0 < n) (I : Finset
     intro hpartner
     -- By contrapositive: if 0 ∈ I or I.card < m, then partner I ∈ acceptableSets n m
     by_contra h
-    push_neg at h
+    push Not at h
     apply hpartner
     constructor
     · -- partner I ⊆ range n

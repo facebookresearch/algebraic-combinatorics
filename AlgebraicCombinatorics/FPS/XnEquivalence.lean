@@ -139,7 +139,7 @@ theorem XnEquiv.mul {n : ℕ} {a b c d : R⟦X⟧} (hab : XnEquiv n a b) (hcd : 
   simp only [coeff_mul]
   apply Finset.sum_congr rfl
   intro ⟨i, j⟩ hij
-  simp only [mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   have hi : i ≤ n := by omega
   have hj : j ≤ n := by omega
   rw [hab i hi, hcd j hj]
@@ -181,7 +181,7 @@ theorem XnEquiv.invOfUnit {R : Type*} [CommRing R] {n : ℕ} {a b : R⟦X⟧}
       · simp only [huab_inv]
       · apply Finset.sum_congr rfl
         intro ⟨i, j⟩ hij
-        simp only [mem_antidiagonal] at hij
+        simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
         split_ifs with hj
         · -- When j < m, we can use induction hypothesis
           have hi : i ≤ n := by omega
@@ -220,7 +220,7 @@ theorem XnEquiv.invOfUnit' {R : Type*} [CommRing R] {n : ℕ} {f g : R⟦X⟧} (
       · simp only [huv_inv]
       · apply Finset.sum_congr rfl
         intro ⟨i, j⟩ hij
-        simp only [mem_antidiagonal] at hij
+        simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
         split_ifs with hj
         · have hi : i ≤ n := by omega
           have hj' : j ≤ n := by omega
@@ -387,7 +387,7 @@ theorem XnEquiv.comp {R : Type*} [CommRing R] {n : ℕ} {a b c d : R⟦X⟧}
       have h2 : coeff m (c ^ k) = coeff m (d ^ k) := (hcd.pow k) m hm
       rw [h1, h2]
     · -- For k > n, both coefficients of c^k and d^k at m are 0
-      push_neg at hk
+      push Not at hk
       have hm_lt_k : m < k := Nat.lt_of_le_of_lt hm hk
       have h1 : coeff m (c ^ k) = 0 :=
         coeff_pow_eq_zero_of_lt_of_constantCoeff_eq_zero hc hm_lt_k

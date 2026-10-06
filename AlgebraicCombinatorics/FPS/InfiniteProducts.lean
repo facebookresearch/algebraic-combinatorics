@@ -263,7 +263,7 @@ theorem coeffFinitelyDeterminedInSum_of_finite_support (a : I → PowerSeries R)
   rw [map_sum]
   apply Finset.sum_eq_zero
   intro i hi
-  simp only [Finset.mem_sdiff, Set.Finite.mem_toFinset, Set.mem_setOf_eq, ne_eq, not_not] at hi
+  simp only [Finset.mem_sdiff, Set.Finite.mem_toFinset, Set.mem_ofPred_eq, ne_eq, not_not] at hi
   exact hi.2
 
 /-!
@@ -296,7 +296,7 @@ theorem summable_iff_coeff_finitely_determined (a : I → PowerSeries R) :
     simp only [Finset.mem_sdiff] at hi
     have hnotM := hi.2
     have : i ∉ (hfin n).toFinset := hnotM
-    simp only [Set.Finite.mem_toFinset, Set.mem_setOf_eq, ne_eq, not_not] at this
+    simp only [Set.Finite.mem_toFinset, Set.mem_ofPred_eq, ne_eq, not_not] at this
     exact this
   · -- Backward direction: if finitely determined, then only finitely many non-zero
     intro hdet n
@@ -310,7 +310,7 @@ theorem summable_iff_coeff_finitely_determined (a : I → PowerSeries R) :
     have hJ : M ⊆ insert i M := Finset.subset_insert i M
     have heq := hM (insert i M) hJ
     rw [Finset.sum_insert h, map_add] at heq
-    simp only [Set.mem_setOf_eq, ne_eq] at hi
+    simp only [Set.mem_ofPred_eq, ne_eq] at hi
     -- heq says (a i).coeff n + (∑ M) = (∑ M), so (a i).coeff n = 0
     have hzero : (a i).coeff n = 0 := by
       have h1 : (a i).coeff n + (∑ x ∈ M, a x).coeff n = (∑ x ∈ M, a x).coeff n := heq
@@ -484,7 +484,7 @@ theorem coeff_mul_one_add_eq_of_coeff_zero {a f : PowerSeries R} {n : ℕ}
   -- Each term in the sum is 0 because f.coeff j = 0 for j ≤ m ≤ n
   apply Finset.sum_eq_zero
   intro ⟨i, j⟩ hij
-  rw [Finset.mem_antidiagonal] at hij
+  rw [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   -- Since i + j = m and m ≤ n, we have j ≤ m ≤ n
   have hj : j ≤ n := by omega
   rw [hf j hj, mul_zero]
@@ -595,7 +595,7 @@ theorem multipliable_of_finite_ne_one (a : I → PowerSeries R)
     intro i hi
     have : i ∉ h.toFinset := Finset.mem_sdiff.mp hi |>.2
     rw [Set.Finite.mem_toFinset] at this
-    simp only [Set.mem_setOf_eq, not_not] at this
+    simp only [Set.mem_ofPred_eq, not_not] at this
     exact this
   rw [h_ones, mul_one]
 
@@ -716,7 +716,7 @@ theorem multipliable_one_add_pow_two :
   -- For a given n, there is at most one i such that 2^i = n
   have h : {i : ℕ | (X ^ 2 ^ i : PowerSeries R).coeff n ≠ 0} ⊆ {i : ℕ | 2 ^ i = n} := by
     intro i hi
-    simp only [Set.mem_setOf_eq] at hi ⊢
+    simp only [Set.mem_ofPred_eq] at hi ⊢
     simp only [coeff_X_pow] at hi
     split_ifs at hi with heq
     · exact heq.symm
@@ -729,7 +729,7 @@ theorem multipliable_one_add_pow_two :
   -- The set is a subsingleton
   have hs : Set.Subsingleton {i : ℕ | 2 ^ i = n} := by
     intro x hx y hy
-    simp only [Set.mem_setOf_eq] at hx hy
+    simp only [Set.mem_ofPred_eq] at hx hy
     exact inj (hx.trans hy.symm)
   exact hs.finite
 
@@ -870,7 +870,7 @@ theorem multipliable_of_union {a : I → PowerSeries R} {J : Set I}
     · exact hK (Finset.mem_union_right _ hx)
     · simp only [MIJ', Finset.mem_map, Function.Embedding.coe_subtype] at hx
       obtain ⟨⟨y, hy⟩, _, rfl⟩ := hx
-      simp only [Set.mem_diff, Set.mem_univ, true_and] at hy
+      simp only [Set.mem_sdiff, Set.mem_univ, true_and] at hy
       exact hy
   -- The products split
   have hK_prod : ∏ i ∈ K, a i = (∏ i ∈ KJ, a i) * (∏ i ∈ KIJ, a i) := by
@@ -890,7 +890,7 @@ theorem multipliable_of_union {a : I → PowerSeries R} {J : Set I}
     simp only [MIJ', Finset.mem_map, Function.Embedding.coe_subtype] at hy
     obtain ⟨⟨x', hx'⟩, _, hx_eq⟩ := hx
     obtain ⟨⟨y', hy'⟩, _, hy_eq⟩ := hy
-    simp only [Set.mem_diff, Set.mem_univ, true_and] at hy'
+    simp only [Set.mem_sdiff, Set.mem_univ, true_and] at hy'
     rw [← hx_eq, ← hy_eq] at hxy
     simp only at hxy
     rw [hxy] at hx'
@@ -923,7 +923,7 @@ theorem multipliable_of_union {a : I → PowerSeries R} {J : Set I}
     simp only [Function.Embedding.coe_subtype]
   have hKIJ_eq_subtype : ∏ i ∈ KIJ, a i = ∏ i ∈ KIJ.subtype (· ∈ (Set.univ \ J)), a i := by
     conv_lhs => rw [show KIJ = KIJ.filter (· ∈ (Set.univ \ J)) from by
-      ext x; simp only [KIJ, Finset.mem_filter, Set.mem_diff, Set.mem_univ, true_and]; tauto]
+      ext x; simp only [KIJ, Finset.mem_filter, Set.mem_sdiff, Set.mem_univ, true_and]; tauto]
     rw [← Finset.subtype_map (· ∈ (Set.univ \ J)), Finset.prod_map]
     simp only [Function.Embedding.coe_subtype]
   have hMJ'_eq_subtype : ∏ i ∈ MJ', a i = ∏ i ∈ MJ, a i := by
@@ -944,7 +944,7 @@ theorem multipliable_of_union {a : I → PowerSeries R} {J : Set I}
   rw [coeff_mul, coeff_mul]
   apply Finset.sum_congr rfl
   intro ⟨i, j⟩ hij
-  simp only [Finset.mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   have hi : i ≤ n := by omega
   have hj : j ≤ n := by omega
   rw [hJ_approx i hi, hIJ_approx j hj]
@@ -972,7 +972,7 @@ theorem tprod_eq_tprod_mul_tprod {a : I → PowerSeries R} {J : Set I}
     simp only [MIJ', Finset.mem_map, Function.Embedding.coe_subtype] at hy
     obtain ⟨⟨x', hx'⟩, _, hx_eq⟩ := hx
     obtain ⟨⟨y', hy'⟩, _, hy_eq⟩ := hy
-    simp only [Set.mem_diff, Set.mem_univ, true_and] at hy'
+    simp only [Set.mem_sdiff, Set.mem_univ, true_and] at hy'
     rw [← hx_eq, ← hy_eq] at hxy
     simp only at hxy
     rw [hxy] at hx'
@@ -1001,7 +1001,7 @@ theorem tprod_eq_tprod_mul_tprod {a : I → PowerSeries R} {J : Set I}
       · exact hK (Finset.mem_union_right _ hx)
       · simp only [MIJ', Finset.mem_map, Function.Embedding.coe_subtype] at hx
         obtain ⟨⟨y, hy⟩, _, rfl⟩ := hx
-        simp only [Set.mem_diff, Set.mem_univ, true_and] at hy
+        simp only [Set.mem_sdiff, Set.mem_univ, true_and] at hy
         exact hy
     have hK_prod : ∏ i ∈ K, a i = (∏ i ∈ KJ, a i) * (∏ i ∈ KIJ, a i) := by
       rw [← Finset.prod_union]
@@ -1038,7 +1038,7 @@ theorem tprod_eq_tprod_mul_tprod {a : I → PowerSeries R} {J : Set I}
       simp only [Function.Embedding.coe_subtype]
     have hKIJ_eq_subtype : ∏ i ∈ KIJ, a i = ∏ i ∈ KIJ.subtype (· ∈ (Set.univ \ J)), a i := by
       conv_lhs => rw [show KIJ = KIJ.filter (· ∈ (Set.univ \ J)) from by
-        ext x; simp only [KIJ, Finset.mem_filter, Set.mem_diff, Set.mem_univ, true_and]; tauto]
+        ext x; simp only [KIJ, Finset.mem_filter, Set.mem_sdiff, Set.mem_univ, true_and]; tauto]
       rw [← Finset.subtype_map (· ∈ (Set.univ \ J)), Finset.prod_map]
       simp only [Function.Embedding.coe_subtype]
     have hJ_approx : ∀ m ≤ n, (∏ i ∈ KJ.subtype (· ∈ J), a i).coeff m = (∏ i ∈ MJ, a i).coeff m := by
@@ -1052,7 +1052,7 @@ theorem tprod_eq_tprod_mul_tprod {a : I → PowerSeries R} {J : Set I}
     rw [coeff_mul, coeff_mul]
     apply Finset.sum_congr rfl
     intro ⟨i, j⟩ hij
-    simp only [Finset.mem_antidiagonal] at hij
+    simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
     have hi : i ≤ n := by omega
     have hj : j ≤ n := by omega
     rw [hJ_approx i hi, hIJ_approx j hj]
@@ -1071,7 +1071,7 @@ theorem tprod_eq_tprod_mul_tprod {a : I → PowerSeries R} {J : Set I}
   rw [coeff_mul]
   apply Finset.sum_congr rfl
   intro ⟨i, j⟩ hij
-  simp only [Finset.mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   have hi : i ≤ n := by omega
   have hj : j ≤ n := by omega
   rw [hJ_coeff i hi, hIJ_coeff j hj]
@@ -1129,7 +1129,7 @@ theorem multipliable_mul {a b : I → PowerSeries R}
   simp only [coeff_mul]
   apply Finset.sum_congr rfl
   intro ⟨i, j⟩ hij
-  simp only [Finset.mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   congr 1
   · exact ha_eq i (by omega)
   · exact hb_eq j (by omega)
@@ -1181,7 +1181,7 @@ theorem tprod_mul_eq_mul_tprod {a b : I → PowerSeries R}
     simp only [coeff_mul]
     apply Finset.sum_congr rfl
     intro ⟨k₁, k₂⟩ hk
-    simp only [Finset.mem_antidiagonal] at hk
+    simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hk
     have hk₁ : k₁ ≤ m := by omega
     have hk₂ : k₂ ≤ m := by omega
     rw [ha_J_M k₁ hk₁, hb_J_M k₂ hk₂]
@@ -1193,7 +1193,7 @@ theorem tprod_mul_eq_mul_tprod {a b : I → PowerSeries R}
   simp only [coeff_mul]
   apply Finset.sum_congr rfl
   intro ⟨k₁, k₂⟩ hk
-  simp only [Finset.mem_antidiagonal] at hk
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hk
   have hk₁ : k₁ ≤ n := by omega
   have hk₂ : k₂ ≤ n := by omega
   rw [← ha_eq k₁ hk₁, ← hb_eq k₂ hk₂]
@@ -1310,7 +1310,7 @@ theorem multipliable_div {a b : I → PowerSeries R}
     | _ m ih =>
       cases m with
       | zero =>
-        rw [coeff_invOfUnit, coeff_invOfUnit, if_pos rfl, if_pos rfl]
+        rw [coeff_invOfUnit, coeff_invOfUnit, ite_eq_left rfl, ite_eq_left rfl]
         have huv' : hprod_b_J.unit⁻¹ = hprod_b_M.unit⁻¹ := by
           apply Units.ext
           show (hprod_b_J.unit⁻¹ : Rˣ).val = (hprod_b_M.unit⁻¹ : Rˣ).val
@@ -1319,7 +1319,7 @@ theorem multipliable_div {a b : I → PowerSeries R}
             _ = (hprod_b_M.unit⁻¹ : Rˣ).val := Ring.inverse_unit hprod_b_M.unit
         rw [huv']
       | succ k =>
-        rw [coeff_invOfUnit, coeff_invOfUnit, if_neg (Nat.succ_ne_zero k), if_neg (Nat.succ_ne_zero k)]
+        rw [coeff_invOfUnit, coeff_invOfUnit, ite_eq_right (Nat.succ_ne_zero k), ite_eq_right (Nat.succ_ne_zero k)]
         have huv' : hprod_b_J.unit⁻¹ = hprod_b_M.unit⁻¹ := by
           apply Units.ext
           show (hprod_b_J.unit⁻¹ : Rˣ).val = (hprod_b_M.unit⁻¹ : Rˣ).val
@@ -1330,7 +1330,7 @@ theorem multipliable_div {a b : I → PowerSeries R}
         congr 1
         apply Finset.sum_congr rfl
         intro ⟨i, j⟩ hij
-        simp only [Finset.mem_antidiagonal] at hij
+        simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
         split_ifs with hj
         · congr 1
           · exact hb_eq i (by omega)
@@ -1340,7 +1340,7 @@ theorem multipliable_div {a b : I → PowerSeries R}
   simp only [coeff_mul]
   apply Finset.sum_congr rfl
   intro ⟨i, j⟩ hij
-  simp only [Finset.mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   congr 1
   · exact ha_eq i (by omega)
   · exact hinv_eq j (by omega)
@@ -1371,7 +1371,7 @@ private lemma coeff_invOfUnit_eq_of_coeff_eq {φ ψ : R⟦X⟧} {u : Rˣ} {v : R
   | _ m ih =>
     cases m with
     | zero =>
-      rw [coeff_invOfUnit, coeff_invOfUnit, if_pos rfl, if_pos rfl]
+      rw [coeff_invOfUnit, coeff_invOfUnit, ite_eq_left rfl, ite_eq_left rfl]
       have : u⁻¹ = v⁻¹ := by
         apply Units.ext
         show (u⁻¹ : Rˣ).val = (v⁻¹ : Rˣ).val
@@ -1380,7 +1380,7 @@ private lemma coeff_invOfUnit_eq_of_coeff_eq {φ ψ : R⟦X⟧} {u : Rˣ} {v : R
           _ = (v⁻¹ : Rˣ).val := Ring.inverse_unit v
       rw [this]
     | succ k =>
-      rw [coeff_invOfUnit, coeff_invOfUnit, if_neg (Nat.succ_ne_zero k), if_neg (Nat.succ_ne_zero k)]
+      rw [coeff_invOfUnit, coeff_invOfUnit, ite_eq_right (Nat.succ_ne_zero k), ite_eq_right (Nat.succ_ne_zero k)]
       have huv' : u⁻¹ = v⁻¹ := by
         apply Units.ext
         show (u⁻¹ : Rˣ).val = (v⁻¹ : Rˣ).val
@@ -1391,7 +1391,7 @@ private lemma coeff_invOfUnit_eq_of_coeff_eq {φ ψ : R⟦X⟧} {u : Rˣ} {v : R
       congr 1
       apply Finset.sum_congr rfl
       intro ⟨i, j⟩ hij
-      simp only [Finset.mem_antidiagonal] at hij
+      simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
       split_ifs with hj
       · congr 1
         · exact hφψ i (by omega)
@@ -1436,7 +1436,7 @@ private lemma coeff_mul_eq_of_coeff_eq' {φ₁ φ₂ ψ₁ ψ₂ : R⟦X⟧} (n 
   rw [coeff_mul, coeff_mul]
   apply Finset.sum_congr rfl
   intro ⟨i, j⟩ hij
-  simp only [Finset.mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   congr 1
   · exact h₁ i (by omega)
   · exact h₂ j (by omega)
@@ -1574,25 +1574,26 @@ private lemma coeff_eq_of_mul_eq_unit {A B P : PowerSeries R} {n : ℕ}
     have hsk := h k hk
     simp only [coeff_mul] at hsk
     -- The sums over p.2 > 0 are equal by IH
-    have hrest : ∑ p ∈ (Finset.antidiagonal k).filter (fun p => 0 < p.2), A.coeff p.1 * P.coeff p.2 =
-        ∑ p ∈ (Finset.antidiagonal k).filter (fun p => 0 < p.2), B.coeff p.1 * P.coeff p.2 := by
+    have hrest : ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal k).filter (fun p => 0 < p.2), A.coeff p.1 * P.coeff p.2 =
+        ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal k).filter (fun p => 0 < p.2), B.coeff p.1 * P.coeff p.2 := by
       apply Finset.sum_congr rfl
       intro p hp
-      simp only [Finset.mem_filter, Finset.mem_antidiagonal] at hp
+      simp only [Finset.mem_filter, Finset.HasAntidiagonal.mem_antidiagonal] at hp
       have hp1 : p.1 < k := by omega
       rw [ih p.1 hp1 (le_trans (le_of_lt hp1) hk)]
     -- Split the sums
     have hsplit : ∀ (C : PowerSeries R),
-        ∑ p ∈ Finset.antidiagonal k, C.coeff p.1 * P.coeff p.2 =
+        ∑ p ∈ Finset.HasAntidiagonal.antidiagonal k, C.coeff p.1 * P.coeff p.2 =
         C.coeff k * P.coeff 0 +
-        ∑ p ∈ (Finset.antidiagonal k).filter (fun p => 0 < p.2), C.coeff p.1 * P.coeff p.2 := by
+        ∑ p ∈ (Finset.HasAntidiagonal.antidiagonal k).filter (fun p => 0 < p.2),
+          C.coeff p.1 * P.coeff p.2 := by
       intro C
-      rw [← Finset.sum_filter_add_sum_filter_not (Finset.antidiagonal k) (fun p => 0 < p.2), add_comm]
+      rw [← Finset.sum_filter_add_sum_filter_not (Finset.HasAntidiagonal.antidiagonal k) (fun p => 0 < p.2), add_comm]
       congr 1
       -- The sum over p.2 = 0 is just the (k, 0) term
-      have h1 : (Finset.antidiagonal k).filter (fun p => ¬ 0 < p.2) = {(k, 0)} := by
+      have h1 : (Finset.HasAntidiagonal.antidiagonal k).filter (fun p => ¬ 0 < p.2) = {(k, 0)} := by
         ext p
-        simp only [Finset.mem_filter, Finset.mem_antidiagonal, not_lt, Nat.le_zero,
+        simp only [Finset.mem_filter, Finset.HasAntidiagonal.mem_antidiagonal, not_lt, Nat.le_zero,
           Finset.mem_singleton]
         constructor
         · intro ⟨hp, hj⟩; ext <;> simp [hj] at hp ⊢; omega
@@ -1693,6 +1694,7 @@ lemma isXnApproximator_inter_subfamily {a : I → PowerSeries R}
   
   exact coeff_eq_of_mul_eq_unit hP_unit h_eq_all m hm
 
+set_option backward.isDefEq.respectTransparency false in
 /-- If `(a_i)_{i ∈ I}` is a multipliable family of invertible FPS, then any
 subfamily is also multipliable.
 (Label: prop.fps.prods-mulable-subfams) -/
@@ -1814,7 +1816,7 @@ theorem multipliable_subfamily {a : I → PowerSeries R}
   -- (∏ K).coeff i = (∏ K').coeff i (since both contain M which determines all coeffs up to n)
   apply Finset.sum_congr rfl
   intro ⟨i, j⟩ hij
-  simp only [Finset.mem_antidiagonal] at hij
+  simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
   congr 1
   -- (∏ K).coeff i = (∏ K').coeff i follows from hM_all since i ≤ n
   have hi_le_n : i ≤ n := by omega
@@ -1974,7 +1976,7 @@ theorem multipliable_prod_fibers {S W : Type*} {f : S → W} {a : S → PowerSer
       simp only [coeff_mul]
       apply Finset.sum_congr rfl
       intro ⟨i, j⟩ hij
-      simp only [Finset.mem_antidiagonal] at hij
+      simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
       rw [hx i (by omega), ih j (by omega) hs]
   -- For each w, get an x^n-approximator for fiber w that contains U ∩ fiber(w)
   have h_get_approx : ∀ w, ∃ M_w : Finset {s : S // f s = w},
@@ -2086,7 +2088,7 @@ theorem multipliable_prod_fibers_inv {S W : Type*} {f : S → W} {a : S → Powe
     conv_rhs => rw [← mul_one (a.coeff m), ← hb0]
     rw [Finset.sum_eq_single (m, 0)]
     · intro p hp hne
-      simp only [Finset.mem_antidiagonal] at hp
+      simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hp
       obtain ⟨i, j⟩ := p
       by_cases hj0 : j = 0
       · subst hj0; simp at hp; simp [hp] at hne
@@ -2299,7 +2301,7 @@ theorem tprod_eq_tprod_fibers {S W : Type*} {f : S → W} {a : S → PowerSeries
       simp only [coeff_mul]
       apply Finset.sum_congr rfl
       intro ⟨i, j⟩ hij
-      simp only [Finset.mem_antidiagonal] at hij
+      simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
       rw [hx i (by omega), ih j (by omega) hs]
   -- The union ⋃_{w ∈ W_U} (M_w w) contains U
   have h_union_contains_U : U ⊆ W_U.biUnion (fun w => (M_w w).map ⟨Subtype.val, Subtype.val_injective⟩) := by
@@ -2407,7 +2409,7 @@ theorem tprod_eq_tprod_fibers_inv {S W : Type*} {f : S → W} {a : S → PowerSe
     conv_rhs => rw [← mul_one (a.coeff m), ← hb0]
     rw [Finset.sum_eq_single (m, 0)]
     · intro p hp hne
-      simp only [Finset.mem_antidiagonal] at hp
+      simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hp
       obtain ⟨i, j⟩ := p
       by_cases hj0 : j = 0
       · subst hj0; simp at hp; simp [hp] at hne
@@ -2613,7 +2615,7 @@ theorem tprod_eq_tprod_fibers_inv {S W : Type*} {f : S → W} {a : S → PowerSe
       simp only [coeff_mul]
       apply Finset.sum_congr rfl
       intro ⟨i, j⟩ hij
-      simp only [Finset.mem_antidiagonal] at hij
+      simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
       have hi : i ≤ k := by omega
       have hj : j ≤ k := by omega
       rw [hx i (le_trans hi hk)]
@@ -2915,7 +2917,7 @@ theorem fubini_prod_invertible {I J : Type*} {a : I × J → PowerSeries R}
     have hf : Function.Bijective f := ⟨
       fun j1 j2 hj => congrArg (fun x => x.val.2) hj,
       fun ⟨⟨i', j⟩, hi'⟩ => ⟨j, by ext; exact hi'.symm; rfl⟩⟩
-    convert multipliable_reindex hf h using 1
+    convert multipliable_reindex hf h using 1; rfl
   · intro j
     have h : Multipliable (fun p : {p : I × J // p.2 = j} => a p) :=
       multipliable_subfamily ha ha_inv {p : I × J | p.2 = j}
@@ -2923,7 +2925,7 @@ theorem fubini_prod_invertible {I J : Type*} {a : I × J → PowerSeries R}
     have hf : Function.Bijective f := ⟨
       fun i1 i2 hi => congrArg (fun x => x.val.1) hi,
       fun ⟨⟨i, j'⟩, hj'⟩ => ⟨i, by ext; rfl; exact hj'.symm⟩⟩
-    convert multipliable_reindex hf h using 1
+    convert multipliable_reindex hf h using 1; rfl
 
 /-!
 ### Approximator Properties

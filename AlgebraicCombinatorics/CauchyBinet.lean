@@ -249,7 +249,7 @@ lemma det_mul_aux_nonsquare {n m : ℕ} {A : Matrix (Fin n) (Fin m) R} {B : Matr
     {f : Fin n → Fin m} (hf : ¬Function.Injective f) :
     (∑ σ : Equiv.Perm (Fin n), (Equiv.Perm.sign σ : R) * ∏ i, A (σ i) (f i) * B (f i) i) = 0 := by
   obtain ⟨i, j, hfij, hij⟩ : ∃ i j, f i = f j ∧ i ≠ j := by
-    rw [Function.Injective] at hf; push_neg at hf; exact hf
+    rw [Function.Injective] at hf; push Not at hf; exact hf
   exact Finset.sum_involution (fun σ _ => σ * Equiv.swap i j)
     (fun σ _ => by
       have h1 : (∏ k, A (σ k) (f k)) = ∏ k, A ((σ * Equiv.swap i j) k) (f k) := by
@@ -321,7 +321,7 @@ private lemma orderEmbOfFin_symm {n m : ℕ} (S : Finset (Fin m)) (hcard : S.car
     S.orderEmbOfFin hcard ((S.orderIsoOfFin hcard).symm ⟨x, hx⟩) = x := by
   have h := (S.orderIsoOfFin hcard).apply_symm_apply ⟨x, hx⟩
   have h' : ((S.orderIsoOfFin hcard) ((S.orderIsoOfFin hcard).symm ⟨x, hx⟩)).val = x := by rw [h]
-  simp only [Finset.orderEmbOfFin]; convert h'
+  simp only [Finset.orderEmbOfFin]; convert h'; rfl
 
 /-- Helper: orderIsoOfFin.symm applied to orderEmbOfFin gives back the original index. -/
 private lemma orderIsoOfFin_symm_orderEmbOfFin {n m : ℕ} (S : Finset (Fin m)) (hcard : S.card = n) 
@@ -331,6 +331,7 @@ private lemma orderIsoOfFin_symm_orderEmbOfFin {n m : ℕ} (S : Finset (Fin m)) 
   simp only [OrderIso.apply_symm_apply]
   ext; rfl
 
+set_option backward.isDefEq.respectTransparency false in
 /-- For a fixed S with |S| = n, injective functions with image S correspond bijectively 
     to permutations of Fin n. This allows us to transform the sum over such functions 
     into a sum over permutations. -/
@@ -384,7 +385,7 @@ private lemma sum_injective_eq_sum_over_subsets {n m : ℕ} (F : (Fin n → Fin 
     simp only [g, Finset.mem_powersetCard, Finset.subset_univ, true_and]
     rw [Finset.card_image_of_injective _ hf]; simp
   rw [← Finset.sum_fiberwise_of_maps_to hg F]; apply Finset.sum_congr rfl; intro S hS
-  simp only [Finset.mem_powersetCard, Finset.subset_univ, true_and] at hS; rw [dif_pos hS]
+  simp only [Finset.mem_powersetCard, Finset.subset_univ, true_and] at hS; rw [dite_eq_left hS]
   have h_fiber : (Finset.filter Function.Injective Finset.univ).filter (fun f => g f = S) =
       ((Finset.univ : Finset (Fin n → Fin m)).filter Function.Injective).filter 
         (fun f => Finset.univ.image f = S) := by ext f; simp [g]
@@ -588,7 +589,7 @@ theorem det_add_expand_step1 {n : ℕ} (A B : Matrix (Fin n) (Fin n) R) :
   have h : ∏ i : Fin n, (A + B) (σ i) i = ∏ i : Fin n, (A (σ i) i + B (σ i) i) := by
     apply Finset.prod_congr rfl
     intro i _
-    simp only [add_apply]
+    simp only [Matrix.add_apply]
   simp only [h, Fintype.prod_add, smul_sum]
 
 /-- Second step: swap the order of summation over σ and P. -/
@@ -631,7 +632,7 @@ theorem det_add_expand_step3 {n : ℕ} (A B : Matrix (Fin n) (Fin n) R) :
 theorem det_add_fin_two (A B : Matrix (Fin 2) (Fin 2) R) :
     (A + B).det = A.det + B.det +
       A 0 0 * B 1 1 + A 1 1 * B 0 0 - A 0 1 * B 1 0 - A 1 0 * B 0 1 := by
-  simp only [det_fin_two, add_apply]
+  simp only [det_fin_two, Matrix.add_apply]
   ring
 
 /-! ### Helper lemmas for the key factorization
@@ -768,6 +769,7 @@ private lemma orderIsoOfFin_empty_compl_symm {n : ℕ} (x : (((∅ : Finset (Fin
   simp only [h_sort, List.finRange]
   exact idxOf_ofFn_id x.val
 
+set_option backward.isDefEq.respectTransparency false in
 /-- When P = Q = ∅, extractBeta is conjugate to σ by the natural bijection Fin n ≃ Fin (∅ᶜ.card).
     Therefore sign(extractBeta ∅ ∅ _ σ _) = sign(σ). -/
 private lemma sign_extractBeta_empty {n : ℕ} (hcard : (∅ : Finset (Fin n)).card = (∅ : Finset (Fin n)).card)
@@ -794,6 +796,7 @@ private lemma sign_extractBeta_empty {n : ℕ} (hcard : (∅ : Finset (Fin n)).c
   rw [orderIsoOfFin_empty_compl_symm]
   simp only [h3]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- When P = Q = univ, extractAlpha is conjugate to σ by the natural bijection Fin n ≃ Fin (univ.card).
     Therefore sign(extractAlpha univ univ _ σ _) = sign(σ). -/
 private lemma sign_extractAlpha_univ {n : ℕ} 
@@ -853,25 +856,25 @@ noncomputable def constructSigma {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.car
     intro a b hab
     simp only [f] at hab
     by_cases ha : a ∈ P <;> by_cases hb : b ∈ P
-    · simp only [ha, hb, dif_pos] at hab
+    · simp only [ha, hb, dite_eq_left] at hab
       have := qEmb.injective hab
       have := α.injective this
       have := (P.orderIsoOfFin rfl).symm.injective this
       simp only [Subtype.mk.injEq] at this
       exact this
-    · simp only [ha, hb, dif_pos, dif_neg, not_false_eq_true] at hab
+    · simp only [ha, hb, dite_eq_left, dite_eq_right, not_false_eq_true] at hab
       have h1 : qEmb (α ((P.orderIsoOfFin rfl).symm ⟨a, ha⟩)) ∈ Q := Finset.orderEmbOfFin_mem _ _ _
       have h2 : qCEmb (β ((Pᶜ.orderIsoOfFin rfl).symm ⟨b, Finset.mem_compl.mpr hb⟩)) ∈ Qᶜ := 
         Finset.orderEmbOfFin_mem _ _ _
       rw [hab] at h1
       exact absurd h1 (Finset.mem_compl.mp h2)
-    · simp only [ha, hb, dif_pos, dif_neg, not_false_eq_true] at hab
+    · simp only [ha, hb, dite_eq_left, dite_eq_right, not_false_eq_true] at hab
       have h1 : qEmb (α ((P.orderIsoOfFin rfl).symm ⟨b, hb⟩)) ∈ Q := Finset.orderEmbOfFin_mem _ _ _
       have h2 : qCEmb (β ((Pᶜ.orderIsoOfFin rfl).symm ⟨a, Finset.mem_compl.mpr ha⟩)) ∈ Qᶜ := 
         Finset.orderEmbOfFin_mem _ _ _
       rw [← hab] at h1
       exact absurd h1 (Finset.mem_compl.mp h2)
-    · simp only [ha, hb, dif_neg, not_false_eq_true] at hab
+    · simp only [ha, hb, dite_eq_right, not_false_eq_true] at hab
       have := qCEmb.injective hab
       have := β.injective this
       have := (Pᶜ.orderIsoOfFin rfl).symm.injective this
@@ -879,6 +882,7 @@ noncomputable def constructSigma {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.car
       exact this
   exact Equiv.ofBijective f ⟨hf_inj, Finite.injective_iff_surjective.mp hf_inj⟩
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The constructed permutation maps P to Q. -/
 lemma constructSigma_imageFinset {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.card = Q.card)
     (α : Equiv.Perm (Fin P.card)) (β : Equiv.Perm (Fin Pᶜ.card)) :
@@ -888,7 +892,7 @@ lemma constructSigma_imageFinset {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.car
   constructor
   · intro ⟨y, hy, hyx⟩
     simp only [constructSigma, Equiv.ofBijective_apply] at hyx
-    simp only [hy, dif_pos] at hyx
+    simp only [hy, dite_eq_left] at hyx
     rw [← hyx]
     exact Finset.orderEmbOfFin_mem Q (by rw [hcard]) _
   · intro hx
@@ -902,7 +906,7 @@ lemma constructSigma_imageFinset {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.car
     · exact Finset.orderEmbOfFin_mem P rfl idx
     · simp only [constructSigma, Equiv.ofBijective_apply]
       have hy_mem : y ∈ P := Finset.orderEmbOfFin_mem P rfl idx
-      simp only [hy_mem, dif_pos]
+      simp only [hy_mem, dite_eq_left]
       -- Need to show: Q.orderEmbOfFin _ (α ((P.orderIsoOfFin rfl).symm ⟨y, hy_mem⟩)) = x
       -- (P.orderIsoOfFin rfl).symm ⟨y, hy_mem⟩ = idx since y = P.orderEmbOfFin rfl idx
       have h1 : (P.orderIsoOfFin rfl).symm ⟨y, hy_mem⟩ = idx :=
@@ -1323,15 +1327,11 @@ lemma leftCoShift_preserves_combined_sign {n : ℕ}
   exact h_neg_one
 
 /-- k * (k - 1) is always even (consecutive integers). -/
-lemma even_mul_pred (k : ℕ) : Even (k * (k - 1)) := by
-  rcases Nat.even_or_odd k with hk' | hk'
-  · exact Even.mul_right hk' _
-  · rcases hk' with ⟨m, rfl⟩
-    simp only [Nat.add_sub_cancel]
-    exact Even.mul_left (even_two_mul m) _
+lemma even_mul_pred (k : ℕ) : Even (k * (k - 1)) :=
+  Nat.even_mul_pred_self k
 
 /-- 2 divides k * (k - 1). -/
-lemma two_dvd_mul_pred (k : ℕ) : 2 ∣ k * (k - 1) := (even_mul_pred k).two_dvd
+lemma two_dvd_mul_pred (k : ℕ) : 2 ∣ k * (k - 1) := Nat.two_dvd_mul_sub_one k
 
 /-- Helper lemma: the index of orderEmbOfFin i in the sorted list is i.val. -/
 lemma orderEmbOfFin_idxOf_eq {α : Type*} [LinearOrder α] (s : Finset α) {k : ℕ} (h : s.card = k) 
@@ -1529,7 +1529,7 @@ lemma exists_left_shift_witness {n k : ℕ} (hk : k ≤ n) (P : Finset (Fin n))
   -- there must be some i < k with i ∉ P
   have hexists_not_in_P : ∃ i : Fin n, i.val < k ∧ i ∉ P := by
     by_contra h
-    push_neg at h
+    push Not at h
     -- h says: all i with i.val < k are in P
     have hsub : prefixFinset n k hk ⊆ P := by
       intro x hx
@@ -1653,7 +1653,7 @@ lemma exists_shift_opportunity {n k : ℕ} (hk : k ≤ n) (hk_pos : 0 < k) (_hn 
     (hcard : P.card = k) (hne : P ≠ prefixFinset n k hk) :
     ∃ (i : Fin n) (hi : i.val + 1 < n), i ∉ P ∧ (⟨i.val + 1, hi⟩ : Fin n) ∈ P := by
   by_contra h_no_shift
-  push_neg at h_no_shift
+  push Not at h_no_shift
   
   have h_downward := downward_closure_aux P h_no_shift
   
@@ -1663,7 +1663,7 @@ lemma exists_shift_opportunity {n k : ℕ} (hk : k ≤ n) (hk_pos : 0 < k) (_hn 
   constructor
   · intro hx
     by_contra hxge
-    push_neg at hxge
+    push Not at hxge
     have hx1_le : x.val + 1 ≤ n := x.isLt
     have h_subset : prefixFinset n (x.val + 1) hx1_le ⊆ P := by
       intro y hy
@@ -1737,7 +1737,7 @@ lemma extractAlpha_prefixFinset_val {n k : ℕ} (hk : k ≤ n)
     exact h1
   have h := prefixFinset_orderIsoOfFin_symm hk ⟨σ (P.orderEmbOfFin rfl j), hσj_mem⟩
   simp only [Fin.ext_iff] at h
-  convert h using 1
+  convert h using 1; rfl
 
 /-- For prefixFinset^c, extractBeta j gives the position of σ(Pᶜ.orderEmbOfFin j) in Pᶜ.
     Since Pᶜ = {k, ..., n-1}, this equals (σ(k+j)).val - k. -/
@@ -1752,7 +1752,7 @@ lemma extractBeta_prefixFinset_val {n k : ℕ} (hk : k ≤ n)
   have hσj_mem : σ (Pᶜ.orderEmbOfFin rfl j) ∈ Pᶜ := sigma_orderEmb_compl_mem_of_imageFinset P P σ hσ j
   have h := prefixFinset_compl_orderIsoOfFin_symm hk ⟨σ (Pᶜ.orderEmbOfFin rfl j), hσj_mem⟩
   simp only [P] at h
-  convert h using 1
+  convert h using 1; rfl
 
 /-- Equivalence between Fin k and the subtype {i : Fin n // i.val < k}. -/
 noncomputable def finEquivSubtypeLt (n k : ℕ) (hk : k ≤ n) : 
@@ -1772,7 +1772,7 @@ noncomputable def finEquivSubtypeGe (n k : ℕ) (hk : k ≤ n) :
   · have hx := x.prop
     have hxlt := x.val.isLt
     simp only [ltPred] at hx
-    push_neg at hx
+    push Not at hx
     omega
   · intro j
     simp only [Fin.ext_iff]
@@ -1783,7 +1783,7 @@ noncomputable def finEquivSubtypeGe (n k : ℕ) (hk : k ≤ n) :
     simp only [Subtype.ext_iff, Fin.ext_iff]
     have hx := x.prop
     simp only [ltPred] at hx
-    push_neg at hx
+    push Not at hx
     have : x.val.val - k + k = x.val.val := Nat.sub_add_cancel hx
     exact this
 
@@ -2085,6 +2085,7 @@ lemma swap_orderEmbOfFin_eq {n : ℕ} (P : Finset (Fin n)) (i : Fin n) (hi : i.v
   have huniq := Finset.orderEmbOfFin_unique (Finset.card_map _ : P'.card = P.card) h_mem h_strict
   exact (congrFun huniq j).symm
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Key insight: extractAlpha is preserved under left shifts.
     
     When we apply a left shift:
@@ -2155,6 +2156,7 @@ lemma extractAlpha_leftShift_eq {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.card
     (extractAlpha P Q hcard σ hσ) h_perm_eq
   rw [hsign]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Key insight: extractBeta is also preserved under left shifts.
     
     Similar reasoning to extractAlpha: the complement P'ᶜ has the same structure
@@ -2440,6 +2442,7 @@ lemma imageFinset_leftCoShift_eq {n : ℕ} (P Q : Finset (Fin n)) (σ : Equiv.Pe
     refine ⟨p, hp, ?_⟩
     simp only [Equiv.Perm.coe_mul, Function.comp_apply, hpq, hqx]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Key insight: extractAlpha is preserved under left co-shifts.
     
     When we apply a left co-shift:
@@ -2504,6 +2507,7 @@ lemma extractAlpha_leftCoShift_eq {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.ca
   simp only [Equiv.Perm.coe_mul, Function.comp_apply, σ']
   convert h_goal using 1
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Key insight: extractBeta is also preserved under left co-shifts.
     
     Similar reasoning to extractAlpha: the complement Q'ᶜ has the same structure
@@ -2964,6 +2968,7 @@ lemma extractBeta_spec {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.card = Q.card
              OrderEmbedding.subtype_apply, Finset.coe_orderIsoOfFin_apply]
   exact (congrArg Subtype.val hiso).symm
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Round-trip lemma: extractAlpha of constructSigma equals the original α. -/
 lemma extractAlpha_constructSigma {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.card = Q.card)
     (α : Equiv.Perm (Fin P.card)) (β : Equiv.Perm (Fin Pᶜ.card)) 
@@ -2976,7 +2981,7 @@ lemma extractAlpha_constructSigma {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.ca
   have h_eval : (constructSigma P Q hcard α β) (P.orderEmbOfFin rfl i) = 
       Q.orderEmbOfFin hcard.symm (α ((P.orderIsoOfFin rfl).symm ⟨P.orderEmbOfFin rfl i, hi_mem⟩)) := by
     simp only [constructSigma, Equiv.ofBijective_apply]
-    simp only [hi_mem, dif_pos]
+    simp only [hi_mem, dite_eq_left]
   -- Use orderIsoOfFin_symm_orderEmbOfFin to simplify
   have h1 : (P.orderIsoOfFin rfl).symm ⟨P.orderEmbOfFin rfl i, hi_mem⟩ = i :=
     orderIsoOfFin_symm_orderEmbOfFin P rfl i
@@ -2993,6 +2998,7 @@ lemma extractAlpha_constructSigma {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.ca
   simp only [Fin.val_inj]
   exact h_goal
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Round-trip lemma: extractBeta of constructSigma equals the original β. -/
 lemma extractBeta_constructSigma {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.card = Q.card)
     (α : Equiv.Perm (Fin P.card)) (β : Equiv.Perm (Fin Pᶜ.card)) 
@@ -3008,7 +3014,7 @@ lemma extractBeta_constructSigma {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.car
   have h_eval : (constructSigma P Q hcard α β) (Pᶜ.orderEmbOfFin rfl i) = 
       Qᶜ.orderEmbOfFin hcard'' (β ((Pᶜ.orderIsoOfFin rfl).symm ⟨Pᶜ.orderEmbOfFin rfl i, hi_mem⟩)) := by
     simp only [constructSigma, Equiv.ofBijective_apply]
-    simp only [hi_notP, dif_neg, not_false_eq_true]
+    simp only [hi_notP, dite_eq_right, not_false_eq_true]
   -- Use orderIsoOfFin_symm_orderEmbOfFin to simplify
   have h1 : (Pᶜ.orderIsoOfFin rfl).symm ⟨Pᶜ.orderEmbOfFin rfl i, hi_mem⟩ = i :=
     orderIsoOfFin_symm_orderEmbOfFin Pᶜ rfl i
@@ -3025,6 +3031,7 @@ lemma extractBeta_constructSigma {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.car
   simp only [Fin.val_inj]
   exact h_goal
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Round-trip lemma: constructSigma of (extractAlpha, extractBeta) equals the original σ.
     This is the other direction of the bijection, showing that extract ∘ construct = id. -/
 lemma constructSigma_extract {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.card = Q.card)
@@ -3034,12 +3041,11 @@ lemma constructSigma_extract {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.card = 
   simp only [constructSigma, Equiv.ofBijective_apply]
   by_cases hx : x ∈ P
   · -- Case x ∈ P: constructSigma uses extractAlpha
-    simp only [hx, dif_pos]
+    simp only [hx, dite_eq_left]
     simp only [extractAlpha, Equiv.ofBijective_apply]
     -- First simplify P.orderEmbOfFin rfl ((P.orderIsoOfFin rfl).symm ⟨x, hx⟩) = x
     have hPiso : P.orderEmbOfFin rfl ((P.orderIsoOfFin rfl).symm ⟨x, hx⟩) = x := by
       have h := (P.orderIsoOfFin rfl).apply_symm_apply ⟨x, hx⟩
-      simp only at h
       exact congrArg Subtype.val h
     -- Now we need Q.orderEmbOfFin _ ((Q.orderIsoOfFin _).symm ⟨σ x, _⟩) = σ x
     have hσx_mem : σ x ∈ Q := by
@@ -3048,19 +3054,17 @@ lemma constructSigma_extract {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.card = 
       exact ⟨x, hx, rfl⟩
     have hQiso : Q.orderEmbOfFin (hcard.symm ▸ rfl) ((Q.orderIsoOfFin hcard.symm).symm ⟨σ x, hσx_mem⟩) = σ x := by
       have h := (Q.orderIsoOfFin hcard.symm).apply_symm_apply ⟨σ x, hσx_mem⟩
-      simp only at h
       exact congrArg Subtype.val h
     -- Now connect the pieces
     simp only [hPiso]
     simp only [Fin.val_inj]
     exact hQiso
   · -- Case x ∉ P: constructSigma uses extractBeta
-    simp only [hx, dif_neg, not_false_eq_true]
+    simp only [hx, dite_eq_right, not_false_eq_true]
     have hxC : x ∈ Pᶜ := Finset.mem_compl.mpr hx
     simp only [extractBeta, Equiv.ofBijective_apply]
     have hPCiso : Pᶜ.orderEmbOfFin rfl ((Pᶜ.orderIsoOfFin rfl).symm ⟨x, hxC⟩) = x := by
       have h := (Pᶜ.orderIsoOfFin rfl).apply_symm_apply ⟨x, hxC⟩
-      simp only at h
       exact congrArg Subtype.val h
     have hcardC : Pᶜ.card = Qᶜ.card := by simp only [Finset.card_compl, Fintype.card_fin, hcard]
     have hσx_mem : σ x ∈ Qᶜ := by
@@ -3074,7 +3078,6 @@ lemma constructSigma_extract {n : ℕ} (P Q : Finset (Fin n)) (hcard : P.card = 
       exact hx hy
     have hQCiso : Qᶜ.orderEmbOfFin hcardC.symm ((Qᶜ.orderIsoOfFin hcardC.symm).symm ⟨σ x, hσx_mem⟩) = σ x := by
       have h := (Qᶜ.orderIsoOfFin hcardC.symm).apply_symm_apply ⟨σ x, hσx_mem⟩
-      simp only at h
       exact congrArg Subtype.val h
     simp only [hPCiso]
     simp only [Fin.val_inj]
@@ -3387,11 +3390,11 @@ theorem det_add_sum {n : ℕ} (A B : Matrix (Fin n) (Fin n) R) :
   congr 1
   ext Q
   by_cases hcard : Q.card = P.card
-  · rw [dif_pos hcard]
+  · rw [dite_eq_left hcard]
     -- Use sum_perms_mapping_eq_det_product
     have h := sum_perms_mapping_eq_det_product A B P Q hcard.symm
     convert h using 2
-  · rw [dif_neg hcard]
+  · rw [dite_eq_right hcard]
     rw [permsMapping_empty_of_card_ne P Q (fun h => hcard h.symm)]
     simp
 
@@ -3431,7 +3434,7 @@ theorem det_diagonal_submatrix_off_diag {n : ℕ} (d : Fin n → R)
   -- Since P ≠ Q but |P| = |Q|, there exists some element in P but not in Q
   have hne' : ∃ x, x ∈ P ∧ x ∉ Q := by
     by_contra h
-    push_neg at h
+    push Not at h
     have hsub : P ⊆ Q := fun x hx => h x hx
     exact hne (Finset.eq_of_subset_of_card_le hsub (hcard ▸ le_refl _))
   obtain ⟨x, hxP, hxQ⟩ := hne'
@@ -3488,7 +3491,7 @@ theorem det_add_diagonal {n : ℕ} (A : Matrix (Fin n) (Fin n) R) (d : Fin n →
     -- Use Finset.sum_eq_single
     rw [Finset.sum_eq_single P]
     · -- The P = P term
-      rw [dif_pos (rfl : P.card = P.card)]
+      rw [dite_eq_left (rfl : P.card = P.card)]
       -- (-1)^(finsetSumFin P + finsetSumFin P) = 1
       have hone : (-1 : R) ^ (finsetSumFin P + finsetSumFin P) = 1 := by
         rw [← two_mul, pow_mul]
@@ -3504,7 +3507,7 @@ theorem det_add_diagonal {n : ℕ} (A : Matrix (Fin n) (Fin n) R) (d : Fin n →
     · -- For Q ≠ P, the term is zero
       intro Q _ hQP
       by_cases hcard : Q.card = P.card
-      · rw [dif_pos hcard]
+      · rw [dite_eq_left hcard]
         -- submatrixDet (diagonal d) Qᶜ Pᶜ ... = 0 because Qᶜ ≠ Pᶜ
         have hne : Qᶜ ≠ Pᶜ := by
           intro h
@@ -3515,7 +3518,7 @@ theorem det_add_diagonal {n : ℕ} (A : Matrix (Fin n) (Fin n) R) (d : Fin n →
         have hcard' : Qᶜ.card = Pᶜ.card := by simp [Finset.card_compl, hcard]
         rw [det_diagonal_submatrix_off_diag d Qᶜ Pᶜ hcard' hne]
         ring
-      · rw [dif_neg hcard]
+      · rw [dite_eq_right hcard]
     · intro hP
       exact (hP (mem_univ P)).elim
   exact h1
@@ -3997,7 +4000,7 @@ theorem det_pascalLowerTriangular (n : ℕ) :
     simp only [transpose_apply]
     exact hLower j i hij
   rw [← det_transpose]
-  rw [det_of_upperTriangular hT]
+  rw [det_of_isUpperTriangular hT]
   simp only [transpose_apply, map_apply]
   apply Finset.prod_eq_one
   intro i _
@@ -4014,7 +4017,7 @@ theorem det_pascalUpperTriangular (n : ℕ) :
     simp only [map_apply, pascalUpperTriangular]
     have : j.val.choose i.val = 0 := Nat.choose_eq_zero_of_lt (Fin.val_fin_lt.mpr hij)
     simp [this]
-  rw [det_of_upperTriangular hUpper]
+  rw [det_of_isUpperTriangular hUpper]
   simp only [map_apply]
   apply Finset.prod_eq_one
   intro i _

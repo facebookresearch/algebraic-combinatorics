@@ -125,9 +125,6 @@ These lemmas verify that our definitions match the textbook formulas:
 theorem logbar_eq_sum_alternating : logbar K = mk fun n =>
     if n = 0 then 0 else algebraMap ℚ K ((-1 : ℚ) ^ (n - 1) / n) := rfl
 
-/-- `exp` has constant term 1. This is part of Definition 7.8.2 (def.fps.exp-log). -/
-theorem exp_constantCoeff : constantCoeff (exp K) = 1 := constantCoeff_exp
-
 /-- `logbar` has constant term 0. This is part of Definition 7.8.2 (def.fps.exp-log). -/
 theorem logbar_constantCoeff : constantCoeff (logbar K) = 0 := constantCoeff_logbar
 
@@ -152,7 +149,7 @@ theorem coeff_invOnePlusX (n : ℕ) :
 
 /-- The derivative of `logbar` is `invOnePlusX`. This is part of the proof of
 Proposition 7.8.3 (prop.fps.exp-log-der). -/
-theorem derivative_logbar : d⁄dX K (logbar K) = invOnePlusX K := by
+theorem derivative_logbar : d⁄dX (logbar K) = invOnePlusX K := by
   ext n
   rw [coeff_derivative, coeff_logbar, coeff_invOnePlusX]
   simp only [add_eq_zero, one_ne_zero, and_false, ↓reduceIte, Nat.add_sub_cancel]
@@ -164,14 +161,14 @@ theorem derivative_logbar : d⁄dX K (logbar K) = invOnePlusX K := by
 
 /-- The derivative of `expbar` equals `exp`. This is equation (7.8.3) in the proof of
 Proposition 7.8.3 (prop.fps.exp-log-der). -/
-theorem derivative_expbar : d⁄dX K (expbar K) = exp K := by
+theorem derivative_expbar : d⁄dX (expbar K) = exp K := by
   unfold expbar
   simp [map_sub, derivative_exp]
 
 /-- Chain rule for composition with `exp`: `(exp ∘ g)' = (exp ∘ g) · g'`.
 This is Proposition 7.8.3(a) (prop.fps.exp-log-der). -/
 theorem derivative_exp_comp {g : K⟦X⟧} (hg : constantCoeff g = 0) :
-    d⁄dX K ((exp K).subst g) = (exp K).subst g * d⁄dX K g := by
+    d⁄dX ((exp K).subst g) = (exp K).subst g * d⁄dX g := by
   have hsub : HasSubst g := HasSubst.of_constantCoeff_zero' hg
   rw [@derivative_subst K _ (exp K) g hsub, derivative_exp]
 
@@ -181,7 +178,7 @@ This is Proposition 7.8.3(a) (prop.fps.exp-log-der).
 Note that `expbar = exp - 1`, so `expbar' = exp' = exp`, and the chain rule gives
 `(expbar ∘ g)' = (exp ∘ g) · g'`. -/
 theorem derivative_expbar_comp {g : K⟦X⟧} (hg : constantCoeff g = 0) :
-    d⁄dX K ((expbar K).subst g) = (exp K).subst g * d⁄dX K g := by
+    d⁄dX ((expbar K).subst g) = (exp K).subst g * d⁄dX g := by
   have hsub : HasSubst g := HasSubst.of_constantCoeff_zero' hg
   rw [@derivative_subst K _ (expbar K) g hsub, derivative_expbar]
 
@@ -194,7 +191,7 @@ theorem invOnePlusX_mul_one_add_X : invOnePlusX K * (1 + X) = 1 := by
   ext n
   simp only [coeff_mul, coeff_one]
   rcases n with _ | n
-  · simp only [antidiagonal_zero, sum_singleton]
+  · simp only [Finset.Nat.antidiagonal_zero, sum_singleton]
     simp only [invOnePlusX, coeff_mk, pow_zero, map_one]
     simp only [map_add, coeff_one, ite_true, coeff_X]
     norm_num
@@ -216,7 +213,8 @@ theorem invOnePlusX_mul_one_add_X : invOnePlusX K * (1 + X) = 1 := by
       rw [← sum_filter]
       have hfilter : filter (fun x => x.2 = 0) (antidiagonal n) = {(n, 0)} := by
         ext ⟨i, j⟩
-        simp only [mem_filter, mem_antidiagonal, mem_singleton, Prod.mk.injEq]
+        simp only [mem_filter, Finset.HasAntidiagonal.mem_antidiagonal, mem_singleton,
+          Prod.mk.injEq]
         constructor
         · rintro ⟨hij, rfl⟩
           simp at hij
@@ -250,7 +248,7 @@ theorem invOnePlusX_subst_eq_inv {g : K⟦X⟧} (hg : constantCoeff g = 0) :
 This is Proposition 7.8.3(b) (prop.fps.exp-log-der).
 Note: Requires Field K for the inverse to exist. -/
 theorem derivative_logbar_comp {g : K⟦X⟧} (hg : constantCoeff g = 0) :
-    d⁄dX K ((logbar K).subst g) = (1 + g)⁻¹ * d⁄dX K g := by
+    d⁄dX ((logbar K).subst g) = (1 + g)⁻¹ * d⁄dX g := by
   have hsub : HasSubst g := HasSubst.of_constantCoeff_zero' hg
   rw [derivative_subst (hg := hsub), derivative_logbar]
   congr 1
@@ -309,7 +307,7 @@ omit [Algebra ℚ K] in
 This is Lemma 7.8.4 (lem.fps.compos-cst-term-0).
 
 Note: Mathlib has `PowerSeries.constantCoeff_subst` which requires `HasSubst`. -/
-theorem constantCoeff_subst_of_constantCoeff_zero {f g : K⟦X⟧} (hg : constantCoeff g = 0) :
+theorem constantCoeff_subst_of_constantCoeff_zero' {f g : K⟦X⟧} (hg : constantCoeff g = 0) :
     constantCoeff (f.subst g) = constantCoeff f := by
   -- We use the Mathlib lemma constantCoeff_subst which expresses the result as a finsum
   show MvPowerSeries.constantCoeff (f.subst g) = constantCoeff f
@@ -330,7 +328,7 @@ private theorem invOnePlusX_mul_one_add_X' : invOnePlusX K * (1 + X) = 1 := by
   ext n
   simp only [coeff_mul, coeff_one]
   rcases n with _ | n
-  · simp only [antidiagonal_zero, sum_singleton]
+  · simp only [Finset.Nat.antidiagonal_zero, sum_singleton]
     simp only [invOnePlusX, coeff_mk, pow_zero, map_one]
     simp only [map_add, coeff_one, ite_true, coeff_X]
     norm_num
@@ -352,7 +350,8 @@ private theorem invOnePlusX_mul_one_add_X' : invOnePlusX K * (1 + X) = 1 := by
       rw [← sum_filter]
       have hfilter : filter (fun x => x.2 = 0) (antidiagonal n) = {(n, 0)} := by
         ext ⟨i, j⟩
-        simp only [mem_filter, mem_antidiagonal, mem_singleton, Prod.mk.injEq]
+        simp only [mem_filter, Finset.HasAntidiagonal.mem_antidiagonal, mem_singleton,
+          Prod.mk.injEq]
         constructor
         · rintro ⟨hij, rfl⟩
           simp at hij
@@ -372,7 +371,7 @@ private theorem one_add_X_mul_invOnePlusX' : (1 + X) * invOnePlusX K = 1 := by
 This is used to prove `expbar_comp_logbar`. -/
 theorem eq_of_derivative_eq_mul_of_inv
     {h₁ h₂ g : K⟦X⟧}
-    (hd₁ : d⁄dX K h₁ = (1 + h₁) * g) (hd₂ : d⁄dX K h₂ = (1 + h₂) * g)
+    (hd₁ : d⁄dX h₁ = (1 + h₁) * g) (hd₂ : d⁄dX h₂ = (1 + h₂) * g)
     (hc : constantCoeff h₁ = constantCoeff h₂) : h₁ = h₂ := by
   ext n
   induction n using Nat.strong_induction_on with
@@ -382,8 +381,8 @@ theorem eq_of_derivative_eq_mul_of_inv
       have h2 : coeff 0 h₂ = constantCoeff h₂ := coeff_zero_eq_constantCoeff_apply h₂
       rw [h1, h2, hc]
     · -- From h' = (1 + h) * g, we get coeff n (h') = coeff n ((1 + h) * g)
-      have eq1 : coeff n (d⁄dX K h₁) = coeff n ((1 + h₁) * g) := congrArg (coeff n) hd₁
-      have eq2 : coeff n (d⁄dX K h₂) = coeff n ((1 + h₂) * g) := congrArg (coeff n) hd₂
+      have eq1 : coeff n (d⁄dX h₁) = coeff n ((1 + h₁) * g) := congrArg (coeff n) hd₁
+      have eq2 : coeff n (d⁄dX h₂) = coeff n ((1 + h₂) * g) := congrArg (coeff n) hd₂
       rw [coeff_derivative] at eq1 eq2
       -- Show coeff n ((1 + h₁) * g) = coeff n ((1 + h₂) * g) using IH
       have h_eq : coeff n ((1 + h₁) * g) = coeff n ((1 + h₂) * g) := by
@@ -392,7 +391,7 @@ theorem eq_of_derivative_eq_mul_of_inv
         simp only [coeff_mul]
         apply Finset.sum_congr rfl
         intro ⟨i, j⟩ hij
-        simp only [Finset.mem_antidiagonal] at hij
+        simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
         have hi : i ≤ n := by omega
         congr 1
         exact ih i (Nat.lt_succ_of_le hi)
@@ -431,7 +430,7 @@ theorem expbar_comp_logbar : (expbar K).subst (logbar K) = X := by
   · -- X' = 1 = (1 + X) * invOnePlusX
     rw [derivative_X, one_add_X_mul_invOnePlusX']
   · -- constant terms are both 0
-    rw [constantCoeff_subst_of_constantCoeff_zero hlogbar, constantCoeff_expbar, constantCoeff_X]
+    rw [constantCoeff_subst_of_constantCoeff_zero' hlogbar, constantCoeff_expbar, constantCoeff_X]
 
 /-- `(invOnePlusX K).subst (expbar K) * exp K = 1`. This is a key lemma for proving
 `logbar_comp_expbar`. -/
@@ -452,7 +451,7 @@ theorem invOnePlusX_subst_expbar_mul_exp : (invOnePlusX K).subst (expbar K) * ex
 
 /-- Uniqueness lemma for ODEs of the form `h' = 1` (constant) with matching initial conditions. -/
 theorem eq_of_derivative_eq_one {h₁ h₂ : K⟦X⟧}
-    (hd₁ : d⁄dX K h₁ = 1) (hd₂ : d⁄dX K h₂ = 1)
+    (hd₁ : d⁄dX h₁ = 1) (hd₂ : d⁄dX h₂ = 1)
     (hc : constantCoeff h₁ = constantCoeff h₂) : h₁ = h₂ := by
   ext n
   induction n using Nat.strong_induction_on with
@@ -461,8 +460,8 @@ theorem eq_of_derivative_eq_one {h₁ h₂ : K⟦X⟧}
     · have h1 : coeff 0 h₁ = constantCoeff h₁ := coeff_zero_eq_constantCoeff_apply h₁
       have h2 : coeff 0 h₂ = constantCoeff h₂ := coeff_zero_eq_constantCoeff_apply h₂
       rw [h1, h2, hc]
-    · have eq1 : coeff n (d⁄dX K h₁) = coeff n (1 : K⟦X⟧) := congrArg (coeff n) hd₁
-      have eq2 : coeff n (d⁄dX K h₂) = coeff n (1 : K⟦X⟧) := congrArg (coeff n) hd₂
+    · have eq1 : coeff n (d⁄dX h₁) = coeff n (1 : K⟦X⟧) := congrArg (coeff n) hd₁
+      have eq2 : coeff n (d⁄dX h₂) = coeff n (1 : K⟦X⟧) := congrArg (coeff n) hd₂
       rw [coeff_derivative] at eq1 eq2
       have h : coeff (n + 1) h₁ * (n + 1) = coeff (n + 1) h₂ * (n + 1) := by
         rw [eq1, eq2]
@@ -495,7 +494,7 @@ theorem logbar_comp_expbar : (logbar K).subst (expbar K) = X := by
     rw [derivative_subst (hg := hsub), derivative_logbar, derivative_expbar]
     exact invOnePlusX_subst_expbar_mul_exp
   · simp
-  · rw [constantCoeff_subst_of_constantCoeff_zero hexp0, constantCoeff_logbar, constantCoeff_X]
+  · rw [constantCoeff_subst_of_constantCoeff_zero' hexp0, constantCoeff_logbar, constantCoeff_X]
 
 /-! ## Section 7.8.3: The exponential and logarithm of an FPS -/
 
@@ -585,7 +584,7 @@ def PowerSeries₁.subgroup : Subgroup (R⟦X⟧)ˣ where
   one_mem' := PowerSeries₁.one_mem
   mul_mem' := fun hf hg => PowerSeries₁.mul_mem hf hg
   inv_mem' := fun {u} hf => by
-    simp only [Set.mem_setOf_eq] at hf ⊢
+    simp only [Set.mem_ofPred_eq] at hf ⊢
     rw [mem_PowerSeries₁_iff] at hf ⊢
     -- For a unit u, we have u * u⁻¹ = 1, so constantCoeff(u) * constantCoeff(u⁻¹) = 1
     have h : (u : R⟦X⟧) * u.inv = 1 := Units.mul_inv u
@@ -614,7 +613,7 @@ This is Lemma 7.8.7(a) (lem.fps.Exp-Log-maps-wd). -/
 theorem PowerSeries₀.subst_mem {f g : K⟦X⟧} (hf : f ∈ PowerSeries₀) (hg : g ∈ PowerSeries₀) :
     f.subst g ∈ PowerSeries₀ := by
   rw [mem_PowerSeries₀_iff] at hf hg ⊢
-  rw [constantCoeff_subst_of_constantCoeff_zero hg, hf]
+  rw [constantCoeff_subst_of_constantCoeff_zero' hg, hf]
 
 omit [Algebra ℚ K] in
 /-- Composition of an FPS with constant term 1 and one with constant term 0 has constant term 1.
@@ -623,7 +622,7 @@ theorem PowerSeries₁.subst_mem {f g : K⟦X⟧} (hf : f ∈ PowerSeries₁) (h
     f.subst g ∈ PowerSeries₁ := by
   rw [mem_PowerSeries₁_iff] at hf ⊢
   rw [mem_PowerSeries₀_iff] at hg
-  rw [constantCoeff_subst_of_constantCoeff_zero hg, hf]
+  rw [constantCoeff_subst_of_constantCoeff_zero' hg, hf]
 
 /-- `exp ∘ g` has constant term 1 when `g` has constant term 0.
 This is Lemma 7.8.7(c) (lem.fps.Exp-Log-maps-wd). -/
@@ -677,7 +676,7 @@ theorem Exp_Log (f : PowerSeries₁ (R := K)) : Exp (Log f) = f := by
   have hf1 : constantCoeff (f.val - 1) = 0 := sub_one_mem_PowerSeries₀ f.property
   have hlogbar : constantCoeff (logbar K) = 0 := constantCoeff_logbar
   have h_logbar_subst : constantCoeff ((logbar K).subst (f.val - 1)) = 0 := by
-    rw [constantCoeff_subst_of_constantCoeff_zero hf1, hlogbar]
+    rw [constantCoeff_subst_of_constantCoeff_zero' hf1, hlogbar]
   -- Show exp.subst g = expbar.subst g + 1
   have hsub_log : HasSubst ((logbar K).subst (f.val - 1)) :=
     HasSubst.of_constantCoeff_zero h_logbar_subst
@@ -710,7 +709,7 @@ theorem Exp_Log_inverse : Function.LeftInverse (Log (K := K)) Exp ∧
 `h' = h * g` with the same initial condition, they are equal.
 This is used to prove `Exp_add`. -/
 theorem eq_of_derivative_eq_mul_self {h₁ h₂ g : K⟦X⟧}
-    (hd₁ : d⁄dX K h₁ = h₁ * g) (hd₂ : d⁄dX K h₂ = h₂ * g)
+    (hd₁ : d⁄dX h₁ = h₁ * g) (hd₂ : d⁄dX h₂ = h₂ * g)
     (hc : constantCoeff h₁ = constantCoeff h₂) : h₁ = h₂ := by
   ext n
   induction n using Nat.strong_induction_on with
@@ -721,15 +720,15 @@ theorem eq_of_derivative_eq_mul_self {h₁ h₂ g : K⟦X⟧}
       have h2 : coeff 0 h₂ = constantCoeff h₂ := coeff_zero_eq_constantCoeff_apply h₂
       rw [h1, h2, hc]
     · -- Inductive case: from h' = h * g, derive coeff (n+1) h * (n+1) = coeff n (h * g)
-      have eq1 : coeff n (d⁄dX K h₁) = coeff n (h₁ * g) := congrArg (coeff n) hd₁
-      have eq2 : coeff n (d⁄dX K h₂) = coeff n (h₂ * g) := congrArg (coeff n) hd₂
+      have eq1 : coeff n (d⁄dX h₁) = coeff n (h₁ * g) := congrArg (coeff n) hd₁
+      have eq2 : coeff n (d⁄dX h₂) = coeff n (h₂ * g) := congrArg (coeff n) hd₂
       rw [coeff_derivative] at eq1 eq2
       -- The convolution coeff n (h₁ * g) = coeff n (h₂ * g) by induction hypothesis
       have h_eq : coeff n (h₁ * g) = coeff n (h₂ * g) := by
         simp only [coeff_mul]
         apply Finset.sum_congr rfl
         intro ⟨i, j⟩ hij
-        simp only [Finset.mem_antidiagonal] at hij
+        simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hij
         have hi : i ≤ n := by omega
         congr 1
         exact ih i (Nat.lt_succ_of_le hi)
@@ -775,9 +774,9 @@ theorem Exp_add (f g : PowerSeries₀ (R := K)) :
     ring
   · -- Constant coefficients both equal 1
     rw [map_mul]
-    rw [constantCoeff_subst_of_constantCoeff_zero hf]
-    rw [constantCoeff_subst_of_constantCoeff_zero hg]
-    rw [constantCoeff_subst_of_constantCoeff_zero (by simp [hf, hg] : constantCoeff (f.val + g.val) = 0)]
+    rw [constantCoeff_subst_of_constantCoeff_zero' hf]
+    rw [constantCoeff_subst_of_constantCoeff_zero' hg]
+    rw [constantCoeff_subst_of_constantCoeff_zero' (by simp [hf, hg] : constantCoeff (f.val + g.val) = 0)]
     simp [constantCoeff_exp]
 
 /-- `Log(fg) = Log(f) + Log(g)`. This is Lemma 7.8.9(b) (lem.fps.Exp-Log-additive). -/
@@ -922,10 +921,10 @@ sense over any field. The name "logarithmic derivative" comes from Proposition 7
 * `loder_inv`: `loder(f⁻¹) = -loder f` (Corollary 7.8.16)
 * `loder_prod`: `loder(∏ fᵢ) = ∑ loder fᵢ` (Corollary 7.8.15)
 -/
-noncomputable def loder (f : R⟦X⟧) : R⟦X⟧ := d⁄dX R f * f⁻¹
+noncomputable def loder (f : R⟦X⟧) : R⟦X⟧ := d⁄dX f * f⁻¹
 
 /-- The definition of the logarithmic derivative: `loder f = f' * f⁻¹`. -/
-theorem loder_def (f : R⟦X⟧) : loder f = d⁄dX R f * f⁻¹ := rfl
+theorem loder_def (f : R⟦X⟧) : loder f = d⁄dX f * f⁻¹ := rfl
 
 /-! ### Well-definedness of loder (def.fps.loder.1)
 
@@ -945,15 +944,8 @@ theorem isUnit_of_constantCoeff_eq_one {f : R⟦X⟧} (hf : constantCoeff f = 1)
 
 /-- An FPS is invertible iff its constant coefficient is a unit.
 This is a more general version of `isUnit_of_constantCoeff_eq_one`. -/
-theorem isUnit_iff_constantCoeff_isUnit {f : R⟦X⟧} : IsUnit f ↔ IsUnit (constantCoeff f) := by
-  constructor
-  · intro h
-    exact h.map constantCoeff
-  · intro h
-    rw [isUnit_iff_exists_inv]
-    use f⁻¹
-    have h' : constantCoeff f ≠ 0 := h.ne_zero
-    exact PowerSeries.mul_inv_cancel f h'
+theorem isUnit_iff_constantCoeff_isUnit {f : R⟦X⟧} : IsUnit f ↔ IsUnit (constantCoeff f) :=
+  isUnit_iff_constantCoeff
 
 /-- For FPS with constant term 1, we have `f * f⁻¹ = 1`.
 This is a key property used in the definition of `loder`. -/
@@ -981,21 +973,21 @@ theorem invOnePlusX_eq_inv [Algebra ℚ R] : invOnePlusX R = (1 + X)⁻¹ := by
   simp only [coeff_mul, coeff_one, map_add, coeff_X]
   cases n with
   | zero =>
-    simp only [Finset.antidiagonal_zero, Finset.sum_singleton]
+    simp only [Finset.Nat.antidiagonal_zero, Finset.sum_singleton]
     simp [invOnePlusX, coeff_mk]
   | succ n =>
     simp only [invOnePlusX, coeff_mk, Nat.succ_ne_zero, ↓reduceIte]
-    have h0 : (n + 1, 0) ∈ Finset.antidiagonal (n + 1) := by simp [Finset.mem_antidiagonal]
-    rw [Finset.sum_eq_add_sum_diff_singleton h0]
+    have h0 : (n + 1, 0) ∈ antidiagonal (n + 1) := by simp [Finset.HasAntidiagonal.mem_antidiagonal]
+    rw [Finset.sum_eq_add_sum_sdiff_singleton_of_mem h0]
     simp only [↓reduceIte]
-    have h1' : (n, 1) ∈ Finset.antidiagonal (n + 1) \ {(n + 1, 0)} := by
-      simp [Finset.mem_sdiff, Finset.mem_antidiagonal, Finset.mem_singleton]
-    rw [Finset.sum_eq_add_sum_diff_singleton h1']
+    have h1' : (n, 1) ∈ antidiagonal (n + 1) \ {(n + 1, 0)} := by
+      simp [Finset.mem_sdiff, Finset.HasAntidiagonal.mem_antidiagonal, Finset.mem_singleton]
+    rw [Finset.sum_eq_add_sum_sdiff_singleton_of_mem h1']
     simp only [Nat.add_one_ne_zero, ↓reduceIte, zero_add]
-    have hrest : ∀ x ∈ (Finset.antidiagonal (n + 1) \ {(n + 1, 0)}) \ {(n, 1)},
+    have hrest : ∀ x ∈ (antidiagonal (n + 1) \ {(n + 1, 0)}) \ {(n, 1)},
         (algebraMap ℚ R) ((-1) ^ x.1) * ((if x.2 = 0 then 1 else 0) + if x.2 = 1 then 1 else 0) = 0 := by
       intro ⟨i, j⟩ hij
-      simp only [Finset.mem_sdiff, Finset.mem_antidiagonal, Finset.mem_singleton,
+      simp only [Finset.mem_sdiff, Finset.HasAntidiagonal.mem_antidiagonal, Finset.mem_singleton,
                  Prod.mk.injEq, not_and] at hij
       have hij1 : i + j = n + 1 := hij.1.1
       have hij2 : i = n + 1 → ¬j = 0 := hij.1.2
@@ -1041,7 +1033,7 @@ theorem subst_inv_of_mul_eq_one {g a b : R⟦X⟧} (hg : HasSubst g) (hab : a * 
 /-- The logarithmic derivative equals the derivative of the logarithm over ℚ-algebras.
 This is Proposition 7.8.13 (prop.fps.loder.log). -/
 theorem loder_eq_derivative_Log [Algebra ℚ R] {f : R⟦X⟧} (hf : constantCoeff f = 1) :
-    loder f = d⁄dX R ((logbar R).subst (f - 1)) := by
+    loder f = d⁄dX ((logbar R).subst (f - 1)) := by
   -- Need HasSubst for f - 1
   have hf1 : constantCoeff (f - 1) = 0 := by simp [hf]
   have hsub : HasSubst (f - 1) := HasSubst.of_constantCoeff_zero' hf1
@@ -1052,7 +1044,7 @@ theorem loder_eq_derivative_Log [Algebra ℚ R] {f : R⟦X⟧} (hf : constantCoe
   -- Apply invOnePlusX_eq_inv
   rw [invOnePlusX_eq_inv]
   -- Simplify derivative of (f - 1)
-  have hderiv : d⁄dX R (f - 1) = d⁄dX R f := by simp
+  have hderiv : d⁄dX (f - 1) = d⁄dX f := by simp
   rw [hderiv]
   -- Unfold loder and use commutativity
   rw [loder]
@@ -1087,10 +1079,10 @@ theorem loder_mul {f g : R⟦X⟧} (hf : constantCoeff f = 1) (hg : constantCoef
   -- Compute: (f * d⁄dX g + g * d⁄dX f) * (g⁻¹ * f⁻¹)
   --        = f * f⁻¹ * d⁄dX g * g⁻¹ + g * g⁻¹ * d⁄dX f * f⁻¹
   --        = d⁄dX g * g⁻¹ + d⁄dX f * f⁻¹
-  calc (f * d⁄dX R g + g * d⁄dX R f) * (g⁻¹ * f⁻¹)
-      = f * f⁻¹ * (d⁄dX R g * g⁻¹) + g * g⁻¹ * (d⁄dX R f * f⁻¹) := by ring
-    _ = 1 * (d⁄dX R g * g⁻¹) + 1 * (d⁄dX R f * f⁻¹) := by rw [hf', hg']
-    _ = d⁄dX R f * f⁻¹ + d⁄dX R g * g⁻¹ := by ring
+  calc (f * d⁄dX g + g * d⁄dX f) * (g⁻¹ * f⁻¹)
+      = f * f⁻¹ * (d⁄dX g * g⁻¹) + g * g⁻¹ * (d⁄dX f * f⁻¹) := by ring
+    _ = 1 * (d⁄dX g * g⁻¹) + 1 * (d⁄dX f * f⁻¹) := by rw [hf', hg']
+    _ = d⁄dX f * f⁻¹ + d⁄dX g * g⁻¹ := by ring
 
 /-- The logarithmic derivative of a product of `k` FPSs.
 This is Corollary 7.8.15 (cor.fps.loder.prodk).
@@ -1235,19 +1227,19 @@ private lemma coeff_mul_const_one {f g : K⟦X⟧} (hf0 : f.coeff 0 = 1) (hg0 : 
     {k : ℕ} (hk : 1 ≤ k) (hf : ∀ p, 1 ≤ p → p < k → f.coeff p = 0) :
     (f * g).coeff k = f.coeff k + g.coeff k := by
   simp only [coeff_mul]
-  have h0k : (0, k) ∈ Finset.antidiagonal k := by simp
-  have hk0 : (k, 0) ∈ Finset.antidiagonal k := by simp
+  have h0k : (0, k) ∈ antidiagonal k := by simp
+  have hk0 : (k, 0) ∈ antidiagonal k := by simp
   have hne : (0, k) ≠ (k, 0) := by simp; omega
   rw [← Finset.insert_erase h0k, Finset.sum_insert (by simp [Finset.mem_erase])]
-  have hk0' : (k, 0) ∈ (Finset.antidiagonal k).erase (0, k) := by
+  have hk0' : (k, 0) ∈ (antidiagonal k).erase (0, k) := by
     simp [Finset.mem_erase, hne.symm]
   rw [← Finset.insert_erase hk0', Finset.sum_insert (by simp [Finset.mem_erase])]
   simp only [hf0, hg0, one_mul, mul_one]
-  have h_rest : ∑ p ∈ ((Finset.antidiagonal k).erase (0, k)).erase (k, 0),
+  have h_rest : ∑ p ∈ ((antidiagonal k).erase (0, k)).erase (k, 0),
       f.coeff p.1 * g.coeff p.2 = 0 := by
     apply Finset.sum_eq_zero
     intro p hp
-    simp only [Finset.mem_erase, Finset.mem_antidiagonal, ne_eq] at hp
+    simp only [Finset.mem_erase, Finset.HasAntidiagonal.mem_antidiagonal, ne_eq] at hp
     have hp_ne_k0 : p ≠ (k, 0) := hp.1
     have hp_ne_0k : p ≠ (0, k) := hp.2.1
     have hp_sum : p.1 + p.2 = k := hp.2.2
@@ -1331,7 +1323,7 @@ theorem Log_summable_of_multipliable (f : I → PowerSeries₁ (R := K))
   -- Claim: {i | (Log (f i)).val.coeff n ≠ 0} ⊆ M
   apply Set.Finite.subset M.finite_toSet
   intro i hi
-  simp only [Set.mem_setOf_eq, ne_eq] at hi
+  simp only [Set.mem_ofPred_eq, ne_eq] at hi
   by_contra h_not_in_M
   apply hi
   -- Log(f i) = logbar ∘ (f i - 1)
@@ -1436,7 +1428,7 @@ private lemma logbar_subst_coeff_eq_of_coeff_eq {g₁ g₂ : K⟦X⟧} {n : ℕ}
         simp only [coeff_mul]
         apply Finset.sum_congr rfl
         intro ⟨p, q⟩ hpq
-        simp only [Finset.mem_antidiagonal] at hpq
+        simp only [Finset.HasAntidiagonal.mem_antidiagonal] at hpq
         have hp : p ≤ n := by omega
         have hq : q ≤ n := by omega
         rw [ih p hp, heq q hq]
@@ -1582,13 +1574,13 @@ private lemma expbar_subst_coeff_zero (g : K⟦X⟧) (hg : constantCoeff g = 0) 
     coeff n ((expbar K).subst g) = 0 := by
   have hord : n < order g := by
     by_contra h
-    push_neg at h
+    push Not at h
     have hord_le : order g ≤ n := h
     cases hord' : order g with
     | top => rw [hord'] at hord_le; simp at hord_le
     | coe m =>
       have hne : coeff m g ≠ 0 := by rw [order_eq_nat] at hord'; exact hord'.1
-      have hm_le : m ≤ n := by rw [hord'] at hord_le; exact ENat.coe_le_coe.mp hord_le
+      have hm_le : m ≤ n := by rw [hord'] at hord_le; exact ENat.natCast_le_natCast.mp hord_le
       exact hne (hcoeff m hm_le)
   have hord' := expbar_subst_order g hg n hord
   exact coeff_of_lt_order n hord'
@@ -1625,10 +1617,10 @@ theorem Exp_multipliable_of_summable (g : I → PowerSeries₀ (R := K))
   have hsub : {i : I | coeff n ((expbar K).subst (g i).val) ≠ 0} ⊆
               ⋃ k ∈ Finset.range (n + 1), {i : I | coeff k (g i).val ≠ 0} := by
     intro i hi
-    simp only [Set.mem_setOf_eq] at hi
-    simp only [Set.mem_iUnion, Finset.mem_range, Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq] at hi
+    simp only [Set.mem_iUnion, Finset.mem_range, Set.mem_ofPred_eq]
     by_contra h
-    push_neg at h
+    push Not at h
     have hcoeff : ∀ k ≤ n, coeff k (g i).val = 0 := by
       intro k hk
       have hk' : k < n + 1 := Nat.lt_succ_of_le hk
@@ -1669,7 +1661,7 @@ theorem Exp_sum (g : I → PowerSeries₀ (R := K))
     intro n
     convert hg n using 1
     ext i
-    simp only [Set.mem_setOf_eq]
+    simp only [Set.mem_ofPred_eq]
     rw [hLogExp i]
 
   -- Apply Log_tprod: Log(∏ f_i) = ∑ Log(f_i)

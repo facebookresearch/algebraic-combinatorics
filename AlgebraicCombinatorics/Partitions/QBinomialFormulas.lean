@@ -860,7 +860,7 @@ theorem qBinomial_eq_sum_subsets (q : R) (n k : ℕ) :
             omega
         _ = S.sum id - ∑ i ∈ range k, (i + 1) := by rw [hSsum, htri]
   · -- Case k > n: both sides are 0
-    push_neg at hkn
+    push Not at hkn
     rw [qBinomial_gt q n k hkn, kSubsetsOfIcc_empty_of_gt n k hkn, sum_empty]
 
 /-- The q-analog addition formula: [a+b]_q = [a]_q + q^a * [b]_q -/
@@ -978,7 +978,7 @@ theorem qBinomial_eq_prod_div {F : Type*} [Field F] (q : F) (n k : ℕ) (hk : k 
           have hn1k' : n + 1 - k = n - k + 1 := by omega
           rw [hn1k'] at hident
           rw [← hsplit, hident]
-        · push_neg at hk1n
+        · push Not at hk1n
           have hkn_eq : k = n := by omega
           rw [hkn_eq]
           rw [qBinomial_gt q n (n + 1) (Nat.lt_succ_self n), mul_zero, add_zero]
@@ -1099,6 +1099,7 @@ private lemma multiset_sum_sub_one (m : Multiset ℕ) (h : ∀ x ∈ m, x ≥ 1)
     have hsum_ge : s.sum ≥ s.card := multiset_sum_ge_card hs
     omega
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Partitions in a (k+1) × m box split into those with ≤ k parts and those with exactly k+1 parts. -/
 private lemma partitionsInBox_succ_split (size k m : ℕ) :
     partitionsInBox size (k + 1) m =
@@ -1111,13 +1112,14 @@ private lemma partitionsInBox_succ_split (size k m : ℕ) :
     by_cases hcard : p.parts.card ≤ k
     · left; exact ⟨hcard, hlp⟩
     · right
-      push_neg at hcard
+      push Not at hcard
       exact ⟨by omega, hlp⟩
   · intro h
     rcases h with ⟨hlen, hlp⟩ | ⟨hcard, hlp⟩
     · exact ⟨by omega, hlp⟩
     · exact ⟨by omega, hlp⟩
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The two sets in the partition split are disjoint. -/
 private lemma partitionsInBox_disjoint (size k m : ℕ) :
     Disjoint (partitionsInBox size k m) (partitionsInBoxExact size (k + 1) m) := by
@@ -1191,6 +1193,7 @@ private noncomputable def subtractOnePartition (s k m : ℕ) (p : Nat.Partition 
     rw [multiset_sum_sub_one p.parts hpos, p.parts_sum, hparts]
   exact Nat.Partition.ofSums (s - (k + 1)) newParts hsum
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The forward bijection lands in the target box. -/
 private lemma subtractOnePartition_mem (s k m : ℕ) (p : Nat.Partition s)
     (hp : p ∈ partitionsInBoxExact s (k + 1) m) (hm : m ≥ 1) :
@@ -1220,6 +1223,7 @@ private lemma subtractOnePartition_mem (s k m : ℕ) (p : Nat.Partition s)
       exact hp.2 j hj_mem
     omega
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Inverse bijection for q-Pascal: add 1 to each part and pad with 1s to get exactly k+1 parts. -/
 private noncomputable def addOnePartition (t k m : ℕ) (q : Nat.Partition t)
     (hq : q ∈ partitionsInBox t (k + 1) (m - 1)) : Nat.Partition (t + (k + 1)) := by
@@ -1251,6 +1255,7 @@ private noncomputable def addOnePartition (t k m : ℕ) (q : Nat.Partition t)
       omega
   exact ⟨newParts, @hpos, hsum⟩
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The inverse bijection lands in the target set. -/
 private lemma addOnePartition_mem (t k m : ℕ) (q : Nat.Partition t)
     (hq : q ∈ partitionsInBox t (k + 1) (m - 1)) (hm : m ≥ 1) :
@@ -1397,6 +1402,7 @@ private lemma subtract_after_add (m : Multiset ℕ) (n : ℕ) (hm : ∀ x ∈ m,
   rw [Multiset.filter_eq_self]
   exact hm
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Key cardinality equality: partitions with exactly k+1 parts in (k+1) × m box biject with
     partitions with at most k+1 parts in (k+1) × (m-1) box, via the "subtract 1 from each part"
     bijection. This is the combinatorial heart of the q-Pascal identity.
@@ -1501,6 +1507,7 @@ noncomputable def qBinomialPolyDef (n k : ℕ) : Polynomial ℤ :=
 theorem qBinomialPolyDef_of_gt (n k : ℕ) (h : k > n) : qBinomialPolyDef n k = 0 := by
   simp only [qBinomialPolyDef, show ¬(k ≤ n) by omega, ↓reduceIte]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- `[n choose 0]_q = 1` for all n. -/
 @[simp]
 theorem qBinomialPolyDef_zero_right (n : ℕ) : qBinomialPolyDef n 0 = 1 := by
@@ -1569,7 +1576,7 @@ theorem qBinomialEval_eq_direct (n k : ℕ) (a : R) :
     qBinomialEval n k a = qBinomialEvalDirect n k a := by
   simp only [qBinomialEval, qBinomialEvalDirect, qBinomialPolyDef]
   split_ifs with hk
-  · rw [Polynomial.eval₂_finset_sum]
+  · rw [Polynomial.eval₂_finsetSum]
     congr 1
     ext size
     simp only [Polynomial.eval₂_mul, Polynomial.eval₂_natCast,
@@ -1607,6 +1614,7 @@ private lemma sum_range_extend_zero {R : Type*} [AddCommMonoid R] (f : ℕ → R
     exact hzero i hi.1 hi.2
   simp [hzero_sum]
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The q-Pascal identity for qBinomialPolyDef (polynomial version).
     This is the combinatorial heart of the proof connecting the two definitions.
 
@@ -2179,13 +2187,14 @@ omit [Field F] [AddCommGroup V] [Module F V] in
 private lemma range_init_eq_image_lt {n : ℕ} (v : Fin (n + 1) → V) :
     Set.range (Fin.init v) = v '' {j : Fin (n + 1) | j.val < n} := by
   ext x
-  simp only [Set.mem_range, Set.mem_image, Set.mem_setOf_eq, Fin.init]
+  simp only [Set.mem_range, Set.mem_image, Set.mem_ofPred_eq, Fin.init]
   constructor
   · rintro ⟨j, rfl⟩
     exact ⟨j.castSucc, j.isLt, rfl⟩
   · rintro ⟨j, hj, rfl⟩
     exact ⟨⟨j.val, hj⟩, by simp [Fin.castSucc]⟩
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Lemma lem.linalg.lin-ind-via-span: A k-tuple (v₁, v₂, ..., vₖ) is linearly independent
     if and only if each vᵢ ∉ span{v₁, ..., vᵢ₋₁}.
 
@@ -2198,7 +2207,7 @@ theorem linearIndependent_iff_not_mem_span_of_lt {k : ℕ} (v : Fin k → V) :
     simp only [IsEmpty.forall_iff, iff_true]
     exact linearIndependent_empty_type
   | succ n ih =>
-    rw [linearIndependent_fin_succ']
+    rw [linearIndependent_finSucc']
     constructor
     · intro ⟨hind, hlast⟩ i
       by_cases hi : i = Fin.last n
@@ -2218,7 +2227,7 @@ theorem linearIndependent_iff_not_mem_span_of_lt {k : ℕ} (v : Fin k → V) :
         rw [hieq] at hmem
         apply Submodule.span_mono _ hmem
         intro x hx
-        simp only [Set.mem_image, Set.mem_setOf_eq] at hx ⊢
+        simp only [Set.mem_image, Set.mem_ofPred_eq] at hx ⊢
         obtain ⟨j, hj, rfl⟩ := hx
         have hjn : j.val < n := Nat.lt_of_lt_of_le hj (Nat.le_of_lt hi')
         exact ⟨⟨j.val, hjn⟩, hj, by simp [Fin.castSucc, Fin.castAdd]⟩
@@ -2237,7 +2246,7 @@ theorem linearIndependent_iff_not_mem_span_of_lt {k : ℕ} (v : Fin k → V) :
         rw [← hieq] at hmem
         apply Submodule.span_mono _ hmem
         intro x hx
-        simp only [Set.mem_image, Set.mem_setOf_eq] at hx ⊢
+        simp only [Set.mem_image, Set.mem_ofPred_eq] at hx ⊢
         obtain ⟨j, hj, rfl⟩ := hx
         have hjn : j.val < n.succ := Nat.lt_succ_of_lt (Nat.lt_of_lt_of_le hj (Nat.le_of_lt i.isLt))
         refine ⟨⟨j.val, hjn⟩, hj, ?_⟩
@@ -2279,7 +2288,7 @@ theorem card_linearIndependent_tuples (n k : ℕ) (hn : Module.finrank F V = n) 
     convert this using 1
     rw [Finset.prod_range]
   · -- Case k > n: both sides are 0 (no linearly independent k-tuples exist)
-    push_neg at hk
+    push Not at hk
     have h1 : Nat.card {v : Fin k → V // LinearIndependent F v} = 0 := by
       rw [Nat.card_eq_zero]
       left
@@ -2443,7 +2452,7 @@ theorem qBinomial_subspace_count (n k : ℕ) (hn : Module.finrank F V = n) :
       have : Module.finrank F W ≤ Module.finrank F V := Submodule.finrank_le W
       omega
     simp only [this, Nat.cast_zero]
-  · push_neg at hkn
+  · push Not at hkn
     -- Main case: k ≤ n
     haveI : Finite V := Module.finite_of_finite (R := F) (M := V)
     -- Get the count of linearly independent k-tuples in V
@@ -2540,8 +2549,8 @@ theorem qBinomial_subspace_count (n k : ℕ) (hn : Module.finrank F V = n) :
       refine prod_bij' (fun i _ => k - 1 - i) (fun j _ => k - 1 - j) ?_ ?_ ?_ ?_ ?_
       · intro i hi; simp only [mem_range] at hi ⊢; omega
       · intro j hj; simp only [mem_range] at hj ⊢; omega
-      · intro i hi; simp only [mem_range] at hi; simp only; omega
-      · intro j hj; simp only [mem_range] at hj; simp only; omega
+      · intro i hi; simp only [mem_range] at hi; omega
+      · intro j hj; simp only [mem_range] at hj; omega
       · intro i hi
         simp only [mem_range] at hi
         have h1 : k - 1 - i + 1 = k - i := by omega
@@ -2789,9 +2798,9 @@ private lemma prod_inv_eq_restricted_gf (k : ℕ) :
     simp only [Function.mem_mulSupport, ne_eq] at hi
     simp only [mem_coe, mem_range]
     by_contra h
-    push_neg at h
+    push Not at h
     have hcond : ¬ (i + 1 ≤ k) := by omega
-    rw [if_neg hcond] at hi
+    rw [ite_eq_right hcond] at hi
     exact hi rfl
   rw [tprod_eq_prod' hsupp]
   apply Finset.prod_congr rfl

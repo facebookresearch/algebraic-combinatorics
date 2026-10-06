@@ -553,6 +553,7 @@ def symToWeaklyIncreasing (n : ℕ) (s : Sym (Fin N) n) :
   apply sorted_weakly_increasing
   exact hij
 
+set_option backward.isDefEq.respectTransparency false in
 /-- The monomial from a Sym equals the product over its weakly increasing representation.
     This is a key lemma for connecting h_n to Schur polynomials. -/
 theorem sym_monomial_eq_weaklyIncreasing_prod {R : Type*} [CommRing R] (n : ℕ) (s : Sym (Fin N) n) :
@@ -2134,7 +2135,7 @@ theorem rowSSYTToSym_symToRowSSYT (hN : 0 < N) (n : ℕ) (s : Sym (Fin N) n) :
     rowSSYTToSym hN n (symToRowSSYT hN n s) = s := by
   unfold rowSSYTToSym symToRowSSYT
   -- The function is equivalent to (symToWeaklyIncreasing n s).val
-  convert weaklyIncreasingToSym_symToWeaklyIncreasing n s using 1
+  convert weaklyIncreasingToSym_symToWeaklyIncreasing n s using 1; rfl
 
 /-- symToRowSSYT preserves monomials. -/
 theorem symToRowSSYT_toMonomial (hN : 0 < N) (n : ℕ) (s : Sym (Fin N) n) :
@@ -2154,7 +2155,7 @@ theorem symToRowSSYT_toMonomial (hN : 0 < N) (n : ℕ) (s : Sym (Fin N) n) :
     intro i _ hi
     have hi_pos : 0 < i.val := by
       by_contra h
-      push_neg at h
+      push Not at h
       have : i.val = 0 := Nat.eq_zero_of_le_zero h
       apply hi
       ext
@@ -2285,7 +2286,7 @@ def finsetToColSSYT (n : ℕ) (hn : n ≤ N) (s : Finset (Fin N)) (hs : s.card =
     have hlen2 : i.val + 1 < (s.sort (· ≤ ·)).length := by rw [Finset.length_sort, hs]; omega
     have hlt : (⟨i.val, hlen1⟩ : Fin (s.sort (· ≤ ·)).length) < ⟨i.val + 1, hlen2⟩ := by
       simp only [Fin.lt_def]; omega
-    convert s.sortedLT_sort hlt
+    convert s.sortedLT_sort hlt <;> simp
 
 /-- Helper for extracting entry from column SSYT -/
 def colSSYTEntry (n : ℕ) (hn : n ≤ N) (T : SSYT (NPartition.colPartition N n hn))
@@ -2382,7 +2383,7 @@ private lemma prod_fin_ite {α : Type*} [CommMonoid α] (P : Prop) [Decidable P]
     ∏ j : Fin (if P then 1 else 0), f j =
     if h : P then f ⟨0, by simp [h]⟩ else 1 := by
   split_ifs with h
-  · have heq : (if P then 1 else 0) = 1 := if_pos h
+  · have heq : (if P then 1 else 0) = 1 := ite_eq_left h
     rw [Fintype.prod_eq_single (⟨0, by simp [heq]⟩ : Fin (if P then 1 else 0))]
     intro b hb
     have hb0 : b.val = 0 := by
@@ -2390,7 +2391,7 @@ private lemma prod_fin_ite {α : Type*} [CommMonoid α] (P : Prop) [Decidable P]
       simp only [h, ite_true] at hlt
       omega
     exact (hb (Fin.ext hb0)).elim
-  · have heq : (if P then 1 else 0) = 0 := if_neg h
+  · have heq : (if P then 1 else 0) = 0 := ite_eq_right h
     have hEmpty : IsEmpty (Fin (if P then 1 else 0)) := by rw [heq]; exact Fin.isEmpty
     haveI : IsEmpty (Fin (if P then 1 else 0)) := hEmpty
     exact Fintype.prod_empty f
@@ -2410,6 +2411,7 @@ private lemma list_map_prod_eq_finset_prod {α : Type*} [DecidableEq α] {M : Ty
     congr 1
     exact ih hnodup'
 
+set_option backward.isDefEq.respectTransparency false in
 /-- finsetToColSSYT preserves monomials -/
 theorem finsetToColSSYT_toMonomial (n : ℕ) (hn : n ≤ N) (s : Finset (Fin N)) (hs : s.card = n) :
     (finsetToColSSYT n hn s hs).toMonomial (R := R) = ∏ i ∈ s, MvPolynomial.X i := by
@@ -3909,7 +3911,7 @@ private lemma integerLattice_path_x_monotone (p : LGV.SimpleDigraph.Path LGV.int
 private lemma integerLattice_path_x_lt_implies_idx_lt (p : LGV.SimpleDigraph.Path LGV.integerLattice)
     (i j : ℕ) (hi : i < p.vertices.length) (hj : j < p.vertices.length)
     (hx : (p.vertices.get ⟨i, hi⟩).1 < (p.vertices.get ⟨j, hj⟩).1) : i < j := by
-  by_contra h; push_neg at h
+  by_contra h; push Not at h
   have := integerLattice_path_x_monotone p j i hj hi h; omega
 
 /-- Helper: at a fixed x-coordinate, the y-coordinates of vertices form a contiguous range
@@ -4036,7 +4038,7 @@ theorem paths_above_at_x_stays_above (p p' : LGV.SimpleDigraph.Path LGV.integerL
   -- If p' drops to or below p at some x > x₀, there must be a crossing point.
   intro idx_p hidx_p idx_p' hidx_p' hx_p hx_p'
   by_contra h_not_above
-  push_neg at h_not_above
+  push Not at h_not_above
   -- Get witnesses for x₀
   obtain ⟨idx₀_p, hidx₀_p, hx₀_p_eq⟩ := hx₀_p
   obtain ⟨idx₀_p', hidx₀_p', hx₀_p'_eq⟩ := hx₀_p'
@@ -4130,7 +4132,7 @@ theorem paths_above_at_x_stays_above (p p' : LGV.SimpleDigraph.Path LGV.integerL
     have hdiff_sp'x₀ : diff s_p'_x₀ > 0 := by
       simp only [diff, y_p_fn, y_p'_fn, hidx_p_sp'x₀, hidx_p'_sp'x₀, dite_true]
       by_contra h_le
-      push_neg at h_le
+      push Not at h_le
       have hsum_p_at_sp'x₀ := LGV.integerLattice_path_vertex_sum p
         (s_p'_x₀ - p.start.1 - p.start.2).toNat hidx_p_sp'x₀
       have hy_p'_val : (p'.vertices.get ⟨(s_p'_x₀ - p'.start.1 - p'.start.2).toNat, hidx_p'_sp'x₀⟩).2 = y_p'_x₀ := by
@@ -5784,7 +5786,7 @@ private lemma pathWeightAux_eq_map_prod_lgvYCoords (vertices : List (ℤ × ℤ)
         have hfirst : jacobiTrudiArcWeight (N := N) (R := R) v v' (Or.inl heast) =
             X ⟨(v.2 - 1).toNat, by have := hv2_bounded; omega⟩ := by
           unfold jacobiTrudiArcWeight
-          simp only [heast, and_self, ↓reduceIte, hv2_bounded, dif_pos]
+          simp only [heast, and_self, ↓reduceIte, hv2_bounded, dite_eq_left]
         -- The goal is: jacobiTrudiArcWeight * pathWeightAux = X * (map X pmap).prod
         -- Use hfirst for the first factor
         rw [hfirst]
@@ -6015,12 +6017,12 @@ theorem lgv_pathWeightSum_eq_latticePathSum (a c : ℤ) (h : 0 ≤ c - a) (hN : 
   unfold LGV.pathWeightSum
   apply Finset.sum_bij
     (i := fun p hp => lgvPathToLatticePath a c p
-      (by simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp; exact hp.1)
-      (by simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp; exact hp.2))
+      (by simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp; exact hp.1)
+      (by simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp; exact hp.2))
     (hi := fun _ _ => Finset.mem_univ _)
     (i_inj := fun p₁ hp₁ p₂ hp₂ heq => by
         -- Injectivity: Use lgvPathToLatticePath_injective
-        simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp₁ hp₂
+        simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp₁ hp₂
         exact lgvPathToLatticePath_injective a c p₁ p₂ hp₁.1 hp₁.2 hp₂.1 hp₂.2 heq)
     (i_surj := fun lp _ => by
       -- Surjectivity: every LatticePath comes from some LGV path
@@ -6036,7 +6038,7 @@ theorem lgv_pathWeightSum_eq_latticePathSum (a c : ℤ) (h : 0 ≤ c - a) (hN : 
       -- Goal is: p ∈ pathsFromTo ∧ lgvPathToLatticePath p = lp
       refine ⟨?_, ?_⟩
       · -- Show p is in pathsFromTo
-        simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+        simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
         exact ⟨hstart, hfinish⟩
       · -- Show lgvPathToLatticePath p = lp
         -- Use lgvPathEastStepYCoords_buildVertices to show the east-step heights match
@@ -6051,7 +6053,7 @@ theorem lgv_pathWeightSum_eq_latticePathSum (a c : ℤ) (h : 0 ≤ c - a) (hN : 
         -- Use lgvYCoordsToFinN_map_val_add_one_eq to complete the proof
         exact lgvYCoordsToFinN_map_val_add_one_eq lp.eastStepHeights heq _)
     (h := fun p hp => by
-      simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq] at hp
+      simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq] at hp
       exact lgvPathToLatticePath_weight_eq a c p hp.1 hp.2)
 
 /-- Key infrastructure lemma: The LGV path weight sum from (a, 1) to (c, N) with
@@ -6075,14 +6077,14 @@ theorem lgv_pathWeightSum_eq_hsymmExt (a c : ℤ) (hN : 0 < N) :
     simp only [h, ↓reduceIte] at hpath
     exact hpath
   · -- Case c - a < 0: both sides are 0
-    push_neg at h
+    push Not at h
     unfold hsymmExt
     simp only [Int.not_le.mpr h, ↓reduceIte]
     unfold LGV.pathWeightSum
     have hempty : LGV.pathsFromTo LGV.integerLattice LGV.integerLattice_pathFinite
         (a, 1) (c, ↑N) = ∅ := by
       ext p
-      simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+      simp only [LGV.pathsFromTo, Set.Finite.mem_toFinset, Set.mem_ofPred_eq]
       constructor
       · intro ⟨hstart, hfinish⟩
         have hle : p.start.1 ≤ p.finish.1 := by
@@ -6186,7 +6188,7 @@ private lemma path_above_stays_above (p p' : LGV.SimpleDigraph.Path LGV.integerL
   -- At s₀, diff > 0. If diff ever becomes ≤ 0, by discrete IVT there's a point where diff = 0,
   -- meaning both paths have the same (x, y), contradicting non-intersection.
   by_contra h_not_above
-  push_neg at h_not_above
+  push Not at h_not_above
   -- Define y-coordinate functions for each path at a given sum value
   let y_p (s : ℤ) : ℤ :=
     let idx := (s - p.start.1 - p.start.2).toNat
@@ -6351,7 +6353,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
       have hj_eq : j.val = i.val + 1 := by omega
       -- Proof by contradiction: assume h_i[k] ≥ h_j[k']
       by_contra h_not_lt
-      push_neg at h_not_lt
+      push Not at h_not_lt
       -- We show paths share a vertex, contradicting hni
       have hij_ne : i ≠ j := Fin.ne_of_lt hij
       apply hni i j hij_ne
@@ -6529,7 +6531,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
               -- Show idx₀ > 0 (since x at 0 < target)
               have hidx₀_pos : idx₀ > 0 := by
                 by_contra h
-                push_neg at h
+                push Not at h
                 have hidx₀_eq_zero : idx₀ = 0 := Nat.eq_zero_of_le_zero h
                 have h1 : (p_j.vertices.get ⟨0, hlen_pos⟩).1 ≥ target := by
                   have heq' : (p_j.vertices.get ⟨idx₀, hidx₀_lt⟩).1 =
@@ -6543,7 +6545,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
                 Nat.lt_of_lt_of_le (Nat.sub_lt hidx₀_pos Nat.one_pos) (Nat.le_of_lt hidx₀_lt)
               have hx_pred_lt : (p_j.vertices.get ⟨idx₀ - 1, hidx₀_pred_lt⟩).1 < target := by
                 by_contra h
-                push_neg at h
+                push Not at h
                 have : P (idx₀ - 1) := ⟨hidx₀_pred_lt, h⟩
                 have : idx₀ ≤ idx₀ - 1 := Nat.find_le this
                 omega
@@ -6573,7 +6575,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
             -- If y = 1, then vertex is (μ_i - i, 1), which is not in path j
             refine ⟨idx, hidx, hx_eq, ?_⟩
             by_contra hy_le
-            push_neg at hy_le
+            push Not at hy_le
             -- y ≤ 1, but y ≥ 1 (since path starts at y = 1 and y increases)
             have hy_ge : (p_j.vertices.get ⟨idx, hidx⟩).2 ≥ 1 := by
               have hbd := LGV.integerLattice_path_vertices_bounded p_j idx hidx
@@ -6660,7 +6662,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
             -- If path j at x₀ has y = y_j, and y_j ≤ y_p, then (x₀, y_j) is in path i
             -- (by contiguity), contradicting non-intersection.
             by_contra h_not_above
-            push_neg at h_not_above
+            push Not at h_not_above
             -- So y_j ≤ y_p
             let y_p := (p_i.vertices.get ⟨idx_p, hidx_p⟩).2
             let y_j := (p_j.vertices.get ⟨idx_p', hidx_p'⟩).2
@@ -6760,7 +6762,7 @@ private lemma isNonIntersecting_implies_colStrictPaths (lam mu : Fin N → ℕ)
               omega
             -- If idx_j_kprime is the last index, then the vertex is the finish
             by_contra h_last
-            push_neg at h_last
+            push Not at h_last
             -- h_last : p_j.vertices.length ≤ idx_j_kprime + 1
             -- We know idx_j_kprime < p_j.vertices.length (from hidx_j_kprime)
             -- So idx_j_kprime + 1 ≤ p_j.vertices.length
@@ -7195,7 +7197,7 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
             omega
           · -- Case B: path i has east steps (lam_i > mu_i)
             -- Column-strictness ensures path j is above path i at their common x-range
-            push_neg at hvert
+            push Not at hvert
             have hlam_gt : lam i > mu i := Nat.lt_of_le_of_ne (hcontained i) (Ne.symm hvert)
             -- Path i starts strictly to the right of path j
             have hstart_lt : (mu j : ℤ) - (j.val : ℤ) < (mu i : ℤ) - (i.val : ℤ) := by
@@ -7662,7 +7664,7 @@ theorem lgv_nipatWeightSum_eq_nipatSum (lam mu : Fin N → ℕ)
           · -- Case B: path j has east steps (lam_j > mu_j)
             -- This case requires the path_above_stays_above infrastructure
             -- Column-strictness ensures path i is above path j at their common x-range
-            push_neg at hvert
+            push Not at hvert
             have hlam_gt : lam j > mu j := Nat.lt_of_le_of_ne (hcontained j) (Ne.symm hvert)
             -- Path j starts strictly to the right of path i
             have hstart_lt : (mu i : ℤ) - (i.val : ℤ) < (mu j : ℤ) - (j.val : ℤ) := by

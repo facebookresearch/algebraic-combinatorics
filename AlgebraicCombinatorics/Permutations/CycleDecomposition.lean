@@ -522,6 +522,7 @@ lemma cycleToCanonicalList_ne_nil (c : Perm α) (hc : c.IsCycle) :
   exact cycleMinElem_mem_support c hc
 
 
+set_option backward.isDefEq.respectTransparency false in
 omit [Inhabited α] in
 /-- The first element of the canonical list is the minimum. -/
 lemma cycleToCanonicalList_head (c : Perm α) (hc : c.IsCycle) :
@@ -927,7 +928,7 @@ private lemma mergeSort_pairwise_ge (l : List (List α)) :
   have h := List.pairwise_mergeSort (le := fun a b => a.head! ≥ b.head!)
     (fun a b c hab hbc => by simp only [decide_eq_true_eq] at hab hbc ⊢; exact le_trans hbc hab)
     (fun a b => by simp only [Bool.or_eq_true, decide_eq_true_eq]; exact le_total b.head! a.head!) l
-  convert h using 2; ext; simp
+  convert h using 2 <;> first | rfl | simp
 
 
 omit [DecidableEq α] [Fintype α] in
@@ -1040,8 +1041,9 @@ private lemma heads_nodup_of_pairwise_disjoint {L : List (List α)}
     intro heq'
     have hnodup := nodup_of_pairwise_disjoint_nonempty hpwd hne
     exact hne' (hnodup.getElem_inj_iff.mp heq')
-  have hdisj : List.Disjoint L[i] L[j] :=
-    hpwd.forall (fun _ _ h => h.symm) hli hlj hne''
+  have hdisj : List.Disjoint L[i] L[j] := by
+    have : Std.Symm (@List.Disjoint α) := ⟨fun _ _ h => h.symm⟩
+    exact hpwd.forall hli hlj hne''
   exact hdisj hhead_i hhead_j
 
 theorem canonicalDcd_exists_unique (σ : Perm α) :
@@ -1253,7 +1255,7 @@ theorem canonicalDcd_exists_unique (σ : Perm α) :
           -- l.length > 1 since x is not a fixed point
           have hlen : 1 < l.length := by
             by_contra hlen'
-            push_neg at hlen'
+            push Not at hlen'
             have hlen1 : l.length = 1 := by
               have hpos : 0 < l.length := List.length_pos_iff.mpr hne_l
               omega
@@ -1305,7 +1307,7 @@ theorem canonicalDcd_exists_unique (σ : Perm α) :
               exact hnodup'.1 l hl'
             have hσx : σ x = x := by
               rw [Perm.mem_support] at hfixed
-              push_neg at hfixed
+              push Not at hfixed
               exact hfixed
             have hprod_x := formPerm_prod_apply_eq hpwd' hl' hx
             have hfp_x : l.formPerm x = x := by
@@ -1315,7 +1317,7 @@ theorem canonicalDcd_exists_unique (σ : Perm α) :
                 _ = x := hσx
             have hlen : l.length ≤ 1 := by
               by_contra hlen'
-              push_neg at hlen'
+              push Not at hlen'
               rw [List.formPerm_apply_mem_eq_self_iff l hnodup_l x hx] at hfp_x
               omega
             have hlen1 : l.length = 1 := by
@@ -1357,7 +1359,7 @@ theorem canonicalDcd_exists_unique (σ : Perm α) :
           -- l'.length > 1 since x is not a fixed point
           have hlen' : 1 < l'.length := by
             by_contra hlen''
-            push_neg at hlen''
+            push Not at hlen''
             have hlen1 : l'.length = 1 := by
               have hpos : 0 < l'.length := List.length_pos_iff.mpr hne_l'
               omega
@@ -1414,7 +1416,7 @@ theorem canonicalDcd_exists_unique (σ : Perm α) :
             exact hnodup'.1 l' hl'_mem
           have hσx : σ x = x := by
             rw [Perm.mem_support] at hx_fixed
-            push_neg at hx_fixed
+            push Not at hx_fixed
             exact hx_fixed
           have hprod_x := formPerm_prod_apply_eq hpwd' hl'_mem hx_l'
           have hfp_x : l'.formPerm x = x := by
@@ -1424,7 +1426,7 @@ theorem canonicalDcd_exists_unique (σ : Perm α) :
               _ = x := hσx
           have hlen : l'.length ≤ 1 := by
             by_contra hlen'
-            push_neg at hlen'
+            push Not at hlen'
             rw [List.formPerm_apply_mem_eq_self_iff l' hnodup_l' x hx_l'] at hfp_x
             omega
           have hlen1 : l'.length = 1 := by

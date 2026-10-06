@@ -382,7 +382,7 @@ lemma DominoTiling_dominos_pos (T : DominoTilings.DominoTiling n m) (d : DominoT
 lemma toDominoZ_pairwise_disjoint (T : DominoTilings.DominoTiling n m) :
     Set.PairwiseDisjoint (dominoFinsetToSet T.dominos) DominoTilingsZ.Domino.toShape := by
   intro dz1 hdz1 dz2 hdz2 hne
-  simp only [dominoFinsetToSet, Set.mem_setOf_eq] at hdz1 hdz2
+  simp only [dominoFinsetToSet, Set.mem_ofPred_eq] at hdz1 hdz2
   obtain ⟨d1, hd1, rfl⟩ := hdz1
   obtain ⟨d2, hd2, rfl⟩ := hdz2
   -- Use that d1 ≠ d2 (since the cells would overlap otherwise)
@@ -439,7 +439,7 @@ lemma toDominoZ_pairwise_disjoint (T : DominoTilings.DominoTiling n m) :
 lemma toDominoZ_cover (T : DominoTilings.DominoTiling n m) :
     ⋃ d ∈ dominoFinsetToSet T.dominos, d.toShape = DominoTilingsZ.Rectangle n m := by
   ext ⟨x, y⟩
-  simp only [Set.mem_iUnion, dominoFinsetToSet, Set.mem_setOf_eq, 
+  simp only [Set.mem_iUnion, dominoFinsetToSet, Set.mem_ofPred_eq, 
              DominoTilingsZ.mem_rectangle_iff]
   constructor
   · rintro ⟨dz, ⟨d, hd, rfl⟩, hxy⟩
